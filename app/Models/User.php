@@ -126,4 +126,19 @@ class User extends Authenticatable
     {
         return $this->hasMany(BahanBaku::class, 'deleted_by', 'user_id');
     }
+
+    public function produkCreatedBy()
+    {
+        return $this->hasMany(Produk::class, 'created_by', 'user_id');
+    }
+
+    public function produkUpdatedBy()
+    {
+        return $this->hasMany(Produk::class, 'updated_by', 'user_id');
+    }
+
+    public function produkDeletedBy()
+    {
+        return $this->hasMany(Produk::class, 'deleted_by', 'user_id');
+    }
 }
