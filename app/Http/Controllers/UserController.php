@@ -32,7 +32,7 @@ class UserController extends Controller
                 ->orWhere('email', 'like', '%' . $search . '%');
         }
 
-        if ($roleFilter) {
+        if ($roleFilter && $roleFilter !== 'all') {
             $query->where('role_id', $roleFilter);
         }
 
@@ -49,7 +49,12 @@ class UserController extends Controller
                 'search' => $search,
                 'sort_by' => $sortBy,
                 'sort_direction' => $sortDirection,
-                'per_page' => $perPage,
+                'per_page' => (int) $perPage,
+                'role_id' => $roleFilter,
+            ],
+            'flash' => [
+                'message' => session('message'),
+                'type' => session('type', 'success'),
             ],
         ]);
     }
@@ -90,7 +95,8 @@ class UserController extends Controller
         ]);
 
         return redirect()->route('users.index')
-            ->with('message', 'User created successfully.');
+            ->with('message', "User '{$validated['nama_lengkap']}' has been successfully created with ID: {$user_id}.")
+            ->with('type', 'success');
     }
 
     public function edit(User $user)
@@ -124,14 +130,25 @@ class UserController extends Controller
         $user->update($userData);
 
         return redirect()->route('users.index')
-            ->with('message', 'User updated successfully.');
+            ->with('message', "User '{$validated['nama_lengkap']}' has been successfully updated.")
+            ->with('type', 'success');
     }
 
     public function destroy(User $user)
     {
-        $user->delete();
+        try {
+            $userName = $user->nama_lengkap;
+            $userId = $user->user_id;
 
-        return redirect()->route('users.index')
-            ->with('message', 'User deleted successfully.');
+            $user->delete();
+
+            return redirect()->route('users.index')
+                ->with('message', "User '{$userName}' (ID: {$userId}) has been successfully deleted.")
+                ->with('type', 'success');
+        } catch (\Exception $e) {
+            return redirect()->route('users.index')
+                ->with('message', 'Failed to delete user. Please try again.')
+                ->with('type', 'error');
+        }
     }
 }
