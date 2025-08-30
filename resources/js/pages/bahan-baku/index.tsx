@@ -1,0 +1,161 @@
+// Index.tsx - Bahan Baku
+import TableTemplate from '@/components/table/table-template';
+import { type BreadcrumbItem } from '@/types';
+
+interface BahanBaku extends Record<string, unknown> {
+    bahan_baku_id: string;
+    nama_bahan: string;
+    lokasi_bahan: string;
+    stok_bahan: number;
+    satuan_bahan: string;
+    harga_bahan: number;
+    permintaan_harian_rata2_bahan: number;
+    permintaan_harian_maksimum_bahan: number;
+    waktu_tunggu_rata2_bahan: number;
+    waktu_tunggu_maksimum_bahan: number;
+    permintaan_tahunan: number;
+    biaya_pemesanan_bahan: number;
+    biaya_penyimpanan_bahan: number;
+    safety_stock_bahan?: number;
+    rop_bahan?: number;
+    eoq_bahan?: number;
+}
+
+interface PaginationLink {
+    url: string | null;
+    label: string;
+    active: boolean;
+}
+
+interface PaginatedBahanBaku {
+    data: BahanBaku[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    from: number;
+    to: number;
+    links: PaginationLink[];
+}
+
+interface Filters {
+    search?: string;
+    sort_by: string;
+    sort_direction: 'asc' | 'desc';
+    per_page: number;
+    lokasi_bahan?: string;
+    satuan_bahan?: string;
+    [key: string]: string | number | undefined;
+}
+
+interface Props {
+    bahanBaku: PaginatedBahanBaku;
+    filters: Filters;
+    uniqueLokasi: string[];
+    uniqueSatuan: string[];
+    flash?: {
+        message?: string;
+        type?: 'success' | 'error' | 'warning' | 'info';
+    };
+}
+
+const breadcrumbs: BreadcrumbItem[] = [
+    {
+        title: 'Bahan Baku',
+        href: '/bahan-baku',
+    },
+];
+
+export default function Index({ bahanBaku, filters, uniqueLokasi, uniqueSatuan, flash }: Props) {
+    const columns = [
+        {
+            key: 'bahan_baku_id',
+            label: 'Kode Bahan',
+            sortable: true,
+        },
+        {
+            key: 'nama_bahan',
+            label: 'Nama Bahan',
+            sortable: true,
+        },
+        {
+            key: 'lokasi_bahan',
+            label: 'Lokasi',
+            sortable: true,
+        },
+        {
+            key: 'stok_bahan',
+            label: 'Stok',
+            sortable: true,
+            render: (item: BahanBaku) => `${item.stok_bahan} ${item.satuan_bahan}`,
+        },
+        {
+            key: 'harga_bahan',
+            label: 'Harga',
+            sortable: true,
+            render: (item: BahanBaku) => `Rp ${item.harga_bahan.toLocaleString('id-ID')}`,
+        },
+        {
+            key: 'safety_stock_bahan',
+            label: 'Safety Stock',
+            sortable: true,
+            render: (item: BahanBaku) => (item.safety_stock_bahan ? `${item.safety_stock_bahan.toFixed(2)} ${item.satuan_bahan}` : '-'),
+        },
+        {
+            key: 'rop_bahan',
+            label: 'ROP',
+            sortable: true,
+            render: (item: BahanBaku) => (item.rop_bahan ? `${item.rop_bahan.toFixed(2)} ${item.satuan_bahan}` : '-'),
+        },
+        {
+            key: 'eoq_bahan',
+            label: 'EOQ',
+            sortable: true,
+            render: (item: BahanBaku) => (item.eoq_bahan ? `${item.eoq_bahan.toFixed(2)} ${item.satuan_bahan}` : '-'),
+        },
+    ];
+
+    const filterOptions = [
+        {
+            key: 'lokasi_bahan',
+            label: 'Lokasi',
+            type: 'select' as const,
+            placeholder: 'All Locations',
+            options: uniqueLokasi.map((lokasi) => ({
+                value: lokasi,
+                label: lokasi,
+            })),
+        },
+        {
+            key: 'satuan_bahan',
+            label: 'Satuan',
+            type: 'select' as const,
+            placeholder: 'All Units',
+            options: uniqueSatuan.map((satuan) => ({
+                value: satuan,
+                label: satuan,
+            })),
+        },
+    ];
+
+    return (
+        <TableTemplate<BahanBaku>
+            title="Bahan Baku Management"
+            breadcrumbs={breadcrumbs}
+            data={bahanBaku}
+            columns={columns}
+            createUrl="/bahan-baku/create"
+            createButtonText="Add Bahan Baku"
+            searchPlaceholder="Search by material name or location..."
+            filters={filters}
+            filterOptions={filterOptions}
+            baseUrl="/bahan-baku"
+            showEditButton={true}
+            showDeleteButton={true}
+            flash={flash}
+            deleteDialogTitle="Delete Bahan Baku"
+            deleteDialogMessage={(item) => `Are you sure you want to delete material "${item.nama_bahan}"? This action cannot be undone.`}
+            getItemName={(item) => item.nama_bahan}
+        />
+    );
+}
