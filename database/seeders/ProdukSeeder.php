@@ -25,7 +25,7 @@ class ProdukSeeder extends Seeder
             $randomBahanBakus = $bahanBakus->random(rand(3, 8));
 
             foreach ($randomBahanBakus as $bahanBaku) {
-                $p->bahanBakus()->attach($bahanBaku->bahan_baku_id, [
+                $p->bahanBaku()->attach($bahanBaku->bahan_baku_id, [
                     'jumlah_bahan_baku' => rand(1, 10)
                 ]);
             }

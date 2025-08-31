@@ -38,6 +38,7 @@ class DatabaseSeeder extends Seeder
             ProdukSeeder::class,
             PelangganSeeder::class,
             PesananSeeder::class,
+            PengirimanSeeder::class,
         ]);
     }
 }

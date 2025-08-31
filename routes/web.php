@@ -7,6 +7,7 @@ use App\Http\Controllers\BahanBakuController;
 use App\Http\Controllers\ProdukController;
 use App\Http\Controllers\PelangganController;
 use App\Http\Controllers\PesananController;
+use App\Http\Controllers\PengirimanController;
 
 Route::get('/', function () {
     return Inertia::render('welcome');
@@ -31,6 +32,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Pesanan CRUD routes
     Route::resource('pesanan', PesananController::class);
+
+    // Pengiriman CRUD routes
+    Route::resource('pengiriman', PengirimanController::class);
+    Route::patch('pengiriman/{pengiriman}/status', [PengirimanController::class, 'updateStatus'])->name('pengiriman.update-status');
 });
 
 require __DIR__ . '/settings.php';

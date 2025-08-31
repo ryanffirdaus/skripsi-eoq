@@ -3,7 +3,7 @@ import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { Atom, Container, LayoutGrid, ShoppingCart, Users } from 'lucide-react';
+import { Atom, Container, LayoutGrid, ShoppingCart, Truck, Users } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
@@ -36,6 +36,11 @@ const mainNavItems: NavItem[] = [
         title: 'Pesanan',
         href: '/pesanan',
         icon: ShoppingCart,
+    },
+    {
+        title: 'Pengiriman',
+        href: '/pengiriman',
+        icon: Truck,
     },
 ];
 
