@@ -28,6 +28,11 @@ const mainNavItems: NavItem[] = [
         href: '/produk',
         icon: Container,
     },
+    {
+        title: 'Pelanggan',
+        href: '/pelanggan',
+        icon: Users,
+    },
 ];
 
 export function AppSidebar() {

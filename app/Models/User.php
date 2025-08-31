@@ -74,7 +74,7 @@ class User extends Authenticatable
         ];
     }
 
-        protected static function boot()
+    protected static function boot()
     {
         parent::boot();
 
@@ -140,5 +140,20 @@ class User extends Authenticatable
     public function produkDeletedBy()
     {
         return $this->hasMany(Produk::class, 'deleted_by', 'user_id');
+    }
+
+    public function pelangganCreatedBy()
+    {
+        return $this->hasMany(Pelanggan::class, 'created_by', 'user_id');
+    }
+
+    public function pelangganUpdatedBy()
+    {
+        return $this->hasMany(Pelanggan::class, 'updated_by', 'user_id');
+    }
+
+    public function pelangganDeletedBy()
+    {
+        return $this->hasMany(Pelanggan::class, 'deleted_by', 'user_id');
     }
 }

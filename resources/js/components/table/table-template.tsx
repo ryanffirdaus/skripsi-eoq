@@ -4,9 +4,13 @@ import AppLayout from '@/layouts/app-layout';
 import { colors } from '@/lib/colors';
 import { cn } from '@/lib/utils';
 import { type BreadcrumbItem } from '@/types';
-import { ArrowDownIcon, ArrowUpIcon, FunnelIcon, MagnifyingGlassIcon, PlusIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { ArrowDownIcon, ArrowUpIcon, EyeIcon, FunnelIcon, MagnifyingGlassIcon, PlusIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { Head, Link, router } from '@inertiajs/react';
 import React, { FormEvent, useEffect, useRef, useState } from 'react';
+
+// Constants to prevent re-renders
+const EMPTY_FILTER_OPTIONS: FilterOption[] = [];
+const EMPTY_ACTIONS: ActionButton<Record<string, unknown>>[] = [];
 
 interface PaginationLink {
     url: string | null;
@@ -31,6 +35,8 @@ interface ColumnDefinition<T> {
     sortable?: boolean;
     render?: (item: T) => React.ReactNode;
     className?: string;
+    hideable?: boolean; // Whether this column can be hidden/shown
+    defaultVisible?: boolean; // Whether this column is visible by default
 }
 
 interface FilterOption {
@@ -88,9 +94,9 @@ export default function TableTemplate<T extends Record<string, unknown>>({
     createButtonText = 'Add Item',
     searchPlaceholder = 'Search...',
     filters,
-    filterOptions = [],
+    filterOptions = EMPTY_FILTER_OPTIONS,
     baseUrl,
-    actions = [],
+    actions = EMPTY_ACTIONS,
     flash,
     onDelete,
     deleteDialogTitle = 'Delete Confirmation',
@@ -102,6 +108,19 @@ export default function TableTemplate<T extends Record<string, unknown>>({
     const [deleteCallback, setDeleteCallback] = useState<((item: T) => void) | null>(null);
     const [message, setMessage] = useState<string | null>(null);
     const [isFilterOpen, setIsFilterOpen] = useState(false);
+    const [isColumnSelectorOpen, setIsColumnSelectorOpen] = useState(false);
+
+    // Initialize visible columns based on defaultVisible or all visible by default
+    const [visibleColumns, setVisibleColumns] = useState<Set<string>>(() => {
+        const initialVisible = new Set<string>();
+        columns.forEach((column) => {
+            if (column.defaultVisible !== false) {
+                // Show by default unless explicitly set to false
+                initialVisible.add(column.key);
+            }
+        });
+        return initialVisible;
+    });
 
     // Local state for form inputs - Initialize from filters prop
     const [search, setSearch] = useState(filters?.search || '');
@@ -123,12 +142,14 @@ export default function TableTemplate<T extends Record<string, unknown>>({
             setPerPage(filters.per_page || 10);
 
             const initialFilters: Record<string, string> = {};
-            filterOptions.forEach((option) => {
-                const value = filters[option.key];
-                if (value !== undefined && value !== null && value !== '') {
-                    initialFilters[option.key] = String(value);
-                }
-            });
+            if (filterOptions) {
+                filterOptions.forEach((option) => {
+                    const value = filters[option.key];
+                    if (value !== undefined && value !== null && value !== '') {
+                        initialFilters[option.key] = String(value);
+                    }
+                });
+            }
             setLocalFilters(initialFilters);
         }
     }, [filters, filterOptions]);
@@ -179,6 +200,31 @@ export default function TableTemplate<T extends Record<string, unknown>>({
             replace: true,
         });
     };
+
+    // Column visibility management
+    const toggleColumnVisibility = (columnKey: string) => {
+        setVisibleColumns((prev) => {
+            const newVisible = new Set(prev);
+            if (newVisible.has(columnKey)) {
+                newVisible.delete(columnKey);
+            } else {
+                newVisible.add(columnKey);
+            }
+            return newVisible;
+        });
+    };
+
+    const showAllColumns = () => {
+        const allColumnKeys = new Set(columns.map((col) => col.key));
+        setVisibleColumns(allColumnKeys);
+    };
+
+    const hideAllColumns = () => {
+        setVisibleColumns(new Set());
+    };
+
+    // Filter visible columns
+    const visibleColumnsArray = columns.filter((column) => visibleColumns.has(column.key));
 
     const handleSearch = (e: FormEvent) => {
         e.preventDefault();
@@ -433,6 +479,17 @@ export default function TableTemplate<T extends Record<string, unknown>>({
                                 </Button>
                             )}
 
+                            {/* Column Selector Toggle */}
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setIsColumnSelectorOpen(!isColumnSelectorOpen)}
+                                className="flex items-center gap-2"
+                            >
+                                <EyeIcon className="h-4 w-4" />
+                                Columns
+                            </Button>
+
                             <Button type="submit" className="flex items-center gap-2">
                                 <MagnifyingGlassIcon className="h-4 w-4" />
                                 Search
@@ -481,6 +538,38 @@ export default function TableTemplate<T extends Record<string, unknown>>({
                             </div>
                         </div>
                     )}
+
+                    {/* Column Selector */}
+                    {isColumnSelectorOpen && (
+                        <div className={cn('border-t pt-4', colors.border.primary)}>
+                            <div className="mb-3 flex items-center justify-between">
+                                <h3 className="text-sm font-medium text-gray-900">Column Visibility</h3>
+                                <div className="flex gap-2">
+                                    <Button type="button" variant="outline" size="sm" onClick={showAllColumns} className="text-xs">
+                                        Show All
+                                    </Button>
+                                    <Button type="button" variant="outline" size="sm" onClick={hideAllColumns} className="text-xs">
+                                        Hide All
+                                    </Button>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+                                {columns
+                                    .filter((col) => col.hideable !== false)
+                                    .map((column) => (
+                                        <label key={column.key} className="flex items-center space-x-2 text-sm">
+                                            <input
+                                                type="checkbox"
+                                                checked={visibleColumns.has(column.key)}
+                                                onChange={() => toggleColumnVisibility(column.key)}
+                                                className="rounded"
+                                            />
+                                            <span className="truncate">{column.label}</span>
+                                        </label>
+                                    ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Results Summary */}
@@ -510,7 +599,7 @@ export default function TableTemplate<T extends Record<string, unknown>>({
                         <table className="w-full divide-y divide-gray-200 dark:divide-gray-700">
                             <thead className={cn(colors.background.secondary)}>
                                 <tr>
-                                    {columns.map((column) => (
+                                    {visibleColumnsArray.map((column) => (
                                         <th
                                             key={column.key}
                                             className={cn(
@@ -537,7 +626,7 @@ export default function TableTemplate<T extends Record<string, unknown>>({
                             <tbody className={cn('divide-y divide-gray-200 dark:divide-gray-700', colors.background.primary)}>
                                 {data.data.map((item, index) => (
                                     <tr key={index} className={colors.hover.primary}>
-                                        {columns.map((column) => (
+                                        {visibleColumnsArray.map((column) => (
                                             <td
                                                 key={column.key}
                                                 className={cn('px-6 py-4 text-sm whitespace-nowrap', colors.text.primary, column.className)}

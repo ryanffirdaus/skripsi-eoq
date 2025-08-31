@@ -5,6 +5,7 @@ use Inertia\Inertia;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\BahanBakuController;
 use App\Http\Controllers\ProdukController;
+use App\Http\Controllers\PelangganController;
 
 Route::get('/', function () {
     return Inertia::render('welcome');
@@ -23,6 +24,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Produk CRUD routes
     Route::resource('produk', ProdukController::class);
+
+    // Pelanggan CRUD routes
+    Route::resource('pelanggan', PelangganController::class);
 });
 
 require __DIR__ . '/settings.php';

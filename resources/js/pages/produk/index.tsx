@@ -75,51 +75,76 @@ export default function Index({ produk, filters, uniqueLokasi, uniqueSatuan, fla
             key: 'produk_id',
             label: 'Kode Produk',
             sortable: true,
+            hideable: true,
+            defaultVisible: true,
         },
         {
             key: 'nama_produk',
             label: 'Nama Produk',
             sortable: true,
+            hideable: true,
+            defaultVisible: true,
         },
         {
             key: 'lokasi_produk',
             label: 'Lokasi',
             sortable: true,
+            hideable: true,
+            defaultVisible: true,
         },
         {
             key: 'stok_produk',
             label: 'Stok',
             sortable: true,
+            hideable: true,
+            defaultVisible: true,
             render: (item: Produk) => `${item.stok_produk} ${item.satuan_produk}`,
         },
         {
             key: 'hpp_produk',
             label: 'HPP',
             sortable: true,
+            hideable: true,
+            defaultVisible: true,
             render: (item: Produk) => `Rp ${item.hpp_produk.toLocaleString('id-ID')}`,
+        },
+        {
+            key: 'satuan_produk',
+            label: 'Satuan',
+            sortable: true,
+            hideable: true,
+            defaultVisible: false, // Hidden by default
         },
         {
             key: 'harga_jual',
             label: 'Harga Jual',
             sortable: true,
+            hideable: true,
+            defaultVisible: false, // Hidden by default
             render: (item: Produk) => `Rp ${item.harga_jual.toLocaleString('id-ID')}`,
         },
         {
             key: 'safety_stock_produk',
             label: 'Safety Stock',
             sortable: true,
+            hideable: true,
+            defaultVisible: false, // Hidden by default
             render: (item: Produk) => (item.safety_stock_produk ? `${item.safety_stock_produk.toFixed(2)} ${item.satuan_produk}` : '-'),
         },
         {
             key: 'rop_produk',
             label: 'ROP',
             sortable: true,
+            hideable: true,
+            defaultVisible: false, // Hidden by default
             render: (item: Produk) => (item.rop_produk ? `${item.rop_produk.toFixed(2)} ${item.satuan_produk}` : '-'),
         },
         {
             key: 'eoq_produk',
             label: 'EOQ',
             sortable: true,
+            hideable: true,
+            defaultVisible: false, // Hidden by default
             render: (item: Produk) => (item.eoq_produk ? `${item.eoq_produk.toFixed(2)} ${item.satuan_produk}` : '-'),
         },
     ];

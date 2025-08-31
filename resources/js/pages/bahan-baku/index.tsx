@@ -74,45 +74,68 @@ export default function Index({ bahanBaku, filters, uniqueLokasi, uniqueSatuan, 
             key: 'bahan_baku_id',
             label: 'Kode Bahan',
             sortable: true,
+            hideable: true,
+            defaultVisible: true,
         },
         {
             key: 'nama_bahan',
             label: 'Nama Bahan',
             sortable: true,
+            hideable: true,
+            defaultVisible: true,
         },
         {
             key: 'lokasi_bahan',
             label: 'Lokasi',
             sortable: true,
+            hideable: true,
+            defaultVisible: true,
         },
         {
             key: 'stok_bahan',
             label: 'Stok',
             sortable: true,
+            hideable: true,
+            defaultVisible: true,
             render: (item: BahanBaku) => `${item.stok_bahan} ${item.satuan_bahan}`,
         },
         {
             key: 'harga_bahan',
             label: 'Harga',
             sortable: true,
+            hideable: true,
+            defaultVisible: true,
             render: (item: BahanBaku) => `Rp ${item.harga_bahan.toLocaleString('id-ID')}`,
+        },
+        {
+            key: 'satuan_bahan',
+            label: 'Satuan',
+            sortable: true,
+            hideable: true,
+            defaultVisible: false, // Hidden by default
         },
         {
             key: 'safety_stock_bahan',
             label: 'Safety Stock',
             sortable: true,
+            hideable: true,
+            defaultVisible: false, // Hidden by default
             render: (item: BahanBaku) => (item.safety_stock_bahan ? `${item.safety_stock_bahan.toFixed(2)} ${item.satuan_bahan}` : '-'),
         },
         {
             key: 'rop_bahan',
             label: 'ROP',
             sortable: true,
+            hideable: true,
+            defaultVisible: false, // Hidden by default
             render: (item: BahanBaku) => (item.rop_bahan ? `${item.rop_bahan.toFixed(2)} ${item.satuan_bahan}` : '-'),
         },
         {
             key: 'eoq_bahan',
             label: 'EOQ',
             sortable: true,
+            hideable: true,
+            defaultVisible: false, // Hidden by default
             render: (item: BahanBaku) => (item.eoq_bahan ? `${item.eoq_bahan.toFixed(2)} ${item.satuan_bahan}` : '-'),
         },
     ];

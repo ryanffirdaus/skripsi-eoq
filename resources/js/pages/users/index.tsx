@@ -13,6 +13,7 @@ interface User extends Record<string, unknown> {
     email: string;
     role_id?: string;
     role?: Role | null;
+    created_at: string;
 }
 
 interface PaginationLink {
@@ -63,22 +64,38 @@ export default function Index({ users, roles, filters, flash }: Props) {
             key: 'nama_lengkap',
             label: 'Name',
             sortable: true,
+            hideable: true,
+            defaultVisible: true,
         },
         {
             key: 'email',
             label: 'Email',
             sortable: true,
+            hideable: true,
+            defaultVisible: true,
         },
         {
             key: 'role',
             label: 'Role',
             sortable: true,
+            hideable: true,
+            defaultVisible: true,
             render: (user: User) => user.role?.name || '-',
         },
         {
             key: 'user_id',
             label: 'Kode User',
             sortable: true,
+            hideable: true,
+            defaultVisible: false, // Hidden by default
+        },
+        {
+            key: 'created_at',
+            label: 'Created At',
+            sortable: true,
+            hideable: true,
+            defaultVisible: false, // Hidden by default
+            render: (user: User) => new Date(user.created_at).toLocaleDateString('id-ID'),
         },
     ];
 
