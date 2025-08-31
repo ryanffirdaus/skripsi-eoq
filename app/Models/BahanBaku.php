@@ -47,7 +47,7 @@ class BahanBaku extends Model
         static::creating(function ($model) {
             // Generate the next ID if not provided
             if (!$model->bahan_baku_id) {
-                $latest = static::orderBy('bahan_baku_id', 'desc')->first();
+                $latest = static::withTrashed()->orderBy('bahan_baku_id', 'desc')->first();
                 $nextId = $latest ? (int) substr($latest->bahan_baku_id, 2) + 1 : 1;
                 $model->bahan_baku_id = 'BB' . str_pad($nextId, 3, '0', STR_PAD_LEFT);
             }

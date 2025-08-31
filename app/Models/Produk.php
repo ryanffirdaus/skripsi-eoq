@@ -47,7 +47,7 @@ class Produk extends Model
         static::creating(function ($model) {
             // Generate the next ID if not provided
             if (!$model->produk_id) {
-                $latest = static::orderBy('produk_id', 'desc')->first();
+                $latest = static::withTrashed()->orderBy('produk_id', 'desc')->first();
                 $nextId = $latest ? (int) substr($latest->produk_id, 2) + 1 : 1;
                 $model->produk_id = 'PP' . str_pad($nextId, 3, '0', STR_PAD_LEFT);
             }
