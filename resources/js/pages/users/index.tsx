@@ -1,5 +1,6 @@
 import TableTemplate from '@/components/table/table-template';
 import { type BreadcrumbItem } from '@/types';
+import { router } from '@inertiajs/react';
 
 interface Role {
     role_id: string;
@@ -94,6 +95,28 @@ export default function Index({ users, roles, filters, flash }: Props) {
         },
     ];
 
+    const actions = [
+        {
+            label: 'Edit',
+            variant: 'outline' as const,
+            onClick: (item: User) => {
+                router.visit(`/users/${item.user_id}/edit`);
+            },
+        },
+        {
+            label: 'Delete',
+            variant: 'destructive' as const,
+            onClick: (item: User) => {
+                router.delete(`/users/${item.user_id}`, {
+                    preserveState: false,
+                    onError: (errors) => {
+                        console.error('Delete failed:', errors);
+                    },
+                });
+            },
+        },
+    ];
+
     return (
         <TableTemplate<User>
             title="Users Management"
@@ -105,9 +128,8 @@ export default function Index({ users, roles, filters, flash }: Props) {
             searchPlaceholder="Search by name or email..."
             filters={filters}
             filterOptions={filterOptions}
+            actions={actions}
             baseUrl="/users"
-            showEditButton={true}
-            showDeleteButton={true}
             flash={flash}
             deleteDialogTitle="Delete User"
             deleteDialogMessage={(user) => `Are you sure you want to delete user "${user.nama_lengkap}"? This action cannot be undone.`}

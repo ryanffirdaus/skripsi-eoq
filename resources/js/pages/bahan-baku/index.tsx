@@ -1,6 +1,8 @@
-// Index.tsx - Bahan Baku
+// Index.tsx - Bahan Baku (Fixed version)
+import { createDeleteAction, createEditAction } from '@/components/table/table-actions';
 import TableTemplate from '@/components/table/table-template';
 import { type BreadcrumbItem } from '@/types';
+import { router } from '@inertiajs/react';
 
 interface BahanBaku extends Record<string, unknown> {
     bahan_baku_id: string;
@@ -138,6 +140,19 @@ export default function Index({ bahanBaku, filters, uniqueLokasi, uniqueSatuan, 
         },
     ];
 
+    // Actions using action templates
+    const actions = [
+        createEditAction<BahanBaku>((item) => `/bahan-baku/${item.bahan_baku_id}/edit`),
+        createDeleteAction<BahanBaku>((item) => {
+            router.delete(`/bahan-baku/${item.bahan_baku_id}`, {
+                preserveState: false,
+                onError: (errors) => {
+                    console.error('Delete failed:', errors);
+                },
+            });
+        }),
+    ];
+
     return (
         <TableTemplate<BahanBaku>
             title="Bahan Baku Management"
@@ -150,8 +165,7 @@ export default function Index({ bahanBaku, filters, uniqueLokasi, uniqueSatuan, 
             filters={filters}
             filterOptions={filterOptions}
             baseUrl="/bahan-baku"
-            showEditButton={true}
-            showDeleteButton={true}
+            actions={actions}
             flash={flash}
             deleteDialogTitle="Delete Bahan Baku"
             deleteDialogMessage={(item) => `Are you sure you want to delete material "${item.nama_bahan}"? This action cannot be undone.`}
