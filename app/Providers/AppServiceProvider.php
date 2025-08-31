@@ -2,6 +2,12 @@
 
 namespace App\Providers;
 
+use App\Models\BahanBaku;
+use App\Models\Produk;
+use App\Models\Pengiriman;
+use App\Observers\BahanBakuObserver;
+use App\Observers\ProdukObserver;
+use App\Observers\PengirimanObserver;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +25,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Register model observers
+        BahanBaku::observe(BahanBakuObserver::class);
+        Produk::observe(ProdukObserver::class);
+        Pengiriman::observe(PengirimanObserver::class);
     }
 }

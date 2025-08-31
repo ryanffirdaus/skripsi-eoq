@@ -45,12 +45,12 @@ const kurirOptions = [
 ];
 
 const jenisLayananOptions: Record<string, string[]> = {
-    'JNE': ['REG', 'YES', 'OKE'],
+    JNE: ['REG', 'YES', 'OKE'],
     'J&T': ['EZ', 'REG', 'SUPER'],
-    'TIKI': ['REG', 'ECO', 'ONS'],
+    TIKI: ['REG', 'ECO', 'ONS'],
     'POS Indonesia': ['REGULER', 'EXPRESS'],
-    'SiCepat': ['REG', 'BEST'],
-    'AnterAja': ['REGULER', 'SAME DAY'],
+    SiCepat: ['REG', 'BEST'],
+    AnterAja: ['REGULER', 'SAME DAY'],
 };
 
 export default function Create({ pesanan }: Props) {
@@ -77,22 +77,22 @@ export default function Create({ pesanan }: Props) {
         });
     };
 
-    const selectedPesanan = pesanan.find(p => p.pesanan_id === data.pesanan_id);
+    const selectedPesanan = pesanan.find((p) => p.pesanan_id === data.pesanan_id);
     const availableLayanan = data.kurir ? jenisLayananOptions[data.kurir] || [] : [];
 
     return (
-        <AppLayout breadcrumbs={[
-            { title: 'Pengiriman', href: '/pengiriman' },
-            { title: 'Buat Pengiriman', href: '/pengiriman/create' },
-        ]}>
+        <AppLayout
+            breadcrumbs={[
+                { title: 'Pengiriman', href: '/pengiriman' },
+                { title: 'Buat Pengiriman', href: '/pengiriman/create' },
+            ]}
+        >
             <Head title="Buat Pengiriman" />
 
             <div className="space-y-6">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">Buat Pengiriman</h1>
-                    <p className="text-muted-foreground">
-                        Buat pengiriman baru untuk pesanan yang sudah dikonfirmasi
-                    </p>
+                    <p className="text-muted-foreground">Buat pengiriman baru untuk pesanan yang sudah dikonfirmasi</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
@@ -101,9 +101,7 @@ export default function Create({ pesanan }: Props) {
                         <Card>
                             <CardHeader>
                                 <CardTitle>Informasi Pesanan</CardTitle>
-                                <CardDescription>
-                                    Pilih pesanan yang akan dikirim
-                                </CardDescription>
+                                <CardDescription>Pilih pesanan yang akan dikirim</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="space-y-2">
@@ -125,19 +123,26 @@ export default function Create({ pesanan }: Props) {
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    {errors.pesanan_id && (
-                                        <p className="text-sm text-destructive">{errors.pesanan_id}</p>
-                                    )}
+                                    {errors.pesanan_id && <p className="text-sm text-destructive">{errors.pesanan_id}</p>}
                                 </div>
 
                                 {selectedPesanan && (
-                                    <div className="rounded-lg border p-3 bg-muted/50">
-                                        <h4 className="font-medium mb-2">Detail Pesanan</h4>
+                                    <div className="rounded-lg border bg-muted/50 p-3">
+                                        <h4 className="mb-2 font-medium">Detail Pesanan</h4>
                                         <div className="space-y-1 text-sm">
-                                            <p><span className="font-medium">Pelanggan:</span> {selectedPesanan.pelanggan.nama_pelanggan}</p>
-                                            <p><span className="font-medium">Total:</span> Rp {selectedPesanan.total_harga.toLocaleString()}</p>
-                                            <p><span className="font-medium">Alamat:</span> {selectedPesanan.pelanggan.alamat_pelanggan}, {selectedPesanan.pelanggan.kota_pelanggan}</p>
-                                            <p><span className="font-medium">Telepon:</span> {selectedPesanan.pelanggan.telepon_pelanggan}</p>
+                                            <p>
+                                                <span className="font-medium">Pelanggan:</span> {selectedPesanan.pelanggan.nama_pelanggan}
+                                            </p>
+                                            <p>
+                                                <span className="font-medium">Total:</span> Rp {selectedPesanan.total_harga.toLocaleString()}
+                                            </p>
+                                            <p>
+                                                <span className="font-medium">Alamat:</span> {selectedPesanan.pelanggan.alamat_pelanggan},{' '}
+                                                {selectedPesanan.pelanggan.kota_pelanggan}
+                                            </p>
+                                            <p>
+                                                <span className="font-medium">Telepon:</span> {selectedPesanan.pelanggan.telepon_pelanggan}
+                                            </p>
                                         </div>
                                     </div>
                                 )}
@@ -148,9 +153,7 @@ export default function Create({ pesanan }: Props) {
                         <Card>
                             <CardHeader>
                                 <CardTitle>Informasi Pengiriman</CardTitle>
-                                <CardDescription>
-                                    Pilih kurir dan layanan pengiriman
-                                </CardDescription>
+                                <CardDescription>Pilih kurir dan layanan pengiriman</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="space-y-2">
@@ -167,14 +170,16 @@ export default function Create({ pesanan }: Props) {
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    {errors.kurir && (
-                                        <p className="text-sm text-destructive">{errors.kurir}</p>
-                                    )}
+                                    {errors.kurir && <p className="text-sm text-destructive">{errors.kurir}</p>}
                                 </div>
 
                                 <div className="space-y-2">
                                     <Label htmlFor="jenis_layanan">Jenis Layanan</Label>
-                                    <Select value={data.jenis_layanan} onValueChange={(value) => setData('jenis_layanan', value)} disabled={!data.kurir}>
+                                    <Select
+                                        value={data.jenis_layanan}
+                                        onValueChange={(value) => setData('jenis_layanan', value)}
+                                        disabled={!data.kurir}
+                                    >
                                         <SelectTrigger>
                                             <SelectValue placeholder="Pilih jenis layanan" />
                                         </SelectTrigger>
@@ -186,9 +191,7 @@ export default function Create({ pesanan }: Props) {
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    {errors.jenis_layanan && (
-                                        <p className="text-sm text-destructive">{errors.jenis_layanan}</p>
-                                    )}
+                                    {errors.jenis_layanan && <p className="text-sm text-destructive">{errors.jenis_layanan}</p>}
                                 </div>
 
                                 <div className="space-y-2">
@@ -200,9 +203,7 @@ export default function Create({ pesanan }: Props) {
                                         placeholder="Masukkan nomor resi"
                                         className={cn(errors.nomor_resi && 'border-destructive')}
                                     />
-                                    {errors.nomor_resi && (
-                                        <p className="text-sm text-destructive">{errors.nomor_resi}</p>
-                                    )}
+                                    {errors.nomor_resi && <p className="text-sm text-destructive">{errors.nomor_resi}</p>}
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
@@ -216,9 +217,7 @@ export default function Create({ pesanan }: Props) {
                                             placeholder="0"
                                             className={cn(errors.biaya_pengiriman && 'border-destructive')}
                                         />
-                                        {errors.biaya_pengiriman && (
-                                            <p className="text-sm text-destructive">{errors.biaya_pengiriman}</p>
-                                        )}
+                                        {errors.biaya_pengiriman && <p className="text-sm text-destructive">{errors.biaya_pengiriman}</p>}
                                     </div>
 
                                     <div className="space-y-2">
@@ -232,9 +231,7 @@ export default function Create({ pesanan }: Props) {
                                             min="1"
                                             className={cn(errors.estimasi_hari && 'border-destructive')}
                                         />
-                                        {errors.estimasi_hari && (
-                                            <p className="text-sm text-destructive">{errors.estimasi_hari}</p>
-                                        )}
+                                        {errors.estimasi_hari && <p className="text-sm text-destructive">{errors.estimasi_hari}</p>}
                                     </div>
                                 </div>
 
@@ -248,9 +245,7 @@ export default function Create({ pesanan }: Props) {
                                         rows={3}
                                         className={cn(errors.catatan && 'border-destructive')}
                                     />
-                                    {errors.catatan && (
-                                        <p className="text-sm text-destructive">{errors.catatan}</p>
-                                    )}
+                                    {errors.catatan && <p className="text-sm text-destructive">{errors.catatan}</p>}
                                 </div>
                             </CardContent>
                         </Card>
