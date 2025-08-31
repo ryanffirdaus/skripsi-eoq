@@ -15,6 +15,8 @@ class Produk extends Model
 
     protected $keyType = 'string';
 
+    protected $table = 'produk';
+
     public $incrementing = false;
 
     protected $fillable = [
@@ -89,6 +91,6 @@ class Produk extends Model
     public function bahanBakus()
     {
         return $this->belongsToMany(BahanBaku::class, 'bahan_produksi', 'produk_id', 'bahan_baku_id')
-                    ->withPivot('jumlah_bahan_baku');
+            ->withPivot('jumlah_bahan_baku');
     }
 }

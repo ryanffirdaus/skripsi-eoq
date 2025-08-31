@@ -16,6 +16,8 @@ class BahanBaku extends Model
 
     protected $keyType = 'string';
 
+    protected $table = 'bahan_baku';
+
     public $incrementing = false;
 
     protected $fillable = [

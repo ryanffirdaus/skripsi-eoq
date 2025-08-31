@@ -14,6 +14,8 @@ class Pelanggan extends Model
 
     protected $keyType = 'string';
 
+    protected $table = 'pelanggan';
+
     public $incrementing = false;
 
     protected $fillable = [
