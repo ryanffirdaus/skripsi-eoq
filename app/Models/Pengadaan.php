@@ -88,6 +88,16 @@ class Pengadaan extends Model
         return $this->hasMany(PengadaanDetail::class, 'pengadaan_id', 'pengadaan_id');
     }
 
+    public function pengadaanDetails()
+    {
+        return $this->hasMany(PengadaanDetail::class, 'pengadaan_id', 'pengadaan_id');
+    }
+
+    public function pembelian()
+    {
+        return $this->hasMany(Pembelian::class, 'pengadaan_id', 'pengadaan_id');
+    }
+
     public function createdBy()
     {
         return $this->belongsTo(User::class, 'created_by', 'user_id');

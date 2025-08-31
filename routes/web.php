@@ -10,6 +10,7 @@ use App\Http\Controllers\PesananController;
 use App\Http\Controllers\PengirimanController;
 
 use App\Http\Controllers\PengadaanController;
+use App\Http\Controllers\PembelianController;
 
 Route::get('/', function () {
     return Inertia::render('welcome');
@@ -47,6 +48,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('pengadaan/{pengadaan}/approve', [PengadaanController::class, 'approve'])->name('pengadaan.approve');
     Route::patch('pengadaan/{pengadaan}/status', [PengadaanController::class, 'updateStatus'])->name('pengadaan.update-status');
     Route::post('pengadaan/{pengadaan}/receive', [PengadaanController::class, 'receiveItems'])->name('pengadaan.receive');
+
+    // Pembelian (Purchase Order) CRUD routes
+    Route::resource('pembelian', PembelianController::class);
+    Route::get('pembelian/create/from-pengadaan/{pengadaan}', [PembelianController::class, 'createFromPengadaan'])->name('pembelian.create-from-pengadaan');
+    Route::patch('pembelian/{pembelian}/status', [PembelianController::class, 'updateStatus'])->name('pembelian.update-status');
+    Route::get('pembelian/{pembelian}/receive', [PembelianController::class, 'showReceiveForm'])->name('pembelian.receive-form');
+    Route::post('pembelian/{pembelian}/receive', [PembelianController::class, 'receiveItems'])->name('pembelian.receive');
 });
 
 require __DIR__ . '/settings.php';

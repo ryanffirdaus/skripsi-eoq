@@ -47,6 +47,11 @@ const mainNavItems: NavItem[] = [
         href: '/pengadaan',
         icon: Package,
     },
+    {
+        title: 'Pembelian',
+        href: '/pembelian',
+        icon: ShoppingCart,
+    },
 ];
 
 export function AppSidebar() {
