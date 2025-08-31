@@ -75,11 +75,8 @@ interface TableTemplateProps<T> {
     deleteDialogTitle?: string;
     deleteDialogMessage?: (item: T) => string;
     getItemName?: (item: T) => string;
-    // New props for action button visibility and labels
-    showEditButton?: boolean;
-    showDeleteButton?: boolean;
-    editButtonLabel?: string;
-    deleteButtonLabel?: string;
+    // New prop to specify the ID field name (kept for compatibility)
+    idField?: string;
 }
 
 export default function TableTemplate<T extends Record<string, unknown>>({
@@ -99,10 +96,6 @@ export default function TableTemplate<T extends Record<string, unknown>>({
     deleteDialogTitle = 'Delete Confirmation',
     deleteDialogMessage = () => 'Are you sure you want to delete this item? This action cannot be undone.',
     getItemName = () => '',
-    showEditButton = false,
-    showDeleteButton = false,
-    editButtonLabel = 'Edit',
-    deleteButtonLabel = 'Delete',
 }: TableTemplateProps<T>) {
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [itemToDelete, setItemToDelete] = useState<T | null>(null);
@@ -534,7 +527,7 @@ export default function TableTemplate<T extends Record<string, unknown>>({
                                             </div>
                                         </th>
                                     ))}
-                                    {(actions.length > 0 || showEditButton || showDeleteButton) && (
+                                    {actions.length > 0 && (
                                         <th
                                             className={cn('px-6 py-3 text-right text-xs font-medium tracking-wider uppercase', colors.text.secondary)}
                                         ></th>
@@ -552,10 +545,10 @@ export default function TableTemplate<T extends Record<string, unknown>>({
                                                 {column.render ? column.render(item) : String(item[column.key] || '')}
                                             </td>
                                         ))}
-                                        {(actions.length > 0 || showEditButton || showDeleteButton) && (
+                                        {actions.length > 0 && (
                                             <td className="px-6 py-4 text-sm font-medium whitespace-nowrap">
                                                 <div className="flex items-center justify-end gap-2">
-                                                    {/* Custom actions */}
+                                                    {/* Custom actions only */}
                                                     {actions.map((action, actionIndex) => {
                                                         if (action.show && !action.show(item)) return null;
 
@@ -578,64 +571,6 @@ export default function TableTemplate<T extends Record<string, unknown>>({
                                                             </Button>
                                                         );
                                                     })}
-
-                                                    {/* Built-in Edit Button */}
-                                                    {showEditButton && (
-                                                        <Button
-                                                            variant="outline"
-                                                            size="sm"
-                                                            onClick={() => {
-                                                                // Try to find edit action in custom actions first
-                                                                const editAction = actions.find((a) => a.label.toLowerCase().includes('edit'));
-                                                                if (editAction) {
-                                                                    editAction.onClick(item);
-                                                                } else {
-                                                                    // Default behavior - navigate to edit route
-                                                                    const itemId = item.user_id || item.id;
-                                                                    if (itemId) {
-                                                                        router.visit(`${baseUrl}/${itemId}/edit`);
-                                                                    }
-                                                                }
-                                                            }}
-                                                            className="flex items-center gap-1"
-                                                        >
-                                                            {editButtonLabel}
-                                                        </Button>
-                                                    )}
-
-                                                    {/* Built-in Delete Button */}
-                                                    {showDeleteButton && (
-                                                        <Button
-                                                            variant="destructive"
-                                                            size="sm"
-                                                            onClick={() => {
-                                                                const itemId = item.id || item.user_id;
-
-                                                                if (onDelete) {
-                                                                    // Use provided handler if available
-                                                                    confirmDelete(item, onDelete);
-                                                                } else if (itemId) {
-                                                                    // Default delete behavior using Inertia router
-                                                                    confirmDelete(item, (itemToDelete) => {
-                                                                        const deleteId = itemToDelete.id || itemToDelete.user_id;
-                                                                        router.delete(`${baseUrl}/${deleteId}`, {
-                                                                            preserveState: false, // Allow flash message to be received
-                                                                            onError: (errors) => {
-                                                                                console.error('Delete failed:', errors);
-                                                                                setMessage('Failed to delete item. Please try again.');
-                                                                            },
-                                                                        });
-                                                                    });
-                                                                } else {
-                                                                    console.error('Cannot delete item: no ID found and no onDelete handler provided');
-                                                                    alert('Could not delete this item. Missing identifier.');
-                                                                }
-                                                            }}
-                                                            className="flex items-center gap-1"
-                                                        >
-                                                            {deleteButtonLabel}
-                                                        </Button>
-                                                    )}
                                                 </div>
                                             </td>
                                         )}
@@ -644,7 +579,7 @@ export default function TableTemplate<T extends Record<string, unknown>>({
                                 {data.data.length === 0 && (
                                     <tr>
                                         <td
-                                            colSpan={columns.length + (actions.length > 0 || showEditButton || showDeleteButton ? 1 : 0)}
+                                            colSpan={columns.length + (actions.length > 0 ? 1 : 0)}
                                             className={cn('px-6 py-8 text-center text-sm', colors.text.secondary)}
                                         >
                                             No data available
