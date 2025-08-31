@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\BahanBakuController;
+use App\Http\Controllers\ProdukController;
 
 Route::get('/', function () {
     return Inertia::render('welcome');
@@ -15,6 +17,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // User CRUD routes
     Route::resource('users', UserController::class);
+
+    // Bahan Baku CRUD routes
+    Route::resource('bahan-baku', BahanBakuController::class);
+
+    // Produk CRUD routes
+    Route::resource('produk', ProdukController::class);
 });
 
 require __DIR__ . '/settings.php';
