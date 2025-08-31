@@ -16,8 +16,8 @@ return new class extends Migration
             $table->string('bahan_baku_id')->nullable();
             $table->integer('jumlah_bahan_baku');
 
-            $table->foreign('produk_id')->references('produk_id')->on('produks')->onDelete('set null');
-            $table->foreign('bahan_baku_id')->references('bahan_baku_id')->on('bahan_bakus')->onDelete('set null');
+            $table->foreign('produk_id')->references('produk_id')->on('produk')->onDelete('set null');
+            $table->foreign('bahan_baku_id')->references('bahan_baku_id')->on('bahan_baku')->onDelete('set null');
         });
     }
 

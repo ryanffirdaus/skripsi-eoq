@@ -62,6 +62,22 @@ class PelangganController extends Controller
     }
 
     /**
+     * Display the specified pelanggan.
+     */
+    public function show(Pelanggan $pelanggan)
+    {
+        $pelanggan->load([
+            'pesanan.produk',
+            'createdBy:user_id,nama_lengkap',
+            'updatedBy:user_id,nama_lengkap'
+        ]);
+
+        return Inertia::render('pelanggan/show', [
+            'pelanggan' => $pelanggan
+        ]);
+    }
+
+    /**
      * Store a newly created pelanggan in storage.
      */
     public function store(Request $request)

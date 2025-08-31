@@ -22,21 +22,10 @@ class Produk extends Model
     protected $fillable = [
         'produk_id',
         'nama_produk',
-        'stok_produk',
-        'satuan_produk',
-        'lokasi_produk',
-        'hpp_produk',
+        'deskripsi',
+        'hpp',
         'harga_jual',
-        'permintaan_harian_rata2_produk',
-        'permintaan_harian_maksimum_produk',
-        'waktu_tunggu_rata2_produk',
-        'waktu_tunggu_maksimum_produk',
-        'permintaan_tahunan',
-        'biaya_pemesanan_produk',
-        'biaya_penyimpanan_produk',
-        'safety_stock_produk',
-        'rop_produk',
-        'eoq_produk',
+        'demand_tahunan',
         'created_by',
         'updated_by',
         'deleted_by'
@@ -87,10 +76,24 @@ class Produk extends Model
         return $this->belongsTo(User::class, 'deleted_by', 'user_id');
     }
 
-    // Relationship to bahan baku through bahan_produksi table
-    public function bahanBakus()
+    public function bahanBaku()
     {
         return $this->belongsToMany(BahanBaku::class, 'bahan_produksi', 'produk_id', 'bahan_baku_id')
             ->withPivot('jumlah_bahan_baku');
+    }
+
+    public function pesanans()
+    {
+        return $this->belongsToMany(Pesanan::class, 'pesanan_produk', 'produk_id', 'pesanan_id')
+            ->withPivot('jumlah_produk', 'harga_satuan', 'subtotal')
+            ->withTimestamps();
+    }
+
+    /**
+     * Get the route key for the model.
+     */
+    public function getRouteKeyName()
+    {
+        return 'produk_id';
     }
 }

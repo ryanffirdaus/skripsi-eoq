@@ -31,7 +31,7 @@ class BahanBakuController extends Controller
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('nama_bahan', 'like', '%' . $search . '%')
-                  ->orWhere('lokasi_bahan', 'like', '%' . $search . '%');
+                    ->orWhere('lokasi_bahan', 'like', '%' . $search . '%');
             });
         }
 
@@ -78,6 +78,21 @@ class BahanBakuController extends Controller
     }
 
     /**
+     * Display the specified bahan baku.
+     */
+    public function show(BahanBaku $bahanBaku)
+    {
+        $bahanBaku->load([
+            'createdBy:user_id,nama_lengkap',
+            'updatedBy:user_id,nama_lengkap'
+        ]);
+
+        return Inertia::render('bahan-baku/show', [
+            'bahanBaku' => $bahanBaku
+        ]);
+    }
+
+    /**
      * Store a newly created bahan baku in storage.
      */
     public function store(Request $request)
@@ -104,14 +119,14 @@ class BahanBakuController extends Controller
 
         // Calculate safety stock
         $safety_stock_bahan = ($validated['permintaan_harian_maksimum_bahan'] * $validated['waktu_tunggu_maksimum_bahan']) -
-                              ($validated['permintaan_harian_rata2_bahan'] * $validated['waktu_tunggu_rata2_bahan']);
+            ($validated['permintaan_harian_rata2_bahan'] * $validated['waktu_tunggu_rata2_bahan']);
 
         // Calculate reorder point (ROP)
         $rop_bahan = ($validated['permintaan_harian_rata2_bahan'] * $validated['waktu_tunggu_rata2_bahan']) + $safety_stock_bahan;
 
         // Calculate EOQ
         $eoq_bahan = sqrt((2 * $validated['permintaan_tahunan'] * $validated['biaya_pemesanan_bahan']) /
-                           $validated['biaya_penyimpanan_bahan']);
+            $validated['biaya_penyimpanan_bahan']);
 
         BahanBaku::create([
             'bahan_baku_id' => $bahan_baku_id,
@@ -169,14 +184,14 @@ class BahanBakuController extends Controller
 
         // Recalculate safety stock
         $safety_stock_bahan = ($validated['permintaan_harian_maksimum_bahan'] * $validated['waktu_tunggu_maksimum_bahan']) -
-                              ($validated['permintaan_harian_rata2_bahan'] * $validated['waktu_tunggu_rata2_bahan']);
+            ($validated['permintaan_harian_rata2_bahan'] * $validated['waktu_tunggu_rata2_bahan']);
 
         // Recalculate reorder point (ROP)
         $rop_bahan = ($validated['permintaan_harian_rata2_bahan'] * $validated['waktu_tunggu_rata2_bahan']) + $safety_stock_bahan;
 
         // Recalculate EOQ
         $eoq_bahan = sqrt((2 * $validated['permintaan_tahunan'] * $validated['biaya_pemesanan_bahan']) /
-                           $validated['biaya_penyimpanan_bahan']);
+            $validated['biaya_penyimpanan_bahan']);
 
         // Update with validated data and recalculated values
         $bahanBaku->update([

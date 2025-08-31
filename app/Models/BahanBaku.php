@@ -23,20 +23,18 @@ class BahanBaku extends Model
     protected $fillable = [
         'bahan_baku_id',
         'nama_bahan',
-        'stok_bahan',
-        'satuan_bahan',
-        'lokasi_bahan',
-        'harga_bahan',
-        'permintaan_harian_rata2_bahan',
-        'permintaan_harian_maksimum_bahan',
-        'waktu_tunggu_rata2_bahan',
-        'waktu_tunggu_maksimum_bahan',
-        'permintaan_tahunan',
-        'biaya_pemesanan_bahan',
-        'biaya_penyimpanan_bahan',
-        'safety_stock_bahan',
-        'rop_bahan',
-        'eoq_bahan',
+        'deskripsi',
+        'satuan',
+        'stok_saat_ini',
+        'stok_minimum',
+        'safety_stock',
+        'reorder_point',
+        'lead_time',
+        'demand_tahunan',
+        'biaya_pemesanan',
+        'biaya_penyimpanan',
+        'eoq',
+        'harga_per_unit',
         'created_by',
         'updated_by',
         'deleted_by'
@@ -85,5 +83,13 @@ class BahanBaku extends Model
     public function deletedBy()
     {
         return $this->belongsTo(User::class, 'deleted_by', 'user_id');
+    }
+
+    /**
+     * Get the route key for the model.
+     */
+    public function getRouteKeyName()
+    {
+        return 'bahan_baku_id';
     }
 }

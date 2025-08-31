@@ -1,4 +1,4 @@
-import { createDeleteAction, createEditAction } from '@/components/table/table-actions';
+import { createDeleteAction, createEditAction, createViewAction } from '@/components/table/table-actions';
 import TableTemplate from '@/components/table/table-template';
 import { type BreadcrumbItem } from '@/types';
 import { router } from '@inertiajs/react';
@@ -118,6 +118,7 @@ export default function Index({ pelanggan, filters, flash }: Props) {
     // Actions using action templates - memoized to prevent infinite re-renders
     const actions = useMemo(
         () => [
+            createViewAction<Pelanggan>((item) => `/pelanggan/${item.pelanggan_id}`),
             createEditAction<Pelanggan>((item) => `/pelanggan/${item.pelanggan_id}/edit`),
             createDeleteAction<Pelanggan>((item) => {
                 router.delete(`/pelanggan/${item.pelanggan_id}`, {

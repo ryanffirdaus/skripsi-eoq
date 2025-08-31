@@ -114,6 +114,13 @@ export default function Index({ users, roles, filters, flash }: Props) {
 
     const actions = [
         {
+            label: 'Detail',
+            variant: 'outline' as const,
+            onClick: (item: User) => {
+                router.visit(`/users/${item.user_id}`);
+            },
+        },
+        {
             label: 'Edit',
             variant: 'outline' as const,
             onClick: (item: User) => {

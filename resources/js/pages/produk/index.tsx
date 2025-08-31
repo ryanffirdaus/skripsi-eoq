@@ -1,6 +1,7 @@
 // Index.tsx - Produk
-import { createDeleteAction, createEditAction } from '@/components/table/table-actions';
+import { createDeleteAction, createEditAction, createViewAction } from '@/components/table/table-actions';
 import TableTemplate from '@/components/table/table-template';
+import { formatCurrency } from '@/lib/formatters';
 import { type BreadcrumbItem } from '@/types';
 import { router } from '@inertiajs/react';
 
@@ -106,7 +107,7 @@ export default function Index({ produk, filters, uniqueLokasi, uniqueSatuan, fla
             sortable: true,
             hideable: true,
             defaultVisible: true,
-            render: (item: Produk) => `Rp ${item.hpp_produk.toLocaleString('id-ID')}`,
+            render: (item: Produk) => formatCurrency(item.hpp_produk),
         },
         {
             key: 'satuan_produk',
@@ -121,7 +122,7 @@ export default function Index({ produk, filters, uniqueLokasi, uniqueSatuan, fla
             sortable: true,
             hideable: true,
             defaultVisible: false, // Hidden by default
-            render: (item: Produk) => `Rp ${item.harga_jual.toLocaleString('id-ID')}`,
+            render: (item: Produk) => formatCurrency(item.harga_jual),
         },
         {
             key: 'safety_stock_produk',
@@ -174,6 +175,7 @@ export default function Index({ produk, filters, uniqueLokasi, uniqueSatuan, fla
 
     // Actions using action templates
     const actions = [
+        createViewAction<Produk>((item) => `/produk/${item.produk_id}`),
         createEditAction<Produk>((item) => `/produk/${item.produk_id}/edit`),
         createDeleteAction<Produk>((item) => {
             router.delete(`/produk/${item.produk_id}`, {

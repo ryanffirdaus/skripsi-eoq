@@ -6,6 +6,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\BahanBakuController;
 use App\Http\Controllers\ProdukController;
 use App\Http\Controllers\PelangganController;
+use App\Http\Controllers\PesananController;
 
 Route::get('/', function () {
     return Inertia::render('welcome');
@@ -27,6 +28,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Pelanggan CRUD routes
     Route::resource('pelanggan', PelangganController::class);
+
+    // Pesanan CRUD routes
+    Route::resource('pesanan', PesananController::class);
 });
 
 require __DIR__ . '/settings.php';

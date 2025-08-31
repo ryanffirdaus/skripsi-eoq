@@ -70,6 +70,22 @@ class UserController extends Controller
     }
 
     /**
+     * Display the specified user.
+     */
+    public function show(User $user)
+    {
+        $user->load([
+            'role',
+            'createdBy:user_id,nama_lengkap',
+            'updatedBy:user_id,nama_lengkap'
+        ]);
+
+        return Inertia::render('users/show', [
+            'user' => $user
+        ]);
+    }
+
+    /**
      * Store a newly created user in storage.
      */
     public function store(Request $request)

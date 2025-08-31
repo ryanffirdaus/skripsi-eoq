@@ -156,4 +156,38 @@ class User extends Authenticatable
     {
         return $this->hasMany(Pelanggan::class, 'deleted_by', 'user_id');
     }
+
+    public function pesananCreatedBy()
+    {
+        return $this->hasMany(Pesanan::class, 'created_by', 'user_id');
+    }
+
+    public function pesananUpdatedBy()
+    {
+        return $this->hasMany(Pesanan::class, 'updated_by', 'user_id');
+    }
+
+    public function pesananDeletedBy()
+    {
+        return $this->hasMany(Pesanan::class, 'deleted_by', 'user_id');
+    }
+
+    // Self-referencing relationships for Users
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by', 'user_id');
+    }
+
+    public function updatedBy()
+    {
+        return $this->belongsTo(User::class, 'updated_by', 'user_id');
+    }
+
+    /**
+     * Get the route key for the model.
+     */
+    public function getRouteKeyName()
+    {
+        return 'user_id';
+    }
 }

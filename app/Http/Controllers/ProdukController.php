@@ -32,7 +32,7 @@ class ProdukController extends Controller
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('nama_produk', 'like', '%' . $search . '%')
-                  ->orWhere('lokasi_produk', 'like', '%' . $search . '%');
+                    ->orWhere('lokasi_produk', 'like', '%' . $search . '%');
             });
         }
 
@@ -76,11 +76,27 @@ class ProdukController extends Controller
     public function create()
     {
         $bahanBakus = BahanBaku::select('bahan_baku_id', 'nama_bahan', 'satuan_bahan')
-                                ->orderBy('nama_bahan')
-                                ->get();
+            ->orderBy('nama_bahan')
+            ->get();
 
         return Inertia::render('produk/create', [
             'bahanBakus' => $bahanBakus
+        ]);
+    }
+
+    /**
+     * Display the specified produk.
+     */
+    public function show(Produk $produk)
+    {
+        $produk->load([
+            'bahanBaku',
+            'createdBy:user_id,nama_lengkap',
+            'updatedBy:user_id,nama_lengkap'
+        ]);
+
+        return Inertia::render('produk/show', [
+            'produk' => $produk
         ]);
     }
 
@@ -111,14 +127,14 @@ class ProdukController extends Controller
         DB::transaction(function () use ($validated) {
             // Calculate safety stock
             $safety_stock_produk = ($validated['permintaan_harian_maksimum_produk'] * $validated['waktu_tunggu_maksimum_produk']) -
-                                  ($validated['permintaan_harian_rata2_produk'] * $validated['waktu_tunggu_rata2_produk']);
+                ($validated['permintaan_harian_rata2_produk'] * $validated['waktu_tunggu_rata2_produk']);
 
             // Calculate reorder point (ROP)
             $rop_produk = ($validated['permintaan_harian_rata2_produk'] * $validated['waktu_tunggu_rata2_produk']) + $safety_stock_produk;
 
             // Calculate EOQ
             $eoq_produk = sqrt((2 * $validated['permintaan_tahunan'] * $validated['biaya_pemesanan_produk']) /
-                               $validated['biaya_penyimpanan_produk']);
+                $validated['biaya_penyimpanan_produk']);
 
             // Create produk
             $produk = Produk::create([
@@ -169,8 +185,8 @@ class ProdukController extends Controller
 
         // Load semua bahan baku untuk dropdown
         $bahanBakus = BahanBaku::select('bahan_baku_id', 'nama_bahan', 'satuan_bahan')
-                                ->orderBy('nama_bahan')
-                                ->get();
+            ->orderBy('nama_bahan')
+            ->get();
 
         return Inertia::render('produk/edit', [
             'produk' => $produk,
@@ -206,14 +222,14 @@ class ProdukController extends Controller
         DB::transaction(function () use ($validated, $produk) {
             // Recalculate safety stock
             $safety_stock_produk = ($validated['permintaan_harian_maksimum_produk'] * $validated['waktu_tunggu_maksimum_produk']) -
-                                  ($validated['permintaan_harian_rata2_produk'] * $validated['waktu_tunggu_rata2_produk']);
+                ($validated['permintaan_harian_rata2_produk'] * $validated['waktu_tunggu_rata2_produk']);
 
             // Recalculate reorder point (ROP)
             $rop_produk = ($validated['permintaan_harian_rata2_produk'] * $validated['waktu_tunggu_rata2_produk']) + $safety_stock_produk;
 
             // Recalculate EOQ
             $eoq_produk = sqrt((2 * $validated['permintaan_tahunan'] * $validated['biaya_pemesanan_produk']) /
-                               $validated['biaya_penyimpanan_produk']);
+                $validated['biaya_penyimpanan_produk']);
 
             // Update produk with validated data and recalculated values
             $produk->update([
@@ -253,7 +269,7 @@ class ProdukController extends Controller
             DB::transaction(function () use ($produk) {
                 // Delete bahan baku relationships
                 DB::table('bahan_produksi')->where('produk_id', $produk->produk_id)->delete();
-                
+
                 // Delete produk
                 $produk->delete();
             });

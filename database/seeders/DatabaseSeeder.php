@@ -3,6 +3,10 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use App\Models\BahanBaku;
+use App\Models\Produk;
+use App\Models\Pelanggan;
+use App\Models\Pesanan;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -27,5 +31,13 @@ class DatabaseSeeder extends Seeder
                 'role_id' => $roleId
             ]);
         }
+
+        // Seed IoT components and products data
+        $this->call([
+            BahanBakuSeeder::class,
+            ProdukSeeder::class,
+            PelangganSeeder::class,
+            PesananSeeder::class,
+        ]);
     }
 }
