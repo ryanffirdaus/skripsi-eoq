@@ -11,8 +11,8 @@ import { useState } from 'react';
 
 interface Pelanggan {
     pelanggan_id: string;
-    nama: string;
-    email: string;
+    nama_pelanggan: string;
+    email_pelanggan: string;
 }
 
 interface Produk {
@@ -23,8 +23,8 @@ interface Produk {
 
 interface PesananProduk {
     produk_id: string;
-    jumlah: number;
-    harga: number;
+    jumlah_produk: number;
+    harga_satuan: number;
 }
 
 interface Pesanan {
@@ -40,8 +40,8 @@ interface Pesanan {
         nama_produk: string;
         harga_jual: number;
         pivot: {
-            jumlah: number;
-            harga: number;
+            jumlah_produk: number;
+            harga_satuan: number;
         };
     }>;
 }
@@ -67,14 +67,14 @@ export default function Edit({ pesanan, pelanggan, produk }: Props) {
     const [selectedProducts, setSelectedProducts] = useState<PesananProduk[]>(
         pesanan.produk?.map((p) => ({
             produk_id: p.produk_id,
-            jumlah: p.pivot.jumlah,
-            harga: p.pivot.harga,
+            jumlah_produk: p.pivot.jumlah_produk,
+            harga_satuan: p.pivot.harga_satuan,
         })) || [],
     );
 
     const { data, setData, put, processing, errors } = useForm({
         pelanggan_id: pesanan.pelanggan_id,
-        tanggal_pesanan: pesanan.tanggal_pesanan.split('T')[0], // Format for date input
+        tanggal_pesanan: pesanan?.tanggal_pesanan?.split('T')[0] || '',
         status: pesanan.status,
         catatan: pesanan.catatan || '',
         products: selectedProducts,
@@ -91,12 +91,12 @@ export default function Edit({ pesanan, pelanggan, produk }: Props) {
 
     const calculateTotal = () => {
         return selectedProducts.reduce((total, item) => {
-            return total + item.jumlah * item.harga;
+            return total + item.jumlah_produk * item.harga_satuan;
         }, 0);
     };
 
     const addProduct = () => {
-        setSelectedProducts([...selectedProducts, { produk_id: '', jumlah: 1, harga: 0 }]);
+        setSelectedProducts([...selectedProducts, { produk_id: '', jumlah_produk: 1, harga_satuan: 0 }]);
     };
 
     const removeProduct = (index: number) => {
@@ -112,7 +112,7 @@ export default function Edit({ pesanan, pelanggan, produk }: Props) {
             newProducts[index] = {
                 ...newProducts[index],
                 produk_id: value,
-                harga: selectedProduk?.harga_jual || 0,
+                harga_satuan: selectedProduk?.harga_jual || 0,
             };
         } else {
             newProducts[index] = { ...newProducts[index], [field]: value };
@@ -152,7 +152,7 @@ export default function Edit({ pesanan, pelanggan, produk }: Props) {
                                     <SelectContent>
                                         {pelanggan.map((customer) => (
                                             <SelectItem key={customer.pelanggan_id} value={customer.pelanggan_id}>
-                                                {customer.nama} - {customer.email}
+                                                {customer.nama_pelanggan}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -245,8 +245,8 @@ export default function Edit({ pesanan, pelanggan, produk }: Props) {
                                             <Input
                                                 type="number"
                                                 min="1"
-                                                value={item.jumlah}
-                                                onChange={(e) => updateProduct(index, 'jumlah', parseInt(e.target.value) || 1)}
+                                                value={item.jumlah_produk}
+                                                onChange={(e) => updateProduct(index, 'jumlah_produk', parseInt(e.target.value) || 1)}
                                                 className={colors.input.base}
                                             />
                                         </div>
@@ -256,8 +256,8 @@ export default function Edit({ pesanan, pelanggan, produk }: Props) {
                                             <Input
                                                 type="number"
                                                 min="0"
-                                                value={item.harga}
-                                                onChange={(e) => updateProduct(index, 'harga', parseFloat(e.target.value) || 0)}
+                                                value={item.harga_satuan}
+                                                onChange={(e) => updateProduct(index, 'harga_satuan', parseFloat(e.target.value) || 0)}
                                                 className={colors.input.base}
                                             />
                                         </div>
@@ -266,7 +266,7 @@ export default function Edit({ pesanan, pelanggan, produk }: Props) {
                                             <Label className={colors.label.base}>Subtotal</Label>
                                             <div className="flex items-center justify-between">
                                                 <span className="text-sm font-medium text-gray-900 dark:text-white">
-                                                    {formatCurrency(item.jumlah * item.harga)}
+                                                    {formatCurrency(item.jumlah_produk * item.harga_satuan)}
                                                 </span>
                                                 <Button
                                                     type="button"

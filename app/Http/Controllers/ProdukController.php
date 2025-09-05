@@ -120,7 +120,7 @@ class ProdukController extends Controller
             'biaya_pemesanan_produk' => ['required', 'numeric', 'min:0'],
             'biaya_penyimpanan_produk' => ['required', 'numeric', 'min:0'],
             'bahan_baku' => ['required', 'array', 'min:1'],
-            'bahan_baku.*.bahan_baku_id' => ['required', 'string', 'exists:bahan_bakus,bahan_baku_id'],
+            'bahan_baku.*.bahan_baku_id' => ['required', 'string', 'exists:bahan_baku,bahan_baku_id'],
             'bahan_baku.*.jumlah_bahan_baku' => ['required', 'numeric', 'min:0.01'],
         ]);
 
@@ -178,9 +178,9 @@ class ProdukController extends Controller
     {
         // Load bahan baku yang digunakan produk ini
         $bahanProduksi = DB::table('bahan_produksi')
-            ->join('bahan_bakus', 'bahan_produksi.bahan_baku_id', '=', 'bahan_bakus.bahan_baku_id')
+            ->join('bahan_baku', 'bahan_produksi.bahan_baku_id', '=', 'bahan_baku.bahan_baku_id')
             ->where('bahan_produksi.produk_id', $produk->produk_id)
-            ->select('bahan_bakus.*', 'bahan_produksi.jumlah_bahan_baku')
+            ->select('bahan_baku.*', 'bahan_produksi.jumlah_bahan_baku')
             ->get();
 
         // Load semua bahan baku untuk dropdown
@@ -215,7 +215,7 @@ class ProdukController extends Controller
             'biaya_pemesanan_produk' => ['required', 'numeric', 'min:0'],
             'biaya_penyimpanan_produk' => ['required', 'numeric', 'min:0'],
             'bahan_baku' => ['required', 'array', 'min:1'],
-            'bahan_baku.*.bahan_baku_id' => ['required', 'string', 'exists:bahan_bakus,bahan_baku_id'],
+            'bahan_baku.*.bahan_baku_id' => ['required', 'string', 'exists:bahan_baku,bahan_baku_id'],
             'bahan_baku.*.jumlah_bahan_baku' => ['required', 'numeric', 'min:0.01'],
         ]);
 
