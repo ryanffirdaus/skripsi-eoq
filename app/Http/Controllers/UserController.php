@@ -94,6 +94,7 @@ class UserController extends Controller
             'nama_lengkap' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique(User::class)],
             'password' => ['required', 'string', 'min:8'],
+            'password_confirmation' => ['required', 'string', 'min:8', 'same:password'],
             'role_id' => ['required', 'exists:roles,role_id'],
         ]);
 
@@ -129,6 +130,7 @@ class UserController extends Controller
             'nama_lengkap' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->user_id, 'user_id')],
             'password' => ['nullable', 'string', 'min:8'],
+            'password_confirmation' => ['nullable', 'string', 'min:8', 'same:password'],
             'role_id' => ['required', 'exists:roles,role_id'],
         ]);
 
