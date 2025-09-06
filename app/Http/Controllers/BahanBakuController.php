@@ -112,11 +112,6 @@ class BahanBakuController extends Controller
             'biaya_penyimpanan_bahan' => ['required', 'numeric', 'min:0'],
         ]);
 
-        // Generate a unique bahan_baku_id with pattern BA001, BA002, etc.
-        $latestBahan = BahanBaku::latest('bahan_baku_id')->first();
-        $nextId = $latestBahan ? intval(substr($latestBahan->bahan_baku_id, 2)) + 1 : 1;
-        $bahan_baku_id = 'BA' . str_pad($nextId, 3, '0', STR_PAD_LEFT);
-
         // Calculate safety stock
         $safety_stock_bahan = ($validated['permintaan_harian_maksimum_bahan'] * $validated['waktu_tunggu_maksimum_bahan']) -
             ($validated['permintaan_harian_rata2_bahan'] * $validated['waktu_tunggu_rata2_bahan']);
@@ -128,8 +123,7 @@ class BahanBakuController extends Controller
         $eoq_bahan = sqrt((2 * $validated['permintaan_tahunan'] * $validated['biaya_pemesanan_bahan']) /
             $validated['biaya_penyimpanan_bahan']);
 
-        BahanBaku::create([
-            'bahan_baku_id' => $bahan_baku_id,
+        $bahanBaku = BahanBaku::create([
             'nama_bahan' => $validated['nama_bahan'],
             'lokasi_bahan' => $validated['lokasi_bahan'],
             'stok_bahan' => $validated['stok_bahan'] ?? 0,
@@ -148,7 +142,7 @@ class BahanBakuController extends Controller
         ]);
 
         return redirect()->route('bahan-baku.index')
-            ->with('message', "Bahan Baku '{$validated['nama_bahan']}' has been successfully created with ID: {$bahan_baku_id}.")
+            ->with('message', "Bahan Baku '{$validated['nama_bahan']}' has been successfully created with ID: {$bahanBaku->bahan_baku_id}.")
             ->with('type', 'success');
     }
 

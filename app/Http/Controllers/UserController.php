@@ -98,13 +98,7 @@ class UserController extends Controller
             'role_id' => ['required', 'exists:roles,role_id'],
         ]);
 
-        // Generate a unique user_id with pattern US001, US002, etc.
-        $latestUser = User::latest('user_id')->first();
-        $nextId = $latestUser ? intval(substr($latestUser->user_id, 2)) + 1 : 1;
-        $user_id = 'US' . str_pad($nextId, 3, '0', STR_PAD_LEFT);
-
-        User::create([
-            'user_id' => $user_id,
+        $user = User::create([
             'nama_lengkap' => $validated['nama_lengkap'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
@@ -112,7 +106,7 @@ class UserController extends Controller
         ]);
 
         return redirect()->route('users.index')
-            ->with('message', "User '{$validated['nama_lengkap']}' has been successfully created with ID: {$user_id}.")
+            ->with('message', "User '{$validated['nama_lengkap']}' has been successfully created with ID: {$user->user_id}.")
             ->with('type', 'success');
     }
 
