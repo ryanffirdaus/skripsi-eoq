@@ -36,14 +36,15 @@ class Pesanan extends Model
         parent::boot();
 
         static::creating(function ($model) {
-            // Generate the next ID if not provided
             if (!$model->pesanan_id) {
                 $latest = static::orderBy('pesanan_id', 'desc')->first();
                 $nextId = $latest ? (int) substr($latest->pesanan_id, 2) + 1 : 1;
                 $model->pesanan_id = 'PS' . str_pad($nextId, 3, '0', STR_PAD_LEFT);
             }
 
-            $model->status = 'pending';
+            if (!$model->status) {
+                $model->status = 'pending';
+            }
 
             if (Auth::id()) {
                 $model->created_by = Auth::id();

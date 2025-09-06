@@ -3,7 +3,7 @@ import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { Atom, Container, LayoutGrid, Package, ShoppingCart, Truck, Users } from 'lucide-react';
+import { Atom, Container, LayoutGrid, Package, PackageCheck, RotateCcw, ShoppingCart, Truck, Users } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
@@ -51,6 +51,16 @@ const mainNavItems: NavItem[] = [
         title: 'Pembelian',
         href: '/pembelian',
         icon: ShoppingCart,
+    },
+    {
+        title: 'Penerimaan Bahan Baku',
+        href: '/penerimaan-bahan-baku',
+        icon: PackageCheck,
+    },
+    {
+        title: 'Retur Bahan Baku',
+        href: '/retur-bahan-baku',
+        icon: RotateCcw,
     },
 ];
 

@@ -180,6 +180,7 @@ export default function Edit({ produk, bahanProduksi, bahanBakus }: Props) {
                             onChange={(e) => setData('hpp_produk', parseFloat(e.target.value) || 0)}
                             placeholder="Enter cost of goods sold"
                             min={0}
+                            step="0.01"
                             error={errors.hpp_produk}
                         />
                     </FormField>
@@ -191,6 +192,7 @@ export default function Edit({ produk, bahanProduksi, bahanBakus }: Props) {
                             onChange={(e) => setData('harga_jual', parseFloat(e.target.value) || 0)}
                             placeholder="Enter selling price"
                             min={0}
+                            step="0.01"
                             error={errors.harga_jual}
                         />
                     </FormField>
@@ -286,6 +288,7 @@ export default function Edit({ produk, bahanProduksi, bahanBakus }: Props) {
                             onChange={(e) => setData('biaya_pemesanan_produk', parseFloat(e.target.value) || 0)}
                             placeholder="Order cost"
                             min={0}
+                            step="0.01"
                             error={errors.biaya_pemesanan_produk}
                         />
                     </FormField>
@@ -297,6 +300,7 @@ export default function Edit({ produk, bahanProduksi, bahanBakus }: Props) {
                             onChange={(e) => setData('biaya_penyimpanan_produk', parseFloat(e.target.value) || 0)}
                             placeholder="Holding cost"
                             min={0}
+                            step="0.01"
                             error={errors.biaya_penyimpanan_produk}
                         />
                     </FormField>
