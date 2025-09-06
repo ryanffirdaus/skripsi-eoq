@@ -28,8 +28,6 @@ interface ProdukItem {
     harga_satuan: number;
 }
 
-type StatusType = 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
-
 interface Props {
     pelanggan: Pelanggan[];
     produk: Produk[];
@@ -52,7 +50,7 @@ export default function Create({ pelanggan, produk }: Props) {
     const { data, setData, post, processing, errors } = useForm({
         pelanggan_id: '',
         tanggal_pemesanan: new Date().toISOString().split('T')[0],
-        status: 'pending' as StatusType,
+        catatan: '',
         produk: produkItems,
     });
 
@@ -140,6 +138,17 @@ export default function Create({ pelanggan, produk }: Props) {
                         </div>
 
                         <div>
+                            <label className={cn('mb-1 block text-sm font-medium', colors.label.base)}>Catatan</label>
+                            <textarea
+                                value={data.catatan}
+                                onChange={(e) => setData('catatan', e.target.value)}
+                                className={cn(colors.input.base, errors.catatan && colors.input.error)}
+                                rows={3}
+                            />
+                            {errors.catatan && <p className={colors.text.error}>{errors.catatan}</p>}
+                        </div>
+
+                        <div>
                             <label className={cn('mb-1 block text-sm font-medium', colors.label.base)}>
                                 Tanggal Pemesanan <span className="text-red-500">*</span>
                             </label>
@@ -152,26 +161,6 @@ export default function Create({ pelanggan, produk }: Props) {
                             />
                             {errors.tanggal_pemesanan && <p className={colors.text.error}>{errors.tanggal_pemesanan}</p>}
                         </div>
-                    </div>
-
-                    <div>
-                        <label className={cn('mb-1 block text-sm font-medium', colors.label.base)}>
-                            Status <span className="text-red-500">*</span>
-                        </label>
-                        <select
-                            value={data.status}
-                            onChange={(e) => setData('status', e.target.value as StatusType)}
-                            className={cn(colors.input.base, errors.status && colors.input.error)}
-                            required
-                        >
-                            <option value="pending">Pending</option>
-                            <option value="confirmed">Dikonfirmasi</option>
-                            <option value="processing">Diproses</option>
-                            <option value="shipped">Dikirim</option>
-                            <option value="delivered">Diterima</option>
-                            <option value="cancelled">Dibatalkan</option>
-                        </select>
-                        {errors.status && <p className={colors.text.error}>{errors.status}</p>}
                     </div>
 
                     {/* Produk Items Section */}

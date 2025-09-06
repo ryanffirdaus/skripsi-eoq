@@ -16,37 +16,60 @@ class PesananController extends Controller
      */
     public function index(Request $request)
     {
+        // Ambil query params
+        $search = $request->input('search');
+        $status = $request->input('status'); // filter status
+        $perPage = $request->input('per_page', 10);
+
+        // Daftar kolom yang boleh di-sort
+        $allowedSorts = ['pesanan_id', 'nama_pelanggan', 'status', 'total_harga', 'created_at'];
+
+        // Ambil sort_by & arah
+        $sortBy = trim($request->get('sort_by') ?? '') ?: 'created_at';
+        $sortDirection = $request->get('sort_direction', 'desc');
+
+        // Pastikan kolomnya valid
+        if (!in_array($sortBy, $allowedSorts)) {
+            $sortBy = 'created_at';
+        }
+
+        // Query awal
         $query = Pesanan::with(['pelanggan', 'produk']);
 
-        // Search functionality
-        if ($request->filled('search')) {
-            $search = $request->search;
+        // Filter search (misalnya cari nama pelanggan / id pesanan)
+        if ($search) {
             $query->where(function ($q) use ($search) {
-                $q->where('pesanan_id', 'like', "%{$search}%")
-                    ->orWhereHas('pelanggan', function ($q) use ($search) {
-                        $q->where('nama_pelanggan', 'like', "%{$search}%");
+                $q->orWhere('pesanan_id', 'like', "%{$search}%")
+                    ->orWhereHas('pelanggan', function ($q2) use ($search) {
+                        $q2->where('nama_pelanggan', 'like', "%{$search}%");
                     });
             });
         }
 
-        // Status filter
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
+        // Filter status (kecuali "all")
+        if ($status && $status !== 'all') {
+            $query->where('status', $status);
         }
 
-        // Sorting
-        $sortBy = $request->get('sort_by', 'created_at');
-        $sortDirection = $request->get('sort_direction', 'desc');
+        // Terapkan sorting
         $query->orderBy($sortBy, $sortDirection);
 
         // Pagination
-        $perPage = $request->get('per_page', 10);
         $pesanan = $query->paginate($perPage)->withQueryString();
 
         return Inertia::render('pesanan/index', [
             'pesanan' => $pesanan,
-            'filters' => $request->only(['search', 'status', 'sort_by', 'sort_direction', 'per_page']),
-            'flash' => session('flash'),
+            'filters' => [
+                'search' => $search,
+                'status' => $status,
+                'sort_by' => $sortBy,
+                'sort_direction' => $sortDirection,
+                'per_page' => (int) $perPage,
+            ],
+            'flash' => [
+                'message' => session('message'),
+                'type' => session('type', 'success'),
+            ],
         ]);
     }
 
@@ -72,7 +95,6 @@ class PesananController extends Controller
         $validated = $request->validate([
             'pelanggan_id' => 'required|exists:pelanggan,pelanggan_id',
             'tanggal_pemesanan' => 'required|date',
-            'status' => 'required|in:pending,confirmed,processing,shipped,delivered,cancelled',
             'produk' => 'required|array|min:1',
             'produk.*.produk_id' => 'required|exists:produk,produk_id',
             'produk.*.jumlah_produk' => 'required|integer|min:1',
@@ -90,7 +112,6 @@ class PesananController extends Controller
             $pesanan = Pesanan::create([
                 'pelanggan_id' => $validated['pelanggan_id'],
                 'tanggal_pemesanan' => $validated['tanggal_pemesanan'],
-                'status' => $validated['status'],
                 'total_harga' => $totalHarga,
             ]);
 
@@ -152,26 +173,26 @@ class PesananController extends Controller
         $pesanan = Pesanan::where('pesanan_id', $pesanan_id)->firstOrFail();
         $validated = $request->validate([
             'pelanggan_id' => 'required|exists:pelanggan,pelanggan_id',
-            'tanggal_pesanan' => 'required|date',
+            'tanggal_pemesanan' => 'required|date',
             'status' => 'required|in:pending,diproses,dikirim,selesai,dibatalkan',
             'catatan' => 'nullable|string',
             'products' => 'required|array|min:1',
             'products.*.produk_id' => 'required|exists:produk,produk_id',
-            'products.*.jumlah' => 'required|integer|min:1',
-            'products.*.harga' => 'required|numeric|min:0',
+            'products.*.jumlah_produk' => 'required|integer|min:1',
+            'products.*.harga_satuan' => 'required|numeric|min:0',
         ]);
 
         DB::transaction(function () use ($validated, $pesanan) {
             // Calculate total
             $totalHarga = 0;
             foreach ($validated['products'] as $item) {
-                $totalHarga += $item['jumlah'] * $item['harga'];
+                $totalHarga += $item['jumlah_produk'] * $item['harga_satuan'];
             }
 
             // Update pesanan
             $pesanan->update([
                 'pelanggan_id' => $validated['pelanggan_id'],
-                'tanggal_pesanan' => $validated['tanggal_pesanan'],
+                'tanggal_pemesanan' => $validated['tanggal_pemesanan'],
                 'status' => $validated['status'],
                 'catatan' => $validated['catatan'],
                 'total_harga' => $totalHarga,
@@ -180,10 +201,10 @@ class PesananController extends Controller
             // Sync products with pivot data
             $syncData = [];
             foreach ($validated['products'] as $item) {
-                $subtotal = $item['jumlah'] * $item['harga'];
+                $subtotal = $item['jumlah_produk'] * $item['harga_satuan'];
                 $syncData[$item['produk_id']] = [
-                    'jumlah' => $item['jumlah'],
-                    'harga' => $item['harga'],
+                    'jumlah_produk' => $item['jumlah_produk'],
+                    'harga_satuan' => $item['harga_satuan'],
                     'subtotal' => $subtotal,
                 ];
             }

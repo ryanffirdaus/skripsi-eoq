@@ -22,7 +22,7 @@ class Pesanan extends Model
     protected $fillable = [
         'pesanan_id',
         'pelanggan_id',
-        'tanggal_pesanan',
+        'tanggal_pemesanan',
         'total_harga',
         'status',
         'catatan',
@@ -42,6 +42,8 @@ class Pesanan extends Model
                 $nextId = $latest ? (int) substr($latest->pesanan_id, 2) + 1 : 1;
                 $model->pesanan_id = 'PS' . str_pad($nextId, 3, '0', STR_PAD_LEFT);
             }
+
+            $model->status = 'pending';
 
             if (Auth::id()) {
                 $model->created_by = Auth::id();

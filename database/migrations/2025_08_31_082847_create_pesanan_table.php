@@ -17,6 +17,7 @@ return new class extends Migration
             $table->date('tanggal_pemesanan');
             $table->decimal('total_harga', 15, 2);
             $table->string('status');
+            $table->text('catatan')->nullable();
             $table->string('created_by')->nullable();
             $table->string('updated_by')->nullable();
             $table->string('deleted_by')->nullable();

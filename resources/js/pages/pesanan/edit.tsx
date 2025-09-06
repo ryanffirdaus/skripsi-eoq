@@ -30,7 +30,7 @@ interface PesananProduk {
 interface Pesanan {
     pesanan_id: string;
     pelanggan_id: string;
-    tanggal_pesanan: string;
+    tanggal_pemesanan: string;
     status: string;
     catatan?: string;
     total_harga: number;
@@ -74,7 +74,7 @@ export default function Edit({ pesanan, pelanggan, produk }: Props) {
 
     const { data, setData, put, processing, errors } = useForm({
         pelanggan_id: pesanan.pelanggan_id,
-        tanggal_pesanan: pesanan?.tanggal_pesanan?.split('T')[0] || '',
+        tanggal_pemesanan: pesanan?.tanggal_pemesanan?.split('T')[0] || '',
         status: pesanan.status,
         catatan: pesanan.catatan || '',
         products: selectedProducts,
@@ -161,17 +161,17 @@ export default function Edit({ pesanan, pelanggan, produk }: Props) {
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="tanggal_pesanan" className={colors.label.base}>
-                                    Tanggal Pesanan
+                                <Label htmlFor="tanggal_pemesanan" className={colors.label.base}>
+                                    Tanggal Pemesanan
                                 </Label>
                                 <Input
-                                    id="tanggal_pesanan"
+                                    id="tanggal_pemesanan"
                                     type="date"
-                                    value={data.tanggal_pesanan}
-                                    onChange={(e) => setData('tanggal_pesanan', e.target.value)}
+                                    value={data.tanggal_pemesanan}
+                                    onChange={(e) => setData('tanggal_pemesanan', e.target.value)}
                                     className={colors.input.base}
                                 />
-                                {errors.tanggal_pesanan && <p className="text-sm text-red-600 dark:text-red-400">{errors.tanggal_pesanan}</p>}
+                                {errors.tanggal_pemesanan && <p className="text-sm text-red-600 dark:text-red-400">{errors.tanggal_pemesanan}</p>}
                             </div>
 
                             <div className="space-y-2">
@@ -259,6 +259,7 @@ export default function Edit({ pesanan, pelanggan, produk }: Props) {
                                                 value={item.harga_satuan}
                                                 onChange={(e) => updateProduct(index, 'harga_satuan', parseFloat(e.target.value) || 0)}
                                                 className={colors.input.base}
+                                                step="0.01"
                                             />
                                         </div>
 
