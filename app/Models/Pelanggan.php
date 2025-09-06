@@ -21,11 +21,11 @@ class Pelanggan extends Model
 
     protected $fillable = [
         'pelanggan_id',
-        'nama',
-        'email',
-        'telepon',
-        'alamat',
-        'tipe_pelanggan',
+        'nama_pelanggan',
+        'email_pelanggan',
+        'nomor_telepon',
+        'alamat_pembayaran',
+        'alamat_pengiriman',
         'created_by',
         'updated_by',
         'deleted_by'

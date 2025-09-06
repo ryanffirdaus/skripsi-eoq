@@ -84,7 +84,7 @@ class PelangganController extends Controller
     {
         $validated = $request->validate([
             'nama_pelanggan' => ['required', 'string', 'max:255'],
-            'email_pelanggan' => ['required', 'email', 'max:255', 'unique:pelanggans,email_pelanggan'],
+            'email_pelanggan' => ['required', 'email', 'max:255', 'unique:pelanggan,email_pelanggan'],
             'nomor_telepon' => ['required', 'string', 'max:20'],
             'alamat_pembayaran' => ['required', 'string'],
             'alamat_pengiriman' => ['nullable', 'string'],
@@ -119,7 +119,7 @@ class PelangganController extends Controller
     {
         $validated = $request->validate([
             'nama_pelanggan' => ['required', 'string', 'max:255'],
-            'email_pelanggan' => ['required', 'email', 'max:255', 'unique:pelanggans,email_pelanggan,' . $pelanggan->pelanggan_id . ',pelanggan_id'],
+            'email_pelanggan' => ['required', 'email', 'max:255', 'unique:pelanggan,email_pelanggan,' . $pelanggan->pelanggan_id . ',pelanggan_id'],
             'nomor_telepon' => ['required', 'string', 'max:20'],
             'alamat_pembayaran' => ['required', 'string'],
             'alamat_pengiriman' => ['nullable', 'string'],
