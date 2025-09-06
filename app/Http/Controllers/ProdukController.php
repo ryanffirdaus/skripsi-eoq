@@ -124,7 +124,7 @@ class ProdukController extends Controller
             'bahan_baku.*.jumlah_bahan_baku' => ['required', 'numeric', 'min:0.01'],
         ]);
 
-        DB::transaction(function () use ($validated) {
+        $produk = DB::transaction(function () use ($validated) {
             // Calculate safety stock
             $safety_stock_produk = ($validated['permintaan_harian_maksimum_produk'] * $validated['waktu_tunggu_maksimum_produk']) -
                 ($validated['permintaan_harian_rata2_produk'] * $validated['waktu_tunggu_rata2_produk']);
@@ -164,10 +164,12 @@ class ProdukController extends Controller
                     'jumlah_bahan_baku' => $bahan['jumlah_bahan_baku'],
                 ]);
             }
+
+            return $produk; // ✅ return di sini
         });
 
         return redirect()->route('produk.index')
-            ->with('message', "Produk '{$validated['nama_produk']}' has been successfully created.")
+            ->with('message', "Produk '{$validated['nama_produk']}' has been successfully created with ID: {$produk->produk_id}.")
             ->with('type', 'success');
     }
 
