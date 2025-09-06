@@ -14,11 +14,12 @@ interface Pengiriman {
     pesanan_id: string;
     nomor_resi?: string;
     kurir: string;
-    jenis_layanan: string;
     biaya_pengiriman: number;
     estimasi_hari: number;
     status: string;
     catatan?: string;
+    tanggal_kirim?: string | null;
+    tanggal_diterima?: string | null;
 }
 
 interface Props {
@@ -29,12 +30,11 @@ export default function Edit({ pengiriman }: Props) {
     const [formData, setFormData] = useState({
         nomor_resi: pengiriman.nomor_resi || '',
         kurir: pengiriman.kurir,
-        jenis_layanan: pengiriman.jenis_layanan,
         biaya_pengiriman: pengiriman.biaya_pengiriman.toString(),
         estimasi_hari: pengiriman.estimasi_hari.toString(),
         status: pengiriman.status,
-        tanggal_kirim: '',
-        tanggal_diterima: '',
+        tanggal_kirim: pengiriman.tanggal_kirim ?? '',
+        tanggal_diterima: pengiriman.tanggal_diterima ?? '',
         catatan: pengiriman.catatan || '',
     });
 
@@ -50,6 +50,8 @@ export default function Edit({ pengiriman }: Props) {
                 ...formData,
                 biaya_pengiriman: parseFloat(formData.biaya_pengiriman),
                 estimasi_hari: parseInt(formData.estimasi_hari),
+                tanggal_kirim: formData.tanggal_kirim || null,
+                tanggal_diterima: formData.tanggal_diterima || null,
             },
             {
                 onFinish: () => setLoading(false),
@@ -95,17 +97,6 @@ export default function Edit({ pengiriman }: Props) {
                                         value={formData.kurir}
                                         onChange={(e) => handleInputChange('kurir', e.target.value)}
                                         placeholder="Contoh: JNE, TIKI, POS Indonesia"
-                                        required
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="jenis_layanan">Jenis Layanan *</Label>
-                                    <Input
-                                        id="jenis_layanan"
-                                        value={formData.jenis_layanan}
-                                        onChange={(e) => handleInputChange('jenis_layanan', e.target.value)}
-                                        placeholder="Contoh: REG, YES, OKE"
                                         required
                                     />
                                 </div>
@@ -168,7 +159,7 @@ export default function Edit({ pengiriman }: Props) {
                                         <Input
                                             id="tanggal_kirim"
                                             type="date"
-                                            value={formData.tanggal_kirim}
+                                            value={formData.tanggal_kirim ?? ''}
                                             onChange={(e) => handleInputChange('tanggal_kirim', e.target.value)}
                                         />
                                     </div>
@@ -180,7 +171,7 @@ export default function Edit({ pengiriman }: Props) {
                                         <Input
                                             id="tanggal_diterima"
                                             type="date"
-                                            value={formData.tanggal_diterima}
+                                            value={formData.tanggal_diterima ?? ''}
                                             onChange={(e) => handleInputChange('tanggal_diterima', e.target.value)}
                                         />
                                     </div>

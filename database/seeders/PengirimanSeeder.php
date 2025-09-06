@@ -37,7 +37,7 @@ class PengirimanSeeder extends Seeder
 
             $pengiriman = [
                 'pesanan_id' => $pesananId,
-                'kurir' => fake()->randomElement(['JNE', 'J&T', 'TIKI', 'POS Indonesia', 'SiCepat', 'AnterAja']),
+                'kurir' => fake()->randomElement(['JNE', 'J&T', 'TIKI', 'POS Indonesia', 'SiCepat', 'AnterAja', 'Gojek']),
                 'biaya_pengiriman' => fake()->numberBetween(10000, 50000),
                 'estimasi_hari' => fake()->numberBetween(1, 5),
                 'status' => $status,
@@ -47,17 +47,6 @@ class PengirimanSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now(),
             ];
-
-            // Set jenis layanan berdasarkan kurir
-            $layananOptions = [
-                'JNE' => ['REG', 'YES', 'OKE'],
-                'J&T' => ['EZ', 'REG', 'SUPER'],
-                'TIKI' => ['REG', 'ECO', 'ONS'],
-                'POS Indonesia' => ['REGULER', 'EXPRESS'],
-                'SiCepat' => ['REG', 'BEST'],
-                'AnterAja' => ['REGULER', 'SAME DAY'],
-            ];
-            $pengiriman['jenis_layanan'] = fake()->randomElement($layananOptions[$pengiriman['kurir']]);
 
             // Set tanggal dan nomor resi berdasarkan status
             switch ($status) {

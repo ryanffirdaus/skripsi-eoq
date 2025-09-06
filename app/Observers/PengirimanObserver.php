@@ -28,35 +28,20 @@ class PengirimanObserver
         Log::info("Processing stock reduction for delivered pengiriman: {$pengiriman->pengiriman_id}");
 
         // Load pesanan and its details
-        $pengiriman->load(['pesanan.detail']);
+        $pengiriman->load(['pesanan.produk']);
 
         if (!$pengiriman->pesanan) {
             Log::warning("No pesanan found for pengiriman: {$pengiriman->pengiriman_id}");
             return;
         }
 
-        foreach ($pengiriman->pesanan->detail as $detail) {
-            if ($detail->item_type === 'bahan_baku') {
-                $bahanBaku = BahanBaku::find($detail->item_id);
-                if ($bahanBaku) {
-                    $oldStock = $bahanBaku->stok_bahan;
-                    $newStock = max(0, $oldStock - $detail->qty_disetujui);
+        foreach ($pengiriman->pesanan->produk as $produk) {
+            $oldStock = $produk->stok_produk;
+            $newStock = max(0, $oldStock - $produk->pivot->jumlah_produk);
 
-                    $bahanBaku->update(['stok_bahan' => $newStock]);
+            $produk->update(['stok_produk' => $newStock]);
 
-                    Log::info("Reduced BahanBaku stock: {$bahanBaku->nama_bahan} from {$oldStock} to {$newStock}");
-                }
-            } elseif ($detail->item_type === 'produk') {
-                $produk = Produk::find($detail->item_id);
-                if ($produk) {
-                    $oldStock = $produk->stok_produk;
-                    $newStock = max(0, $oldStock - $detail->qty_disetujui);
-
-                    $produk->update(['stok_produk' => $newStock]);
-
-                    Log::info("Reduced Produk stock: {$produk->nama_produk} from {$oldStock} to {$newStock}");
-                }
-            }
+            Log::info("Reduced Produk stock: {$produk->nama_produk} from {$oldStock} to {$newStock}");
         }
     }
 

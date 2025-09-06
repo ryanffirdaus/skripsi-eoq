@@ -19,7 +19,6 @@ return new class extends Migration
             // Informasi Pengiriman
             $table->string('nomor_resi', 50)->unique()->nullable();
             $table->string('kurir'); // JNE, J&T, TIKI, POS Indonesia, dll
-            $table->string('jenis_layanan'); // REG, YES, EXPRESS, dll
             $table->decimal('biaya_pengiriman', 12, 2);
             $table->integer('estimasi_hari')->default(1); // estimasi pengiriman dalam hari
 
@@ -41,11 +40,14 @@ return new class extends Migration
             // Audit Trail
             $table->string('created_by')->nullable();
             $table->string('updated_by')->nullable();
+            $table->string('deleted_by')->nullable();
+            $table->softDeletes();
             $table->timestamps();
 
             // Foreign Keys untuk Audit
             $table->foreign('created_by')->references('user_id')->on('users')->onDelete('set null');
             $table->foreign('updated_by')->references('user_id')->on('users')->onDelete('set null');
+            $table->foreign('deleted_by')->references('user_id')->on('users')->onDelete('set null');
 
             // Indexes
             $table->index(['status']);

@@ -21,17 +21,8 @@ class PengirimanFactory extends Factory
      */
     public function definition(): array
     {
-        $kurirOptions = ['JNE', 'J&T', 'TIKI', 'POS Indonesia', 'SiCepat', 'AnterAja'];
+        $kurirOptions = ['JNE', 'J&T', 'TIKI', 'POS Indonesia', 'SiCepat', 'AnterAja', 'Gojek'];
         $selectedKurir = $this->faker->randomElement($kurirOptions);
-
-        $layananOptions = [
-            'JNE' => ['REG', 'YES', 'OKE'],
-            'J&T' => ['EZ', 'REG', 'SUPER'],
-            'TIKI' => ['REG', 'ECO', 'ONS'],
-            'POS Indonesia' => ['REGULER', 'EXPRESS'],
-            'SiCepat' => ['REG', 'BEST'],
-            'AnterAja' => ['REGULER', 'SAME DAY'],
-        ];
 
         $status = $this->faker->randomElement(['pending', 'shipped', 'delivered']);
         $tanggalKirim = $status !== 'pending' ? $this->faker->dateTimeBetween('-7 days', 'now') : null;
@@ -42,7 +33,6 @@ class PengirimanFactory extends Factory
             'pesanan_id' => Pesanan::factory(),
             'nomor_resi' => $this->faker->optional(0.8)->numerify('##########'),
             'kurir' => $selectedKurir,
-            'jenis_layanan' => $this->faker->randomElement($layananOptions[$selectedKurir]),
             'biaya_pengiriman' => $this->faker->numberBetween(10000, 50000),
             'estimasi_hari' => $this->faker->numberBetween(1, 5),
             'status' => $status,

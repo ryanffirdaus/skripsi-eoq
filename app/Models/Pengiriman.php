@@ -4,11 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
 
 class Pengiriman extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $primaryKey = 'pengiriman_id';
     protected $keyType = 'string';
@@ -20,7 +21,6 @@ class Pengiriman extends Model
         'pesanan_id',
         'nomor_resi',
         'kurir',
-        'jenis_layanan',
         'biaya_pengiriman',
         'estimasi_hari',
         'status',
@@ -54,6 +54,11 @@ class Pengiriman extends Model
 
         static::updating(function ($model) {
             $model->updated_by = Auth::id();
+        });
+
+        static::deleting(function ($model) {
+            $model->updated_by = Auth::id();
+            $model->deleted_by = Auth::id();
         });
     }
 
@@ -154,18 +159,7 @@ class Pengiriman extends Model
             'POS Indonesia' => 'POS Indonesia',
             'SiCepat' => 'SiCepat',
             'AnterAja' => 'AnterAja',
-        ];
-    }
-
-    public static function getJenisLayananOptions(): array
-    {
-        return [
-            'JNE' => ['REG', 'YES', 'OKE'],
-            'J&T' => ['EZ', 'REG', 'SUPER'],
-            'TIKI' => ['REG', 'ECO', 'ONS'],
-            'POS Indonesia' => ['REGULER', 'EXPRESS'],
-            'SiCepat' => ['REG', 'BEST'],
-            'AnterAja' => ['REGULER', 'SAME DAY'],
+            'Gojek' => 'Gojek',
         ];
     }
 

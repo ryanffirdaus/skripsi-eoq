@@ -18,7 +18,6 @@ interface Pengiriman extends Record<string, unknown> {
     pesanan_id: string;
     nomor_resi: string;
     kurir: string;
-    jenis_layanan: string;
     biaya_pengiriman: number;
     estimasi_hari: number;
     status: string;
@@ -139,7 +138,6 @@ export default function Index({ pengiriman, filters, flash }: Props) {
                     return (
                         <div>
                             <div className="font-medium">{pengiriman.kurir}</div>
-                            <div className="text-sm text-gray-500">{pengiriman.jenis_layanan}</div>
                         </div>
                     );
                 },
@@ -265,6 +263,7 @@ export default function Index({ pengiriman, filters, flash }: Props) {
                     { value: 'POS Indonesia', label: 'POS Indonesia' },
                     { value: 'SiCepat', label: 'SiCepat' },
                     { value: 'AnterAja', label: 'AnterAja' },
+                    { value: 'Gojek', label: 'Gojek' },
                 ],
             },
         ],

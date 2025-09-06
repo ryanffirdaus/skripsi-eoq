@@ -26,11 +26,11 @@ class PengirimanController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('pengiriman_id', 'like', "%{$search}%")
-                  ->orWhere('nomor_resi', 'like', "%{$search}%")
-                  ->orWhere('kurir', 'like', "%{$search}%")
-                  ->orWhereHas('pesanan.pelanggan', function ($q) use ($search) {
-                      $q->where('nama_pelanggan', 'like', "%{$search}%");
-                  });
+                    ->orWhere('nomor_resi', 'like', "%{$search}%")
+                    ->orWhere('kurir', 'like', "%{$search}%")
+                    ->orWhereHas('pesanan.pelanggan', function ($q) use ($search) {
+                        $q->where('nama_pelanggan', 'like', "%{$search}%");
+                    });
             });
         }
 
@@ -60,7 +60,6 @@ class PengirimanController extends Controller
                 'pesanan_id' => $item->pesanan_id,
                 'nomor_resi' => $item->nomor_resi,
                 'kurir' => $item->kurir,
-                'jenis_layanan' => $item->jenis_layanan,
                 'biaya_pengiriman' => $item->biaya_pengiriman,
                 'estimasi_hari' => $item->estimasi_hari,
                 'status' => $item->status,
@@ -130,7 +129,6 @@ class PengirimanController extends Controller
         $validator = Validator::make($request->all(), [
             'pesanan_id' => 'required|exists:pesanan,pesanan_id',
             'kurir' => 'required|string|max:255',
-            'jenis_layanan' => 'required|string|max:255',
             'biaya_pengiriman' => 'required|numeric|min:0',
             'estimasi_hari' => 'required|integer|min:1',
             'nomor_resi' => 'nullable|string|max:255|unique:pengiriman,nomor_resi',
@@ -147,7 +145,7 @@ class PengirimanController extends Controller
 
         return redirect()->route('pengiriman.index')
             ->with('flash', [
-                'message' => 'Pengiriman berhasil dibuat!',
+                'message' => 'Pengiriman berhasil dibuat dengan ID: ' . $pengiriman->pengiriman_id . '!',
                 'type' => 'success'
             ]);
     }
@@ -169,7 +167,6 @@ class PengirimanController extends Controller
                 'pesanan_id' => $pengiriman->pesanan_id,
                 'nomor_resi' => $pengiriman->nomor_resi,
                 'kurir' => $pengiriman->kurir,
-                'jenis_layanan' => $pengiriman->jenis_layanan,
                 'biaya_pengiriman' => $pengiriman->biaya_pengiriman,
                 'estimasi_hari' => $pengiriman->estimasi_hari,
                 'status' => $pengiriman->status,
@@ -214,10 +211,11 @@ class PengirimanController extends Controller
                 'pesanan_id' => $pengiriman->pesanan_id,
                 'nomor_resi' => $pengiriman->nomor_resi,
                 'kurir' => $pengiriman->kurir,
-                'jenis_layanan' => $pengiriman->jenis_layanan,
                 'biaya_pengiriman' => $pengiriman->biaya_pengiriman,
                 'estimasi_hari' => $pengiriman->estimasi_hari,
                 'status' => $pengiriman->status,
+                'tanggal_kirim' => $pengiriman->tanggal_kirim?->format('Y-m-d'),
+                'tanggal_diterima' => $pengiriman->tanggal_diterima?->format('Y-m-d'),
                 'catatan' => $pengiriman->catatan,
             ]
         ]);
@@ -231,7 +229,6 @@ class PengirimanController extends Controller
         $validator = Validator::make($request->all(), [
             'nomor_resi' => 'nullable|string|max:255|unique:pengiriman,nomor_resi,' . $pengiriman->pengiriman_id . ',pengiriman_id',
             'kurir' => 'required|string|max:255',
-            'jenis_layanan' => 'required|string|max:255',
             'biaya_pengiriman' => 'required|numeric|min:0',
             'estimasi_hari' => 'required|integer|min:1',
             'status' => 'required|in:pending,shipped,delivered,cancelled',

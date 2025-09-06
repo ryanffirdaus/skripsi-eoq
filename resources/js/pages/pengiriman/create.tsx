@@ -29,7 +29,6 @@ interface FormData {
     pesanan_id: string;
     nomor_resi: string;
     kurir: string;
-    jenis_layanan: string;
     biaya_pengiriman: string;
     estimasi_hari: string;
     catatan: string;
@@ -42,23 +41,14 @@ const kurirOptions = [
     { value: 'POS Indonesia', label: 'POS Indonesia' },
     { value: 'SiCepat', label: 'SiCepat' },
     { value: 'AnterAja', label: 'AnterAja' },
+    { value: 'Gojek', label: 'Gojek' },
 ];
-
-const jenisLayananOptions: Record<string, string[]> = {
-    JNE: ['REG', 'YES', 'OKE'],
-    'J&T': ['EZ', 'REG', 'SUPER'],
-    TIKI: ['REG', 'ECO', 'ONS'],
-    'POS Indonesia': ['REGULER', 'EXPRESS'],
-    SiCepat: ['REG', 'BEST'],
-    AnterAja: ['REGULER', 'SAME DAY'],
-};
 
 export default function Create({ pesanan }: Props) {
     const { data, setData, post, processing, errors } = useForm<FormData>({
         pesanan_id: '',
         nomor_resi: '',
         kurir: '',
-        jenis_layanan: '',
         biaya_pengiriman: '',
         estimasi_hari: '1',
         catatan: '',
@@ -73,12 +63,10 @@ export default function Create({ pesanan }: Props) {
         setData({
             ...data,
             kurir: value,
-            jenis_layanan: '', // Reset jenis layanan when kurir changes
         });
     };
 
     const selectedPesanan = pesanan.find((p) => p.pesanan_id === data.pesanan_id);
-    const availableLayanan = data.kurir ? jenisLayananOptions[data.kurir] || [] : [];
 
     return (
         <AppLayout
@@ -171,27 +159,6 @@ export default function Create({ pesanan }: Props) {
                                         </SelectContent>
                                     </Select>
                                     {errors.kurir && <p className="text-sm text-destructive">{errors.kurir}</p>}
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="jenis_layanan">Jenis Layanan</Label>
-                                    <Select
-                                        value={data.jenis_layanan}
-                                        onValueChange={(value) => setData('jenis_layanan', value)}
-                                        disabled={!data.kurir}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Pilih jenis layanan" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {availableLayanan.map((layanan) => (
-                                                <SelectItem key={layanan} value={layanan}>
-                                                    {layanan}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    {errors.jenis_layanan && <p className="text-sm text-destructive">{errors.jenis_layanan}</p>}
                                 </div>
 
                                 <div className="space-y-2">

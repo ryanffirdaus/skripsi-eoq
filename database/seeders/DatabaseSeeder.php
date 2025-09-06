@@ -39,9 +39,11 @@ class DatabaseSeeder extends Seeder
             SupplierSeeder::class,
             PelangganSeeder::class,
             PesananSeeder::class,
+            PengirimanSeeder::class,
             PengadaanSeeder::class,
             PembelianSeeder::class, // Must be after PengadaanSeeder
-            PengirimanSeeder::class,
+            PenerimaanBahanBakuSeeder::class, // Must be after PembelianSeeder
+            ReturBahanBakuSeeder::class, // Must be after PenerimaanBahanBakuSeeder
         ]);
     }
 }
