@@ -10,33 +10,22 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { formatCurrency, formatDate } from '@/lib/formatters';
+import { formatCurrency } from '@/lib/formatters';
 import { type BreadcrumbItem } from '@/types';
 import { router } from '@inertiajs/react';
-import { Package, ShoppingCart, TrendingDown } from 'lucide-react';
+import { ShoppingCart, TrendingDown } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
-
-interface Supplier {
-    supplier_id: string;
-    nama_supplier: string;
-}
 
 interface Pengadaan extends Record<string, unknown> {
     pengadaan_id: string;
-    supplier_id: string;
     jenis_pengadaan: string;
     pesanan_id?: string;
     tanggal_pengadaan: string;
-    tanggal_dibutuhkan: string;
     tanggal_delivery?: string;
     total_biaya: number;
     status: string;
     status_label: string;
-    prioritas: string;
-    prioritas_label: string;
     nomor_po?: string;
-    alasan_pengadaan?: string;
-    supplier?: Supplier;
     can_edit: boolean;
     can_cancel: boolean;
     created_at: string;
@@ -64,7 +53,6 @@ interface Filters {
     search?: string;
     status?: string;
     jenis_pengadaan?: string;
-    prioritas?: string;
     sort_by: string;
     sort_direction: 'asc' | 'desc';
     per_page: number;
@@ -92,7 +80,8 @@ export default function Index({ pengadaan, filters, flash }: Props) {
         const statusColors = {
             draft: 'outline',
             pending: 'secondary',
-            approved: 'default',
+            procurement_approved: 'default',
+            finance_approved: 'default',
             ordered: 'default',
             partial_received: 'default',
             received: 'default',
@@ -103,7 +92,8 @@ export default function Index({ pengadaan, filters, flash }: Props) {
             <Badge variant={statusColors[status as keyof typeof statusColors] || 'outline'}>
                 {status === 'draft' && 'Draft'}
                 {status === 'pending' && 'Menunggu'}
-                {status === 'approved' && 'Disetujui'}
+                {status === 'procurement_approved' && 'Disetujui (Pengadaan)'}
+                {status === 'finance_approved' && 'Disetujui (Keuangan)'}
                 {status === 'ordered' && 'Dipesan'}
                 {status === 'partial_received' && 'Sebagian'}
                 {status === 'received' && 'Diterima'}
@@ -112,35 +102,15 @@ export default function Index({ pengadaan, filters, flash }: Props) {
         );
     };
 
-    const getPrioritasBadge = (prioritas: string) => {
-        const prioritasColors = {
-            low: 'outline',
-            normal: 'secondary',
-            high: 'default',
-            urgent: 'destructive',
-        } as const;
-
-        return (
-            <Badge variant={prioritasColors[prioritas as keyof typeof prioritasColors] || 'outline'}>
-                {prioritas === 'low' && 'Rendah'}
-                {prioritas === 'normal' && 'Normal'}
-                {prioritas === 'high' && 'Tinggi'}
-                {prioritas === 'urgent' && 'Mendesak'}
-            </Badge>
-        );
-    };
-
     const getJenisBadge = (jenis: string) => {
         const jenisColors = {
             pesanan: 'default',
             rop: 'secondary',
-            manual: 'outline',
         } as const;
 
         const jenisIcons = {
             pesanan: <ShoppingCart className="h-3 w-3" />,
             rop: <TrendingDown className="h-3 w-3" />,
-            manual: <Package className="h-3 w-3" />,
         };
 
         return (
@@ -148,7 +118,6 @@ export default function Index({ pengadaan, filters, flash }: Props) {
                 {jenisIcons[jenis as keyof typeof jenisIcons]}
                 {jenis === 'pesanan' && 'Pesanan'}
                 {jenis === 'rop' && 'ROP'}
-                {jenis === 'manual' && 'Manual'}
             </Badge>
         );
     };
@@ -183,7 +152,7 @@ export default function Index({ pengadaan, filters, flash }: Props) {
 
     const renderStatusActions = useCallback(
         (item: Pengadaan) => {
-            const canUpdate = ['draft', 'pending', 'approved', 'ordered'].includes(item.status);
+            const canUpdate = ['draft', 'pending', 'procurement_approved', 'finance_approved', 'ordered'].includes(item.status);
 
             if (!canUpdate) return null;
 
@@ -206,7 +175,7 @@ export default function Index({ pengadaan, filters, flash }: Props) {
 
                         {item.status === 'pending' && (
                             <>
-                                <DropdownMenuItem onClick={() => handleStatusUpdate(item.pengadaan_id, 'approved')}>
+                                <DropdownMenuItem onClick={() => handleStatusUpdate(item.pengadaan_id, 'procurement_approved')}>
                                     Setujui Pengadaan
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => handleStatusUpdate(item.pengadaan_id, 'draft')}>
@@ -215,7 +184,7 @@ export default function Index({ pengadaan, filters, flash }: Props) {
                             </>
                         )}
 
-                        {item.status === 'approved' && (
+                        {item.status === 'procurement_approved' && (
                             <DropdownMenuItem
                                 onClick={() => {
                                     const nomorPO = prompt('Masukkan Nomor PO:');
@@ -253,7 +222,7 @@ export default function Index({ pengadaan, filters, flash }: Props) {
                             </>
                         )}
 
-                        {['draft', 'pending', 'approved'].includes(item.status) && (
+                        {['draft', 'pending', 'procurement_approved', 'finance_approved'].includes(item.status) && (
                             <>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem onClick={() => handleStatusUpdate(item.pengadaan_id, 'cancelled')} className="text-red-600">
@@ -278,17 +247,6 @@ export default function Index({ pengadaan, filters, flash }: Props) {
                 defaultVisible: true,
             },
             {
-                key: 'supplier',
-                label: 'Supplier',
-                sortable: false,
-                hideable: true,
-                defaultVisible: true,
-                render: (item: Record<string, unknown>) => {
-                    const pengadaan = item as Pengadaan;
-                    return pengadaan.supplier?.nama_supplier || '-';
-                },
-            },
-            {
                 key: 'jenis_pengadaan',
                 label: 'Jenis',
                 sortable: false,
@@ -300,17 +258,6 @@ export default function Index({ pengadaan, filters, flash }: Props) {
                 },
             },
             {
-                key: 'tanggal_dibutuhkan',
-                label: 'Tanggal Dibutuhkan',
-                sortable: true,
-                hideable: true,
-                defaultVisible: true,
-                render: (item: Record<string, unknown>) => {
-                    const pengadaan = item as Pengadaan;
-                    return formatDate(pengadaan.tanggal_dibutuhkan);
-                },
-            },
-            {
                 key: 'total_biaya',
                 label: 'Total Biaya',
                 sortable: true,
@@ -319,17 +266,6 @@ export default function Index({ pengadaan, filters, flash }: Props) {
                 render: (item: Record<string, unknown>) => {
                     const pengadaan = item as Pengadaan;
                     return formatCurrency(pengadaan.total_biaya);
-                },
-            },
-            {
-                key: 'prioritas',
-                label: 'Prioritas',
-                sortable: false,
-                hideable: true,
-                defaultVisible: true,
-                render: (item: Record<string, unknown>) => {
-                    const pengadaan = item as Pengadaan;
-                    return getPrioritasBadge(pengadaan.prioritas);
                 },
             },
             {
@@ -373,7 +309,8 @@ export default function Index({ pengadaan, filters, flash }: Props) {
                     { value: '', label: 'Semua Status' },
                     { value: 'draft', label: 'Draft' },
                     { value: 'pending', label: 'Menunggu Persetujuan' },
-                    { value: 'approved', label: 'Disetujui' },
+                    { value: 'procurement_approved', label: 'Disetujui (Pengadaan)' },
+                    { value: 'finance_approved', label: 'Disetujui (Keuangan)' },
                     { value: 'ordered', label: 'Dipesan' },
                     { value: 'partial_received', label: 'Diterima Sebagian' },
                     { value: 'received', label: 'Diterima' },
@@ -388,19 +325,6 @@ export default function Index({ pengadaan, filters, flash }: Props) {
                     { value: '', label: 'Semua Jenis' },
                     { value: 'pesanan', label: 'Berdasarkan Pesanan' },
                     { value: 'rop', label: 'Berdasarkan ROP' },
-                    { value: 'manual', label: 'Manual' },
-                ],
-            },
-            {
-                key: 'prioritas',
-                label: 'Prioritas',
-                type: 'select' as const,
-                options: [
-                    { value: '', label: 'Semua Prioritas' },
-                    { value: 'low', label: 'Rendah' },
-                    { value: 'normal', label: 'Normal' },
-                    { value: 'high', label: 'Tinggi' },
-                    { value: 'urgent', label: 'Mendesak' },
                 ],
             },
         ],

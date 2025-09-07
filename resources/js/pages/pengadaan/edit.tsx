@@ -12,8 +12,6 @@ import React from 'react';
 interface Supplier {
     supplier_id: string;
     nama_supplier: string;
-    kontak_person: string;
-    telepon: string;
 }
 
 interface PengadaanDetail {
@@ -25,20 +23,20 @@ interface PengadaanDetail {
     qty_diminta: number;
     qty_disetujui?: number;
     qty_diterima?: number;
-    harga_satuan: number;
-    total_harga: number;
+    harga_satuan: string;
+    total_harga: string;
     catatan?: string;
+    supplier: {
+        supplier_id: string;
+        nama_supplier: string;
+    } | null;
 }
 
 interface Pengadaan {
     pengadaan_id: string;
-    supplier_id: string;
     jenis_pengadaan: string;
     pesanan_id?: string;
     tanggal_pengadaan: string;
-    tanggal_dibutuhkan: string;
-    prioritas: string;
-    alasan_pengadaan?: string;
     catatan?: string;
     detail: PengadaanDetail[];
 }
@@ -56,13 +54,19 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function Edit({ pengadaan, suppliers }: Props) {
     const { data, setData, put, processing, errors } = useForm({
-        supplier_id: pengadaan.supplier_id,
         tanggal_pengadaan: pengadaan.tanggal_pengadaan,
-        tanggal_dibutuhkan: pengadaan.tanggal_dibutuhkan,
-        prioritas: pengadaan.prioritas,
-        alasan_pengadaan: pengadaan.alasan_pengadaan || '',
         catatan: pengadaan.catatan || '',
+        details: pengadaan.detail.map((item) => ({
+            pengadaan_detail_id: item.pengadaan_detail_id,
+            supplier_id: item.supplier?.supplier_id || '',
+        })),
     });
+
+    const handleDetailChange = (index: number, field: string, value: string) => {
+        const updatedDetails = [...data.details];
+        updatedDetails[index] = { ...updatedDetails[index], [field]: value };
+        setData('details', updatedDetails);
+    };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -70,27 +74,11 @@ export default function Edit({ pengadaan, suppliers }: Props) {
     };
 
     const calculateTotal = () => {
-        return pengadaan.detail.reduce((total, item) => total + item.total_harga, 0);
-    };
+        return pengadaan.detail.reduce((total, item) => {
+            const hargaAsNumber = parseFloat(item.total_harga);
 
-    const getPrioritasLabel = (prioritas: string) => {
-        const labels: Record<string, string> = {
-            low: 'Low',
-            normal: 'Normal',
-            high: 'High',
-            urgent: 'Urgent',
-        };
-        return labels[prioritas] || prioritas;
-    };
-
-    const getPrioritasColor = (prioritas: string) => {
-        const colors: Record<string, string> = {
-            low: 'bg-blue-100 text-blue-800',
-            normal: 'bg-green-100 text-green-800',
-            high: 'bg-yellow-100 text-yellow-800',
-            urgent: 'bg-red-100 text-red-800',
-        };
-        return colors[prioritas] || 'bg-gray-100 text-gray-800';
+            return total + (isNaN(hargaAsNumber) ? 0 : hargaAsNumber);
+        }, 0);
     };
 
     return (
@@ -116,15 +104,12 @@ export default function Edit({ pengadaan, suppliers }: Props) {
                                 clipRule="evenodd"
                             />
                         </svg>
-                    </div>
+                    </div>{' '}
                     <div className="ml-3">
                         <h3 className="text-sm font-medium text-blue-800">Informasi Edit Pengadaan</h3>
                         <div className="mt-2 text-sm text-blue-700">
-                            <p>• Item pengadaan tidak dapat diubah setelah pengadaan dibuat</p>
-                            <p>• Hanya informasi dasar yang dapat diedit (supplier, tanggal, prioritas, catatan)</p>
-                            <p>
-                                • Jenis pengadaan: <strong>{pengadaan.jenis_pengadaan.toUpperCase()}</strong>
-                            </p>
+                            <p>• Anda dapat mengubah tanggal, catatan, dan supplier untuk setiap item bahan baku.</p>
+                            <p>• Kuantitas dan jenis item tidak dapat diubah setelah pengadaan dibuat.</p>
                         </div>
                     </div>
                 </div>
@@ -132,39 +117,6 @@ export default function Edit({ pengadaan, suppliers }: Props) {
 
             {/* Basic Information */}
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                <div>
-                    <Label htmlFor="supplier_id">Supplier *</Label>
-                    <Select value={data.supplier_id} onValueChange={(value) => setData('supplier_id', value)}>
-                        <SelectTrigger className={cn('mt-1', errors.supplier_id && 'border-red-500')}>
-                            <SelectValue placeholder="Pilih Supplier" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {suppliers.map((supplier) => (
-                                <SelectItem key={supplier.supplier_id} value={supplier.supplier_id}>
-                                    {supplier.nama_supplier}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                    {errors.supplier_id && <p className="mt-1 text-sm text-red-600">{errors.supplier_id}</p>}
-                </div>
-
-                <div>
-                    <Label htmlFor="prioritas">Prioritas *</Label>
-                    <Select value={data.prioritas} onValueChange={(value) => setData('prioritas', value)}>
-                        <SelectTrigger className="mt-1">
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="low">Low</SelectItem>
-                            <SelectItem value="normal">Normal</SelectItem>
-                            <SelectItem value="high">High</SelectItem>
-                            <SelectItem value="urgent">Urgent</SelectItem>
-                        </SelectContent>
-                    </Select>
-                    {errors.prioritas && <p className="mt-1 text-sm text-red-600">{errors.prioritas}</p>}
-                </div>
-
                 <div>
                     <Label htmlFor="tanggal_pengadaan">Tanggal Pengadaan *</Label>
                     <Input
@@ -175,33 +127,6 @@ export default function Edit({ pengadaan, suppliers }: Props) {
                         className={cn('mt-1', errors.tanggal_pengadaan && 'border-red-500')}
                     />
                     {errors.tanggal_pengadaan && <p className="mt-1 text-sm text-red-600">{errors.tanggal_pengadaan}</p>}
-                </div>
-
-                <div>
-                    <Label htmlFor="tanggal_dibutuhkan">Tanggal Dibutuhkan *</Label>
-                    <Input
-                        id="tanggal_dibutuhkan"
-                        type="date"
-                        value={data.tanggal_dibutuhkan}
-                        onChange={(e) => setData('tanggal_dibutuhkan', e.target.value)}
-                        className={cn('mt-1', errors.tanggal_dibutuhkan && 'border-red-500')}
-                    />
-                    {errors.tanggal_dibutuhkan && <p className="mt-1 text-sm text-red-600">{errors.tanggal_dibutuhkan}</p>}
-                </div>
-            </div>
-
-            <div className="grid grid-cols-1 gap-6">
-                <div>
-                    <Label htmlFor="alasan_pengadaan">Alasan Pengadaan</Label>
-                    <Textarea
-                        id="alasan_pengadaan"
-                        value={data.alasan_pengadaan}
-                        onChange={(e) => setData('alasan_pengadaan', e.target.value)}
-                        className="mt-1"
-                        rows={3}
-                        placeholder="Jelaskan alasan pengadaan..."
-                    />
-                    {errors.alasan_pengadaan && <p className="mt-1 text-sm text-red-600">{errors.alasan_pengadaan}</p>}
                 </div>
 
                 <div>
@@ -218,24 +143,49 @@ export default function Edit({ pengadaan, suppliers }: Props) {
                 </div>
             </div>
 
-            {/* Items Section - Read Only */}
+            {/* Items Section */}
             <div className="border-t pt-6">
-                <h3 className={cn(colors.text.primary, 'mb-4 text-lg font-medium')}>Item Pengadaan (Read Only)</h3>
+                <h3 className={cn(colors.text.primary, 'mb-4 text-lg font-medium')}>Item Pengadaan</h3>
 
                 <div className="space-y-4">
                     {pengadaan.detail.map((item, index) => (
-                        <div key={index} className={cn('rounded-lg border bg-gray-50 p-4', colors.border.primary)}>
-                            <div className="grid grid-cols-1 gap-4 md:grid-cols-6">
-                                <div>
-                                    <Label className="text-sm font-medium text-gray-700">Tipe Item</Label>
-                                    <div className="mt-1 rounded border bg-white p-2 text-sm">
-                                        {item.item_type === 'bahan_baku' ? 'Bahan Baku' : 'Produk'}
-                                    </div>
-                                </div>
-
+                        <div key={item.pengadaan_detail_id} className={cn('rounded-lg border bg-gray-50 p-4', colors.border.primary)}>
+                            {/* Main grid for item layout */}
+                            <div className="grid grid-cols-1 gap-x-4 gap-y-2 md:grid-cols-6">
                                 <div className="md:col-span-2">
                                     <Label className="text-sm font-medium text-gray-700">Nama Item</Label>
                                     <div className="mt-1 rounded border bg-white p-2 text-sm">{item.nama_item}</div>
+                                </div>
+
+                                {/* Supplier Dropdown */}
+                                <div className="md:col-span-2">
+                                    <Label className="text-sm font-medium text-gray-700">Supplier</Label>
+                                    {item.item_type === 'bahan_baku' ? (
+                                        <>
+                                            <Select
+                                                value={data.details[index].supplier_id || ''}
+                                                onValueChange={(value) => handleDetailChange(index, 'supplier_id', value)}
+                                            >
+                                                <SelectTrigger
+                                                    className={cn('mt-1 bg-white', errors[`details.${index}.supplier_id`] && 'border-red-500')}
+                                                >
+                                                    <SelectValue placeholder="Pilih Supplier (Opsional)" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {suppliers.map((supplier) => (
+                                                        <SelectItem key={supplier.supplier_id} value={supplier.supplier_id}>
+                                                            {supplier.nama_supplier}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            {errors[`details.${index}.supplier_id`] && (
+                                                <p className="mt-1 text-sm text-red-600">{errors[`details.${index}.supplier_id`]}</p>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <div className="mt-1 rounded border bg-gray-200 p-2 text-sm text-gray-600">- (Produk Internal)</div>
+                                    )}
                                 </div>
 
                                 <div>
@@ -245,39 +195,32 @@ export default function Edit({ pengadaan, suppliers }: Props) {
                                     </div>
                                 </div>
 
+                                {/* This div was misplaced. Now it's inside the main grid. */}
                                 <div>
                                     <Label className="text-sm font-medium text-gray-700">Harga Satuan</Label>
-                                    <div className="mt-1 rounded border bg-white p-2 text-sm">Rp {item.harga_satuan.toLocaleString('id-ID')}</div>
+                                    <div className="mt-1 rounded border bg-white p-2 text-sm">Rp {item.harga_satuan}</div>
                                 </div>
-
-                                <div>
-                                    <Label className="text-sm font-medium text-gray-700">Total</Label>
-                                    <div className="mt-1 rounded border bg-white p-2 text-sm font-medium">
-                                        Rp {item.total_harga.toLocaleString('id-ID')}
-                                    </div>
-                                </div>
-                            </div>
-
+                            </div>{' '}
+                            {/* End of the main grid */}
                             {item.catatan && (
                                 <div className="mt-4">
                                     <Label className="text-sm font-medium text-gray-700">Catatan Item</Label>
                                     <div className="mt-1 rounded border bg-white p-2 text-sm">{item.catatan}</div>
                                 </div>
                             )}
-
-                            {/* Show qty progress if approved/received quantities exist */}
-                            {(item.qty_disetujui || item.qty_diterima) && (
+                            {/* Qty progress display */}
+                            {(item.qty_disetujui != null || item.qty_diterima != null) && (
                                 <div className="mt-4 grid grid-cols-3 gap-4">
                                     <div>
                                         <Label className="text-sm font-medium text-gray-700">Qty Disetujui</Label>
                                         <div className="mt-1 rounded border border-blue-200 bg-blue-50 p-2 text-sm">
-                                            {item.qty_disetujui || 0} {item.satuan}
+                                            {item.qty_disetujui ? item.qty_disetujui : '-'} {item.satuan}
                                         </div>
                                     </div>
                                     <div>
                                         <Label className="text-sm font-medium text-gray-700">Qty Diterima</Label>
                                         <div className="mt-1 rounded border border-green-200 bg-green-50 p-2 text-sm">
-                                            {item.qty_diterima || 0} {item.satuan}
+                                            {item.qty_diterima ? item.qty_diterima : '-'} {item.satuan}
                                         </div>
                                     </div>
                                     <div>
@@ -288,7 +231,7 @@ export default function Edit({ pengadaan, suppliers }: Props) {
                                     </div>
                                 </div>
                             )}
-                        </div>
+                        </div> // This is the closing div for the item card
                     ))}
                 </div>
 
@@ -307,14 +250,6 @@ export default function Edit({ pengadaan, suppliers }: Props) {
                     <div>
                         <Label className="text-sm font-medium text-gray-700">Jenis Pengadaan</Label>
                         <div className="mt-1 rounded border bg-white p-2 text-sm">{pengadaan.jenis_pengadaan.toUpperCase()}</div>
-                    </div>
-                    <div>
-                        <Label className="text-sm font-medium text-gray-700">Prioritas Saat Ini</Label>
-                        <div className="mt-1">
-                            <span className={cn('rounded-full px-2 py-1 text-xs font-medium', getPrioritasColor(pengadaan.prioritas))}>
-                                {getPrioritasLabel(pengadaan.prioritas)}
-                            </span>
-                        </div>
                     </div>
                     {pengadaan.pesanan_id && (
                         <div>

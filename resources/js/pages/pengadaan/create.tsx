@@ -7,9 +7,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { colors } from '@/lib/colors';
 import { cn } from '@/lib/utils';
 import { BreadcrumbItem } from '@/types';
-import { InformationCircleIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { CalculatorIcon, InformationCircleIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { Head, useForm } from '@inertiajs/react';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 interface Supplier {
     supplier_id: string;
@@ -17,6 +17,27 @@ interface Supplier {
     kontak_person: string;
     email: string;
     telepon: string;
+}
+
+interface PesananProduk {
+    produk_id: string;
+    nama_produk: string;
+    jumlah_produk: number;
+    stok_produk: number;
+    eoq_produk: number;
+    hpp_produk: number;
+    satuan_produk: string;
+}
+
+interface Pesanan {
+    pesanan_id: string;
+    pelanggan_id: string;
+    pelanggan_nama: string;
+    tanggal_pemesanan: string;
+    total_harga: number;
+    status: string;
+    display_text: string;
+    produk: PesananProduk[];
 }
 
 interface BahanBaku {
@@ -29,6 +50,17 @@ interface BahanBaku {
     eoq: number;
 }
 
+interface BahanBakuProduk {
+    bahan_baku_id: string;
+    nama_bahan: string;
+    jumlah_bahan_baku: number;
+    stok_bahan: number;
+    satuan_bahan: string;
+    harga_bahan: number;
+    eoq_bahan: number;
+    rop_bahan: number;
+}
+
 interface Produk {
     produk_id: string;
     nama_produk: string;
@@ -37,16 +69,33 @@ interface Produk {
     stok_saat_ini: number;
     reorder_point: number;
     eoq: number;
+    bahan_baku: BahanBakuProduk[];
 }
 
 interface ItemDetail {
     item_type: 'bahan_baku' | 'produk';
     item_id: string;
+    supplier_id?: string;
+    nama_item?: string;
+    satuan?: string;
+    qty_needed?: number;
+    qty_procurement: number;
+    harga_satuan?: number;
     catatan: string;
+}
+
+interface ProcurementCalculation {
+    success: boolean;
+    items: ItemDetail[];
+    summary: {
+        total_items: number;
+        total_cost: number;
+    };
 }
 
 interface Props {
     suppliers: Supplier[];
+    pesanan: Pesanan[];
     bahanBaku: BahanBaku[];
     produk: Produk[];
 }
@@ -57,25 +106,22 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Tambah Pengadaan', href: '#' },
 ];
 
-export default function Create({ suppliers, bahanBaku, produk }: Props) {
-    const [items, setItems] = useState<ItemDetail[]>([
-        {
-            item_type: 'bahan_baku',
-            item_id: '',
-            catatan: '',
-        },
-    ]);
+export default function Create({ suppliers, pesanan, bahanBaku, produk }: Props) {
+    const [items, setItems] = useState<ItemDetail[]>([]);
+    const [isCalculating, setIsCalculating] = useState(false);
+    const [calculationResult, setCalculationResult] = useState<ProcurementCalculation | null>(null);
+    const [showManualAdd, setShowManualAdd] = useState(false);
 
     const { data, setData, post, processing, errors, reset } = useForm({
-        supplier_id: '',
-        jenis_pengadaan: 'rop',
+        pesanan_id: '',
         tanggal_pengadaan: new Date().toISOString().split('T')[0],
-        tanggal_dibutuhkan: '',
-        prioritas: 'normal',
-        alasan_pengadaan: '',
         catatan: '',
         items: items,
     });
+
+    useEffect(() => {
+        setData('items', items);
+    }, [items]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -86,38 +132,84 @@ export default function Create({ suppliers, bahanBaku, produk }: Props) {
         });
     };
 
-    const addItem = () => {
+    const calculateProcurement = async () => {
+        if (!data.pesanan_id) {
+            alert('Pilih pesanan terlebih dahulu!');
+            return;
+        }
+
+        setIsCalculating(true);
+        try {
+            const response = await fetch('/pengadaan/calculate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                },
+                body: JSON.stringify({ pesanan_id: data.pesanan_id }),
+                credentials: 'same-origin',
+            });
+
+            const result: ProcurementCalculation = await response.json();
+
+            if (result.success) {
+                setCalculationResult(result);
+                setItems(result.items);
+                setShowManualAdd(true);
+            } else {
+                alert('Gagal menghitung kebutuhan procurement');
+            }
+        } catch (error) {
+            console.error('Error calculating procurement:', error);
+            alert('Terjadi kesalahan saat menghitung');
+        } finally {
+            setIsCalculating(false);
+        }
+    };
+
+    const addManualItem = () => {
         const newItems = [
             ...items,
             {
                 item_type: 'bahan_baku' as const,
                 item_id: '',
+                supplier_id: '',
+                qty_procurement: 1,
                 catatan: '',
             },
         ];
         setItems(newItems);
-        setData('items', newItems);
     };
 
     const removeItem = (index: number) => {
-        if (items.length > 1) {
-            const newItems = items.filter((_, i) => i !== index);
-            setItems(newItems);
-            setData('items', newItems);
-        }
+        const newItems = items.filter((_, i) => i !== index);
+        setItems(newItems);
     };
 
-    const updateItem = (index: number, field: keyof ItemDetail, value: string) => {
+    const updateItem = (index: number, field: keyof ItemDetail, value: string | number) => {
         const newItems = [...items];
         newItems[index] = { ...newItems[index], [field]: value };
 
         // Reset item_id when item_type changes
         if (field === 'item_type') {
             newItems[index].item_id = '';
+            newItems[index].supplier_id = '';
+        }
+
+        // Update item details when item_id changes
+        if (field === 'item_id' && value) {
+            const itemDetails = getItemDetails(newItems[index].item_type, value as string);
+            if (itemDetails) {
+                newItems[index].nama_item = itemDetails.nama;
+                newItems[index].satuan = itemDetails.satuan;
+                newItems[index].harga_satuan = itemDetails.harga;
+                if (!newItems[index].qty_procurement || newItems[index].qty_procurement === 1) {
+                    newItems[index].qty_procurement = itemDetails.eoq;
+                }
+            }
         }
 
         setItems(newItems);
-        setData('items', newItems);
     };
 
     const getItemOptions = (itemType: 'bahan_baku' | 'produk') => {
@@ -166,8 +258,9 @@ export default function Create({ suppliers, bahanBaku, produk }: Props) {
 
     const calculateTotal = () => {
         return items.reduce((total, item) => {
-            const details = getItemDetails(item.item_type, item.item_id);
-            return total + (details ? details.eoq * details.harga : 0);
+            const harga = item.harga_satuan || 0;
+            const qty = item.qty_procurement || 0;
+            return total + harga * qty;
         }, 0);
     };
 
@@ -176,6 +269,12 @@ export default function Create({ suppliers, bahanBaku, produk }: Props) {
         if (!details) return false;
         return details.stok <= details.rop;
     };
+
+    const getSelectedPesananDetails = () => {
+        return pesanan.find((p) => p.pesanan_id === data.pesanan_id);
+    };
+
+    const selectedPesanan = getSelectedPesananDetails();
 
     return (
         <FormTemplate
@@ -196,11 +295,12 @@ export default function Create({ suppliers, bahanBaku, produk }: Props) {
                         <InformationCircleIcon className="h-5 w-5 text-blue-400" />
                     </div>
                     <div className="ml-3">
-                        <h3 className="text-sm font-medium text-blue-800">Informasi Pengadaan EOQ</h3>
+                        <h3 className="text-sm font-medium text-blue-800">Sistem Otomatis Pengadaan</h3>
                         <div className="mt-2 text-sm text-blue-700">
-                            <p>• Quantity pengadaan otomatis menggunakan nilai EOQ (Economic Order Quantity)</p>
-                            <p>• Harga otomatis menggunakan harga standard dari master data</p>
-                            <p>• Sistem akan menampilkan status stok dan ROP untuk membantu prioritas</p>
+                            <p>• Pilih pesanan dan klik "Hitung Kebutuhan" untuk otomatis menghitung procurement</p>
+                            <p>• Sistem akan menghitung kebutuhan produk dan bahan baku berdasarkan stok yang ada</p>
+                            <p>• Jumlah procurement = EOQ + kekurangan stok untuk memenuhi pesanan</p>
+                            <p>• Anda dapat menambah item manual atau mengubah quantity sesuai kebutuhan</p>
                         </div>
                     </div>
                 </div>
@@ -209,36 +309,59 @@ export default function Create({ suppliers, bahanBaku, produk }: Props) {
             {/* Basic Information */}
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div>
-                    <Label htmlFor="supplier_id">Supplier *</Label>
-                    <Select value={data.supplier_id} onValueChange={(value) => setData('supplier_id', value)}>
-                        <SelectTrigger className={cn('mt-1', errors.supplier_id && 'border-red-500')}>
-                            <SelectValue placeholder="Pilih Supplier" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {suppliers.map((supplier) => (
-                                <SelectItem key={supplier.supplier_id} value={supplier.supplier_id}>
-                                    {supplier.nama_supplier}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                    {errors.supplier_id && <p className="mt-1 text-sm text-red-600">{errors.supplier_id}</p>}
+                    <Label htmlFor="pesanan_id">Pesanan *</Label>
+                    <div className="mt-1 flex gap-2">
+                        <Select value={data.pesanan_id} onValueChange={(value) => setData('pesanan_id', value)}>
+                            <SelectTrigger className={cn('flex-1', errors.pesanan_id && 'border-red-500')}>
+                                <SelectValue placeholder="Pilih Pesanan" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {pesanan.map((order) => (
+                                    <SelectItem key={order.pesanan_id} value={order.pesanan_id}>
+                                        {order.display_text}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        <Button
+                            type="button"
+                            onClick={calculateProcurement}
+                            disabled={!data.pesanan_id || isCalculating}
+                            variant="outline"
+                            className="flex items-center gap-2"
+                        >
+                            <CalculatorIcon className="h-4 w-4" />
+                            {isCalculating ? 'Menghitung...' : 'Hitung Kebutuhan'}
+                        </Button>
+                    </div>
+                    {errors.pesanan_id && <p className="mt-1 text-sm text-red-600">{errors.pesanan_id}</p>}
+                    {selectedPesanan && (
+                        <div className="mt-2 rounded bg-gray-50 p-3">
+                            <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
+                                <span>
+                                    Status: <strong className="text-gray-900 capitalize">{selectedPesanan.status}</strong>
+                                </span>
+                                <span>
+                                    Total: <strong className="text-gray-900">Rp {selectedPesanan.total_harga.toLocaleString('id-ID')}</strong>
+                                </span>
+                            </div>
+                            <div className="mt-2">
+                                <strong className="text-xs text-gray-700">Produk yang dipesan:</strong>
+                                <div className="mt-1 space-y-1">
+                                    {selectedPesanan.produk.map((produk) => (
+                                        <div key={produk.produk_id} className="flex justify-between text-xs">
+                                            <span>{produk.nama_produk}</span>
+                                            <span className="font-medium">
+                                                {produk.jumlah_produk} {produk.satuan_produk}
+                                                <span className="ml-2 text-gray-500">(Stok: {produk.stok_produk})</span>
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
-
-                <div>
-                    <Label htmlFor="jenis_pengadaan">Jenis Pengadaan *</Label>
-                    <Select value={data.jenis_pengadaan} onValueChange={(value) => setData('jenis_pengadaan', value)}>
-                        <SelectTrigger className="mt-1">
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="rop">Reorder Point</SelectItem>
-                            <SelectItem value="pesanan">Berdasarkan Pesanan</SelectItem>
-                        </SelectContent>
-                    </Select>
-                    {errors.jenis_pengadaan && <p className="mt-1 text-sm text-red-600">{errors.jenis_pengadaan}</p>}
-                </div>
-
                 <div>
                     <Label htmlFor="tanggal_pengadaan">Tanggal Pengadaan *</Label>
                     <Input
@@ -250,87 +373,91 @@ export default function Create({ suppliers, bahanBaku, produk }: Props) {
                     />
                     {errors.tanggal_pengadaan && <p className="mt-1 text-sm text-red-600">{errors.tanggal_pengadaan}</p>}
                 </div>
-
-                <div>
-                    <Label htmlFor="tanggal_dibutuhkan">Tanggal Dibutuhkan *</Label>
-                    <Input
-                        id="tanggal_dibutuhkan"
-                        type="date"
-                        value={data.tanggal_dibutuhkan}
-                        onChange={(e) => setData('tanggal_dibutuhkan', e.target.value)}
-                        className={cn('mt-1', errors.tanggal_dibutuhkan && 'border-red-500')}
-                    />
-                    {errors.tanggal_dibutuhkan && <p className="mt-1 text-sm text-red-600">{errors.tanggal_dibutuhkan}</p>}
-                </div>
-
-                <div>
-                    <Label htmlFor="prioritas">Prioritas *</Label>
-                    <Select value={data.prioritas} onValueChange={(value) => setData('prioritas', value)}>
-                        <SelectTrigger className="mt-1">
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="low">Low</SelectItem>
-                            <SelectItem value="normal">Normal</SelectItem>
-                            <SelectItem value="high">High</SelectItem>
-                            <SelectItem value="urgent">Urgent</SelectItem>
-                        </SelectContent>
-                    </Select>
-                    {errors.prioritas && <p className="mt-1 text-sm text-red-600">{errors.prioritas}</p>}
-                </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-6">
-                <div>
-                    <Label htmlFor="alasan_pengadaan">Alasan Pengadaan</Label>
-                    <Textarea
-                        id="alasan_pengadaan"
-                        value={data.alasan_pengadaan}
-                        onChange={(e) => setData('alasan_pengadaan', e.target.value)}
-                        className="mt-1"
-                        rows={3}
-                        placeholder="Jelaskan alasan pengadaan..."
-                    />
-                    {errors.alasan_pengadaan && <p className="mt-1 text-sm text-red-600">{errors.alasan_pengadaan}</p>}
-                </div>
-
-                <div>
-                    <Label htmlFor="catatan">Catatan</Label>
-                    <Textarea
-                        id="catatan"
-                        value={data.catatan}
-                        onChange={(e) => setData('catatan', e.target.value)}
-                        className="mt-1"
-                        rows={3}
-                        placeholder="Catatan tambahan..."
-                    />
-                    {errors.catatan && <p className="mt-1 text-sm text-red-600">{errors.catatan}</p>}
-                </div>
+            <div>
+                <Label htmlFor="catatan">Catatan</Label>
+                <Textarea
+                    id="catatan"
+                    value={data.catatan}
+                    onChange={(e) => setData('catatan', e.target.value)}
+                    className="mt-1"
+                    rows={3}
+                    placeholder="Catatan tambahan..."
+                />
+                {errors.catatan && <p className="mt-1 text-sm text-red-600">{errors.catatan}</p>}
             </div>
+
+            {/* Calculation Result Summary */}
+            {calculationResult && (
+                <div className="rounded-lg border border-green-200 bg-green-50 p-4">
+                    <h3 className="font-medium text-green-800">Hasil Perhitungan Otomatis</h3>
+                    <div className="mt-2 grid grid-cols-2 gap-4 text-sm text-green-700">
+                        <span>
+                            Total Item Diperlukan: <strong>{calculationResult.summary.total_items}</strong>
+                        </span>
+                        <span>
+                            Estimasi Total Biaya: <strong>Rp {calculationResult.summary.total_cost.toLocaleString('id-ID')}</strong>
+                        </span>
+                    </div>
+                </div>
+            )}
 
             {/* Items Section */}
             <div className="border-t pt-6">
                 <div className="mb-4 flex items-center justify-between">
                     <h3 className={cn(colors.text.primary, 'text-lg font-medium')}>Item Pengadaan</h3>
-                    <Button type="button" onClick={addItem} variant="outline" size="sm" className="flex items-center gap-2">
-                        <PlusIcon className="h-4 w-4" />
-                        Tambah Item
-                    </Button>
+                    {showManualAdd && (
+                        <Button type="button" onClick={addManualItem} variant="outline" size="sm" className="flex items-center gap-2">
+                            <PlusIcon className="h-4 w-4" />
+                            Tambah Item Manual
+                        </Button>
+                    )}
                 </div>
+
+                {items.length === 0 && !calculationResult && (
+                    <div className="rounded-lg border-2 border-dashed border-gray-300 p-8 text-center">
+                        <CalculatorIcon className="mx-auto h-12 w-12 text-gray-400" />
+                        <h3 className="mt-2 text-sm font-medium text-gray-900">Belum ada item procurement</h3>
+                        <p className="mt-1 text-sm text-gray-500">
+                            Pilih pesanan dan klik "Hitung Kebutuhan" untuk mendapatkan daftar item yang perlu diprocurement
+                        </p>
+                    </div>
+                )}
 
                 <div className="space-y-4">
                     {items.map((item, index) => {
-                        const itemDetails = getItemDetails(item.item_type, item.item_id);
+                        const itemDetails = item.harga_satuan
+                            ? {
+                                  satuan: item.satuan || '',
+                                  stok: 0, // We'll get this from original data if needed
+                                  rop: 0,
+                                  eoq: item.qty_procurement,
+                                  harga: item.harga_satuan,
+                                  nama: item.nama_item || '',
+                              }
+                            : getItemDetails(item.item_type, item.item_id);
+
                         const isCritical = isStockCritical(item.item_type, item.item_id);
+                        const isCalculatedItem = !!item.nama_item; // Items from calculation have nama_item
 
                         return (
-                            <div key={index} className={cn('rounded-lg border p-4', colors.border.primary, isCritical && 'border-red-300 bg-red-50')}>
-                                <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+                            <div
+                                key={index}
+                                className={cn(
+                                    'rounded-lg border p-4',
+                                    colors.border.primary,
+                                    isCritical && 'border-red-300 bg-red-50',
+                                    isCalculatedItem && 'border-blue-300 bg-blue-50',
+                                )}
+                            >
+                                <div className="grid grid-cols-1 gap-4 md:grid-cols-6">
                                     <div>
                                         <Label>Tipe Item</Label>
                                         <Select
                                             value={item.item_type}
                                             onValueChange={(value: 'bahan_baku' | 'produk') => updateItem(index, 'item_type', value)}
+                                            disabled={isCalculatedItem}
                                         >
                                             <SelectTrigger className="mt-1">
                                                 <SelectValue />
@@ -344,28 +471,74 @@ export default function Create({ suppliers, bahanBaku, produk }: Props) {
 
                                     <div className="md:col-span-2">
                                         <Label>Item</Label>
-                                        <Select value={item.item_id} onValueChange={(value) => updateItem(index, 'item_id', value)}>
-                                            <SelectTrigger className="mt-1">
-                                                <SelectValue placeholder="Pilih Item" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {getItemOptions(item.item_type).map((option) => (
-                                                    <SelectItem key={option.value} value={option.value}>
-                                                        {option.label}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
+                                        {isCalculatedItem ? (
+                                            <div className="mt-1 rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-sm">
+                                                {item.nama_item} ({item.satuan})
+                                            </div>
+                                        ) : (
+                                            <Select value={item.item_id} onValueChange={(value) => updateItem(index, 'item_id', value)}>
+                                                <SelectTrigger className="mt-1">
+                                                    <SelectValue placeholder="Pilih Item" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {getItemOptions(item.item_type).map((option) => (
+                                                        <SelectItem key={option.value} value={option.value}>
+                                                            {option.label}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        )}
                                     </div>
 
-                                    <div className="flex items-end">
+                                    <div className="md:col-span-2">
+                                        <Label>Supplier *</Label>
+                                        {item.item_type === 'bahan_baku' ? (
+                                            <>
+                                                <Select
+                                                    value={item.supplier_id || ''}
+                                                    onValueChange={(value) => updateItem(index, 'supplier_id', value)}
+                                                >
+                                                    <SelectTrigger className={cn('mt-1', errors[`items.${index}.supplier_id`] && 'border-red-500')}>
+                                                        <SelectValue placeholder="Pilih Supplier" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {suppliers.map((supplier) => (
+                                                            <SelectItem key={supplier.supplier_id} value={supplier.supplier_id}>
+                                                                {supplier.nama_supplier}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                {errors[`items.${index}.supplier_id`] && (
+                                                    <p className="mt-1 text-sm text-red-600">{errors[`items.${index}.supplier_id`]}</p>
+                                                )}
+                                            </>
+                                        ) : (
+                                            <div className="mt-1 rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-gray-500">
+                                                -
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Qty and Remove Button */}
+                                    <div className="flex items-end justify-between gap-2">
+                                        <div className="flex-1">
+                                            <Label>Qty</Label>
+                                            <Input
+                                                type="number"
+                                                value={item.qty_procurement}
+                                                onChange={(e) => updateItem(index, 'qty_procurement', parseInt(e.target.value) || 0)}
+                                                className="mt-1"
+                                                min="1"
+                                            />
+                                        </div>
                                         <Button
                                             type="button"
                                             onClick={() => removeItem(index)}
                                             variant="outline"
-                                            size="sm"
-                                            className="text-red-600 hover:text-red-700"
-                                            disabled={items.length === 1}
+                                            size="icon"
+                                            className="h-9 w-9 text-red-600 hover:text-red-700"
                                         >
                                             <TrashIcon className="h-4 w-4" />
                                         </Button>
@@ -374,51 +547,50 @@ export default function Create({ suppliers, bahanBaku, produk }: Props) {
 
                                 {/* Item Details Display */}
                                 {itemDetails && (
-                                    <div className="mt-4 grid grid-cols-2 gap-4 rounded bg-gray-50 p-3 md:grid-cols-5">
-                                        <div>
-                                            <Label className="text-xs text-gray-600">Stok Saat Ini</Label>
-                                            <div className={cn('text-sm font-medium', isCritical ? 'text-red-600' : 'text-gray-900')}>
-                                                {itemDetails.stok} {itemDetails.satuan}
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <Label className="text-xs text-gray-600">ROP</Label>
-                                            <div className="text-sm font-medium text-gray-900">
-                                                {itemDetails.rop} {itemDetails.satuan}
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <Label className="text-xs text-gray-600">EOQ</Label>
-                                            <div className="text-sm font-medium text-blue-600">
-                                                {itemDetails.eoq} {itemDetails.satuan}
-                                            </div>
-                                        </div>
+                                    <div className="mt-4 grid grid-cols-2 gap-4 rounded bg-white p-3 md:grid-cols-4">
                                         <div>
                                             <Label className="text-xs text-gray-600">Harga Satuan</Label>
                                             <div className="text-sm font-medium text-gray-900">Rp {itemDetails.harga.toLocaleString('id-ID')}</div>
                                         </div>
                                         <div>
-                                            <Label className="text-xs text-gray-600">Total</Label>
+                                            <Label className="text-xs text-gray-600">Satuan</Label>
+                                            <div className="text-sm font-medium text-gray-900">{itemDetails.satuan}</div>
+                                        </div>
+                                        <div>
+                                            <Label className="text-xs text-gray-600">Qty</Label>
+                                            <div className="text-sm font-medium text-blue-600">
+                                                {item.qty_procurement} {itemDetails.satuan}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <Label className="text-xs text-gray-600">Total Harga</Label>
                                             <div className="text-sm font-bold text-green-600">
-                                                Rp {(itemDetails.eoq * itemDetails.harga).toLocaleString('id-ID')}
+                                                Rp {(item.qty_procurement * itemDetails.harga).toLocaleString('id-ID')}
                                             </div>
                                         </div>
                                     </div>
                                 )}
 
+                                {isCalculatedItem && (
+                                    <div className="mt-2 rounded border border-blue-200 bg-blue-100 p-2 text-sm text-blue-700">
+                                        📊 Item hasil perhitungan otomatis
+                                    </div>
+                                )}
+
                                 {isCritical && (
                                     <div className="mt-2 rounded border border-red-200 bg-red-100 p-2 text-sm text-red-700">
-                                        ⚠️ Stok kritis! Stok saat ini ({itemDetails?.stok}) sudah di bawah ROP ({itemDetails?.rop})
+                                        ⚠️ Stok kritis! Perlu segera diprocurement
                                     </div>
                                 )}
 
                                 <div className="mt-4">
                                     <Label>Catatan Item</Label>
-                                    <Input
+                                    <Textarea
                                         value={item.catatan}
                                         onChange={(e) => updateItem(index, 'catatan', e.target.value)}
                                         className="mt-1"
                                         placeholder="Catatan untuk item ini..."
+                                        rows={isCalculatedItem ? 3 : 2}
                                     />
                                 </div>
                             </div>
@@ -428,12 +600,15 @@ export default function Create({ suppliers, bahanBaku, produk }: Props) {
 
                 {errors.items && <p className="mt-2 text-sm text-red-600">{errors.items}</p>}
 
-                <div className="mt-4 rounded-lg bg-gray-50 p-4">
-                    <div className="flex items-center justify-between">
-                        <span className="font-medium">Total Estimasi Biaya:</span>
-                        <span className="text-lg font-bold">Rp {calculateTotal().toLocaleString('id-ID')}</span>
+                {items.length > 0 && (
+                    <div className="mt-4 rounded-lg bg-gray-50 p-4">
+                        <div className="flex items-center justify-between">
+                            <span className="font-medium">Total Estimasi Biaya:</span>
+                            <span className="text-lg font-bold">Rp {calculateTotal().toLocaleString('id-ID')}</span>
+                        </div>
+                        <div className="mt-2 text-sm text-gray-600">Total {items.length} item akan diprocurement</div>
                     </div>
-                </div>
+                )}
             </div>
         </FormTemplate>
     );

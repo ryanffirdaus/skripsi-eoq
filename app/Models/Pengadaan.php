@@ -18,17 +18,13 @@ class Pengadaan extends Model
 
     protected $fillable = [
         'pengadaan_id',
-        'supplier_id',
         'jenis_pengadaan',
         'pesanan_id',
         'tanggal_pengadaan',
-        'tanggal_dibutuhkan',
         'tanggal_delivery',
         'total_biaya',
         'status',
-        'prioritas',
         'catatan',
-        'alasan_pengadaan',
         'nomor_po',
         'created_by',
         'updated_by',
@@ -37,7 +33,6 @@ class Pengadaan extends Model
 
     protected $casts = [
         'tanggal_pengadaan' => 'date',
-        'tanggal_dibutuhkan' => 'date',
         'tanggal_delivery' => 'date',
         'total_biaya' => 'decimal:2',
     ];
@@ -73,10 +68,6 @@ class Pengadaan extends Model
     }
 
     // Relationships
-    public function supplier()
-    {
-        return $this->belongsTo(Supplier::class, 'supplier_id', 'supplier_id');
-    }
 
     public function pesanan()
     {
@@ -170,16 +161,5 @@ class Pengadaan extends Model
     public function scopeByJenisPengadaan($query, $jenis)
     {
         return $query->where('jenis_pengadaan', $jenis);
-    }
-
-    public function scopeByPrioritas($query, $prioritas)
-    {
-        return $query->where('prioritas', $prioritas);
-    }
-
-    public function scopeNeedingAttention($query)
-    {
-        return $query->whereIn('status', ['pending', 'approved'])
-            ->where('tanggal_dibutuhkan', '<=', now()->addDays(7));
     }
 }

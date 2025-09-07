@@ -64,9 +64,9 @@ class Supplier extends Model
     }
 
     // Relationships
-    public function pengadaan()
+    public function pengadaanDetail()
     {
-        return $this->hasMany(Pengadaan::class, 'supplier_id', 'supplier_id');
+        return $this->hasMany(PengadaanDetail::class, 'supplier_id', 'supplier_id');
     }
 
     public function createdBy()
@@ -104,5 +104,10 @@ class Supplier extends Model
     public function scopeInactive($query)
     {
         return $query->where('status', 'inactive');
+    }
+
+    public function penerimaanBahanBaku()
+    {
+        return $this->hasMany(PenerimaanBahanBaku::class, 'supplier_id', 'supplier_id');
     }
 }

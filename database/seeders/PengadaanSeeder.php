@@ -27,20 +27,16 @@ class PengadaanSeeder extends Seeder
         // Create sample pengadaan records
         $pengadaanData = [
             [
-                'supplier_id' => $suppliers->first()->supplier_id,
                 'jenis_pengadaan' => 'rop',
                 'tanggal_pengadaan' => now()->subDays(10),
-                'tanggal_dibutuhkan' => now()->addDays(5),
-                'status' => 'approved',
-                'prioritas' => 'high',
-                'alasan_pengadaan' => 'Stok bahan baku menipis berdasarkan ROP',
-                'nomor_po' => 'PO-' . now()->format('Ymd') . '-001',
+                'status' => 'procurement_approved',
                 'created_by' => 'US001',
                 'details' => [
                     [
                         'item_type' => 'bahan_baku',
                         'item_id' => $bahanBakus->random()->bahan_baku_id,
                         'nama_item' => $bahanBakus->random()->nama_bahan,
+                        'supplier_id' => $suppliers->first()->supplier_id,
                         'satuan' => 'kg',
                         'qty_diminta' => 100,
                         'qty_disetujui' => 100,
@@ -52,6 +48,7 @@ class PengadaanSeeder extends Seeder
                         'item_type' => 'bahan_baku',
                         'item_id' => $bahanBakus->random()->bahan_baku_id,
                         'nama_item' => $bahanBakus->random()->nama_bahan,
+                        'supplier_id' => $suppliers->first()->supplier_id,
                         'satuan' => 'kg',
                         'qty_diminta' => 50,
                         'qty_disetujui' => 50,
@@ -62,19 +59,17 @@ class PengadaanSeeder extends Seeder
                 ]
             ],
             [
-                'supplier_id' => $suppliers->get(1)->supplier_id ?? $suppliers->first()->supplier_id,
-                'jenis_pengadaan' => 'manual',
+                'jenis_pengadaan' => 'rop',
                 'tanggal_pengadaan' => now()->subDays(5),
-                'tanggal_dibutuhkan' => now()->addDays(10),
-                'status' => 'pending',
-                'prioritas' => 'normal',
-                'alasan_pengadaan' => 'Pengadaan rutin bulanan',
+                'status' => 'finance_approved',
+                'nomor_po' => 'PO-' . now()->format('Ymd') . '-001',
                 'created_by' => 'US001',
                 'details' => [
                     [
                         'item_type' => 'bahan_baku',
                         'item_id' => $bahanBakus->random()->bahan_baku_id,
                         'nama_item' => $bahanBakus->random()->nama_bahan,
+                        'supplier_id' => $suppliers->first()->supplier_id,
                         'satuan' => 'kg',
                         'qty_diminta' => 200,
                         'qty_disetujui' => null,
@@ -85,19 +80,16 @@ class PengadaanSeeder extends Seeder
                 ]
             ],
             [
-                'supplier_id' => $suppliers->get(2)->supplier_id ?? $suppliers->first()->supplier_id,
                 'jenis_pengadaan' => 'pesanan',
                 'tanggal_pengadaan' => now()->subDays(2),
-                'tanggal_dibutuhkan' => now()->addDays(3),
                 'status' => 'draft',
-                'prioritas' => 'urgent',
-                'alasan_pengadaan' => 'Untuk memenuhi pesanan khusus',
                 'created_by' => 'US001',
                 'details' => [
                     [
                         'item_type' => 'bahan_baku',
                         'item_id' => $bahanBakus->random()->bahan_baku_id,
                         'nama_item' => $bahanBakus->random()->nama_bahan,
+                        'supplier_id' => $suppliers->first()->supplier_id,
                         'satuan' => 'kg',
                         'qty_diminta' => 75,
                         'qty_disetujui' => null,
@@ -109,6 +101,7 @@ class PengadaanSeeder extends Seeder
                         'item_type' => 'bahan_baku',
                         'item_id' => $bahanBakus->random()->bahan_baku_id,
                         'nama_item' => $bahanBakus->random()->nama_bahan,
+                        'supplier_id' => $suppliers->first()->supplier_id,
                         'satuan' => 'kg',
                         'qty_diminta' => 30,
                         'qty_disetujui' => null,
@@ -119,14 +112,10 @@ class PengadaanSeeder extends Seeder
                 ]
             ],
             [
-                'supplier_id' => $suppliers->first()->supplier_id,
                 'jenis_pengadaan' => 'rop',
                 'tanggal_pengadaan' => now()->subDays(15),
-                'tanggal_dibutuhkan' => now()->subDays(5),
                 'tanggal_delivery' => now()->subDays(3),
                 'status' => 'received',
-                'prioritas' => 'normal',
-                'alasan_pengadaan' => 'Restocking otomatis ROP',
                 'nomor_po' => 'PO-' . now()->subDays(15)->format('Ymd') . '-001',
                 'created_by' => 'US001',
                 'details' => [
@@ -134,6 +123,7 @@ class PengadaanSeeder extends Seeder
                         'item_type' => 'bahan_baku',
                         'item_id' => $bahanBakus->random()->bahan_baku_id,
                         'nama_item' => $bahanBakus->random()->nama_bahan,
+                        'supplier_id' => $suppliers->first()->supplier_id,
                         'satuan' => 'kg',
                         'qty_diminta' => 150,
                         'qty_disetujui' => 150,
