@@ -43,7 +43,7 @@ class DatabaseSeeder extends Seeder
             PengadaanSeeder::class,
             PembelianSeeder::class, // Must be after PengadaanSeeder
             PenerimaanBahanBakuSeeder::class, // Must be after PembelianSeeder
-            ReturBahanBakuSeeder::class, // Must be after PenerimaanBahanBakuSeeder
+            // ReturBahanBakuSeeder::class, // Must be after PenerimaanBahanBakuSeeder
         ]);
     }
 }
