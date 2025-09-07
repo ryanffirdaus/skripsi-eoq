@@ -8,150 +8,134 @@ use App\Models\Pengadaan;
 use App\Models\PengadaanDetail;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
 
 class PembelianController extends Controller
 {
     /**
      * Display a listing of the resource.
+     * Menampilkan daftar semua Purchase Order.
      */
     public function index(Request $request)
     {
-        $query = Pembelian::with(['supplier', 'pengadaan'])
-            ->select([
-                'pembelian_id',
-                'pengadaan_id',
-                'supplier_id',
-                'nomor_po',
-                'tanggal_pembelian',
-                'tanggal_jatuh_tempo',
-                'total_biaya',
-                'status',
-                'metode_pembayaran',
-                'created_at'
-            ]);
+        $query = Pembelian::with([
+            'supplier:supplier_id,nama_supplier',
+            'pengadaan:pengadaan_id,jenis_pengadaan',
+            'createdBy:user_id,nama_lengkap',
+        ]);
 
-        // Apply filters
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        if ($request->filled('supplier_id')) {
-            $query->where('supplier_id', $request->supplier_id);
-        }
-
-        if ($request->filled('date_from') && $request->filled('date_to')) {
-            $query->whereBetween('tanggal_pembelian', [
-                $request->date_from,
-                $request->date_to
-            ]);
-        }
-
+        // Terapkan filter pencarian
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('pembelian_id', 'like', "%{$search}%")
                     ->orWhere('nomor_po', 'like', "%{$search}%")
-                    ->orWhereHas('supplier', function ($supplier) use ($search) {
-                        $supplier->where('nama_supplier', 'like', "%{$search}%");
+                    ->orWhereHas('supplier', function ($subq) use ($search) {
+                        $subq->where('nama_supplier', 'like', "%{$search}%");
                     });
             });
         }
 
-        // Sorting
-        $sortField = $request->get('sort', 'created_at');
-        $sortOrder = $request->get('order', 'desc');
-        $query->orderBy($sortField, $sortOrder);
+        // Terapkan filter status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
 
-        $pembelian = $query->paginate(15)->withQueryString();
+        // Terapkan filter supplier
+        if ($request->filled('supplier_id')) {
+            $query->where('supplier_id', $request->supplier_id);
+        }
 
-        // Transform data
+        // Terapkan sorting
+        $sortBy = $request->get('sort_by', 'tanggal_pembelian');
+        $sortDirection = $request->get('sort_direction', 'desc');
+        $query->orderBy($sortBy, $sortDirection);
+
+        // Terapkan paginasi
+        $perPage = $request->get('per_page', 10);
+        $pembelian = $query->paginate($perPage);
+
+        // Transformasi data untuk frontend
         $pembelian->getCollection()->transform(function ($item) {
             return [
-                'pembelian_id' => $item->pembelian_id,
-                'pengadaan_id' => $item->pengadaan_id,
-                'nomor_po' => $item->nomor_po,
-                'supplier' => [
-                    'supplier_id' => $item->supplier->supplier_id,
-                    'nama_supplier' => $item->supplier->nama_supplier,
-                ],
-                'tanggal_pembelian' => $item->tanggal_pembelian?->format('Y-m-d'),
-                'tanggal_jatuh_tempo' => $item->tanggal_jatuh_tempo?->format('Y-m-d'),
-                'total_biaya' => $item->total_biaya,
-                'status' => $item->status,
-                'status_label' => $item->status_label,
-                'metode_pembayaran' => $item->metode_pembayaran,
-                'can_edit' => $item->canBeEdited(),
-                'can_cancel' => $item->canBeCancelled(),
-                'created_at' => $item->created_at?->format('Y-m-d H:i:s'),
+                'pembelian_id'      => $item->pembelian_id,
+                'nomor_po'          => $item->nomor_po,
+                'pengadaan_id'      => $item->pengadaan_id,
+                'supplier_nama'     => $item->supplier->nama_supplier ?? 'N/A',
+                'tanggal_pembelian' => $item->tanggal_pembelian?->format('d M Y'),
+                'tanggal_kirim'     => $item->tanggal_kirim?->format('d M Y'),
+                'total_biaya'       => (float) $item->total_biaya,
+                'status'            => $item->status,
+                'status_label'      => $this->getStatusLabel($item->status),
+                'dibuat_oleh'       => $item->createdBy->nama_lengkap ?? 'N/A',
+                'can_edit'          => $item->canBeEdited(),
+                'can_cancel'        => $item->canBeCancelled(),
+                'created_at'        => $item->created_at?->format('Y-m-d H:i:s'),
             ];
         });
 
-        // Get suppliers for filter
-        $suppliers = Supplier::active()
-            ->select('supplier_id', 'nama_supplier')
-            ->orderBy('nama_supplier')
-            ->get();
+        // Data untuk filter di frontend
+        $suppliers = Supplier::select('supplier_id', 'nama_supplier')->orderBy('nama_supplier')->get();
+
+        $filters = [
+            'search'         => $request->search,
+            'status'         => $request->status,
+            'supplier_id'    => $request->supplier_id,
+            'sort_by'        => $sortBy,
+            'sort_direction' => $sortDirection,
+            'per_page'       => (int) $perPage,
+        ];
 
         return Inertia::render('pembelian/index', [
             'pembelian' => $pembelian,
+            'filters'   => $filters,
             'suppliers' => $suppliers,
-            'filters' => $request->only(['status', 'supplier_id', 'date_from', 'date_to', 'search']),
-            'sort' => ['field' => $sortField, 'order' => $sortOrder],
         ]);
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Show the form for creating a new resource from a Pengadaan.
+     * Halaman ini untuk generate PO dari permintaan pengadaan yang sudah disetujui.
      */
-    public function create(Request $request)
+    public function create()
     {
-        $pengadaanId = $request->get('pengadaan_id');
-
-        if ($pengadaanId) {
-            // Create PO from existing pengadaan
-            $pengadaan = Pengadaan::with(['detail', 'supplier'])
-                ->where('pengadaan_id', $pengadaanId)
-                ->where('status', 'approved')
-                ->firstOrFail();
-
-            return Inertia::render('pembelian/create', [
-                'pengadaan' => [
+        // 1. Ambil data Pengadaan yang sudah disetujui keuangan dan belum diproses menjadi PO.
+        $pengadaans = Pengadaan::where('status', 'finance_approved')
+            ->with(['detail.supplier:supplier_id,nama_supplier'])
+            ->orderBy('tanggal_pengadaan', 'desc')
+            ->get()
+            ->map(function ($pengadaan) {
+                // Hanya sertakan pengadaan yang memiliki detail item
+                if ($pengadaan->detail->isEmpty()) {
+                    return null;
+                }
+                return [
                     'pengadaan_id' => $pengadaan->pengadaan_id,
-                    'supplier_id' => $pengadaan->supplier_id,
-                    'tanggal_dibutuhkan' => $pengadaan->tanggal_dibutuhkan?->format('Y-m-d'),
-                    'supplier' => [
-                        'supplier_id' => $pengadaan->supplier->supplier_id,
-                        'nama_supplier' => $pengadaan->supplier->nama_supplier,
-                        'kontak_person' => $pengadaan->supplier->kontak_person,
-                        'telepon' => $pengadaan->supplier->telepon,
-                    ],
+                    'display_text' => $pengadaan->pengadaan_id . ' (' . $pengadaan->tanggal_pengadaan->format('d M Y') . ')',
                     'detail' => $pengadaan->detail->map(function ($detail) {
                         return [
                             'pengadaan_detail_id' => $detail->pengadaan_detail_id,
+                            'supplier_id' => $detail->supplier_id,
+                            'supplier_nama' => $detail->supplier->nama_supplier ?? 'N/A',
                             'item_type' => $detail->item_type,
                             'item_id' => $detail->item_id,
                             'nama_item' => $detail->nama_item,
                             'satuan' => $detail->satuan,
                             'qty_disetujui' => $detail->qty_disetujui,
                             'harga_satuan' => $detail->harga_satuan,
-                            'total_harga' => $detail->total_harga,
                         ];
                     }),
-                ],
-            ]);
-        }
+                ];
+            })->filter()->values(); // Hapus null dari koleksi dan re-index
 
-        // Manual PO creation
-        $suppliers = Supplier::active()
-            ->select('supplier_id', 'nama_supplier', 'kontak_person', 'telepon')
-            ->orderBy('nama_supplier')
-            ->get();
+        // 2. Ambil semua supplier untuk data dropdown.
+        $suppliers = Supplier::select(['supplier_id', 'nama_supplier'])->orderBy('nama_supplier')->get();
 
+        // 3. Render komponen Inertia dengan data yang dibutuhkan.
         return Inertia::render('pembelian/create', [
+            'pengadaans' => $pengadaans,
             'suppliers' => $suppliers,
         ]);
     }
@@ -161,121 +145,83 @@ class PembelianController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'pengadaan_id' => 'nullable|exists:pengadaan,pengadaan_id',
+        // 1. Validasi input dari form
+        $validator = Validator::make($request->all(), [
+            'pengadaan_id' => 'required|exists:pengadaan,pengadaan_id',
             'supplier_id' => 'required|exists:supplier,supplier_id',
             'tanggal_pembelian' => 'required|date',
-            'tanggal_jatuh_tempo' => 'nullable|date|after:tanggal_pembelian',
-            'pajak' => 'numeric|min:0|max:999999999.99',
-            'diskon' => 'numeric|min:0|max:999999999.99',
-            'metode_pembayaran' => 'nullable|in:cash,transfer,credit,cheque',
-            'terms_conditions' => 'nullable|string|max:1000',
-            'catatan' => 'nullable|string|max:500',
-            'detail' => 'required|array|min:1',
-            'detail.*.pengadaan_detail_id' => 'nullable|exists:pengadaan_detail,pengadaan_detail_id',
-            'detail.*.item_type' => 'required|in:bahan_baku,produk',
-            'detail.*.item_id' => 'required|string',
-            'detail.*.nama_item' => 'required|string|max:255',
-            'detail.*.satuan' => 'required|string|max:50',
-            'detail.*.qty_po' => 'required|integer|min:1',
-            'detail.*.harga_satuan' => 'required|numeric|min:0',
-            'detail.*.spesifikasi' => 'nullable|string|max:500',
-            'detail.*.catatan' => 'nullable|string|max:255',
+            'nomor_po' => 'nullable|string|max:50|unique:pembelian,nomor_po',
+            'tanggal_kirim_diharapkan' => 'nullable|date|after_or_equal:tanggal_pembelian',
+            'catatan' => 'nullable|string',
+            'items' => 'required|array|min:1',
+            'items.*.pengadaan_detail_id' => 'required|exists:pengadaan_detail,pengadaan_detail_id',
+            'items.*.qty_dipesan' => 'required|numeric|min:1',
         ]);
 
-        // Validate detail quantities if creating from pengadaan
-        if ($validated['pengadaan_id']) {
-            $quantityErrors = $this->validateDetailQuantities($validated['detail']);
-            if (!empty($quantityErrors)) {
-                return back()->withErrors($quantityErrors)->withInput();
-            }
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
         }
 
+        // 2. Gunakan DB Transaction untuk memastikan integritas data
+        DB::beginTransaction();
         try {
-            DB::beginTransaction();
-
-            // Generate nomor PO
-            $nomorPo = $this->generateNomorPO();
-
-            // Calculate totals
-            $subtotal = collect($validated['detail'])->sum(function ($item) {
-                return $item['qty_po'] * $item['harga_satuan'];
-            });
-
-            $totalBiaya = $subtotal + ($validated['pajak'] ?? 0) - ($validated['diskon'] ?? 0);
-
-            // Create pembelian
+            // 3. Buat header data Pembelian (Purchase Order)
             $pembelian = Pembelian::create([
-                'pengadaan_id' => $validated['pengadaan_id'],
-                'supplier_id' => $validated['supplier_id'],
-                'nomor_po' => $nomorPo,
-                'tanggal_pembelian' => $validated['tanggal_pembelian'],
-                'tanggal_jatuh_tempo' => $validated['tanggal_jatuh_tempo'],
-                'subtotal' => $subtotal,
-                'pajak' => $validated['pajak'] ?? 0,
-                'diskon' => $validated['diskon'] ?? 0,
-                'total_biaya' => $totalBiaya,
-                'metode_pembayaran' => $validated['metode_pembayaran'],
-                'terms_conditions' => $validated['terms_conditions'],
-                'catatan' => $validated['catatan'],
-                'created_by' => Auth::id(),
+                'pengadaan_id' => $request->pengadaan_id,
+                'supplier_id' => $request->supplier_id,
+                'nomor_po' => $request->nomor_po, // Model akan generate otomatis jika kosong
+                'tanggal_pembelian' => $request->tanggal_pembelian,
+                'tanggal_kirim_diharapkan' => $request->tanggal_kirim_diharapkan,
+                'catatan' => $request->catatan,
+                'status' => 'draft', // Status awal untuk PO baru
             ]);
 
-            // Create pembelian detail
-            foreach ($validated['detail'] as $detail) {
+            // 4. Simpan setiap item ke dalam detail pembelian
+            foreach ($request->items as $item) {
                 PembelianDetail::create([
                     'pembelian_id' => $pembelian->pembelian_id,
-                    'pengadaan_detail_id' => $detail['pengadaan_detail_id'],
-                    'item_type' => $detail['item_type'],
-                    'item_id' => $detail['item_id'],
-                    'nama_item' => $detail['nama_item'],
-                    'satuan' => $detail['satuan'],
-                    'qty_po' => $detail['qty_po'],
-                    'harga_satuan' => $detail['harga_satuan'],
-                    'spesifikasi' => $detail['spesifikasi'],
-                    'catatan' => $detail['catatan'],
+                    'pengadaan_detail_id' => $item['pengadaan_detail_id'],
+                    'item_type' => $item['item_type'],
+                    'item_id' => $item['item_id'],
+                    'nama_item' => $item['nama_item'],
+                    'satuan' => $item['satuan'],
+                    'qty_dipesan' => $item['qty_dipesan'],
+                    'harga_satuan' => $item['harga_satuan'],
+                    'total_harga' => $item['qty_dipesan'] * $item['harga_satuan'],
                 ]);
             }
 
-            // Update pengadaan status if this PO is from pengadaan
-            if ($validated['pengadaan_id']) {
-                $pengadaan = Pengadaan::find($validated['pengadaan_id']);
-                if ($pengadaan && $pengadaan->status === 'approved') {
-                    $pengadaan->update([
-                        'status' => 'po_sent',
-                        'nomor_po' => $nomorPo,
-                        'updated_by' => Auth::id(),
-                    ]);
-                }
+            // 5. Update status Pengadaan menjadi 'ordered'
+            $pengadaan = Pengadaan::find($request->pengadaan_id);
+            if ($pengadaan) {
+                $pengadaan->status = 'ordered';
+                $pengadaan->save();
             }
 
             DB::commit();
 
-            return redirect()->route('pembelian.show', $pembelian->pembelian_id)
-                ->with('flash', [
-                    'message' => 'Purchase Order berhasil dibuat!',
-                    'type' => 'success'
-                ]);
+            return redirect()->route('pembelian.index')->with('flash', [
+                'message' => 'Purchase Order (PO) berhasil dibuat.',
+                'type' => 'success',
+            ]);
         } catch (\Exception $e) {
             DB::rollBack();
-
-            return redirect()->back()
-                ->withInput()
-                ->with('flash', [
-                    'message' => 'Gagal membuat Purchase Order: ' . $e->getMessage(),
-                    'type' => 'error'
-                ]);
+            return redirect()->back()->with('flash', [
+                'message' => 'Terjadi kesalahan saat membuat PO: ' . $e->getMessage(),
+                'type' => 'error',
+            ]);
         }
     }
 
     /**
      * Display the specified resource.
+     * Menampilkan detail dari satu Purchase Order.
      */
     public function show(Pembelian $pembelian)
     {
         $pembelian->load([
             'supplier',
-            'pengadaan',
+            'pengadaan:pengadaan_id,pesanan_id',
             'detail.pengadaanDetail',
             'createdBy:user_id,nama_lengkap',
             'updatedBy:user_id,nama_lengkap'
@@ -284,32 +230,21 @@ class PembelianController extends Controller
         return Inertia::render('pembelian/show', [
             'pembelian' => [
                 'pembelian_id' => $pembelian->pembelian_id,
-                'pengadaan_id' => $pembelian->pengadaan_id,
-                'supplier_id' => $pembelian->supplier_id,
                 'nomor_po' => $pembelian->nomor_po,
+                'pengadaan_id' => $pembelian->pengadaan_id,
+                'supplier' => $pembelian->supplier,
                 'tanggal_pembelian' => $pembelian->tanggal_pembelian?->format('Y-m-d'),
-                'tanggal_jatuh_tempo' => $pembelian->tanggal_jatuh_tempo?->format('Y-m-d'),
-                'subtotal' => $pembelian->subtotal,
-                'pajak' => $pembelian->pajak,
-                'diskon' => $pembelian->diskon,
+                'tanggal_kirim_diharapkan' => $pembelian->tanggal_kirim_diharapkan?->format('Y-m-d'),
                 'total_biaya' => $pembelian->total_biaya,
                 'status' => $pembelian->status,
-                'status_label' => $pembelian->status_label,
-                'metode_pembayaran' => $pembelian->metode_pembayaran,
-                'terms_conditions' => $pembelian->terms_conditions,
+                'status_label' => $this->getStatusLabel($pembelian->status),
                 'catatan' => $pembelian->catatan,
-                'supplier' => [
-                    'supplier_id' => $pembelian->supplier->supplier_id,
-                    'nama_supplier' => $pembelian->supplier->nama_supplier,
-                    'kontak_person' => $pembelian->supplier->kontak_person,
-                    'telepon' => $pembelian->supplier->telepon,
-                    'email' => $pembelian->supplier->email,
-                ],
-                'pengadaan' => $pembelian->pengadaan ? [
-                    'pengadaan_id' => $pembelian->pengadaan->pengadaan_id,
-                    'jenis_pengadaan' => $pembelian->pengadaan->jenis_pengadaan,
-                    'prioritas' => $pembelian->pengadaan->prioritas,
-                ] : null,
+                'created_by' => $pembelian->createdBy,
+                'updated_by' => $pembelian->updatedBy,
+                'created_at' => $pembelian->created_at?->format('d-m-Y H:i'),
+                'updated_at' => $pembelian->updated_at?->format('d-m-Y H:i'),
+                'can_edit' => $pembelian->canBeEdited(),
+                'can_cancel' => $pembelian->canBeCancelled(),
                 'detail' => $pembelian->detail->map(function ($detail) {
                     return [
                         'pembelian_detail_id' => $detail->pembelian_detail_id,
@@ -318,26 +253,14 @@ class PembelianController extends Controller
                         'item_id' => $detail->item_id,
                         'nama_item' => $detail->nama_item,
                         'satuan' => $detail->satuan,
-                        'qty_po' => $detail->qty_po,
+                        'qty_dipesan' => $detail->qty_dipesan,
                         'qty_diterima' => $detail->qty_diterima,
                         'harga_satuan' => $detail->harga_satuan,
                         'total_harga' => $detail->total_harga,
-                        'spesifikasi' => $detail->spesifikasi,
-                        'catatan' => $detail->catatan,
-                        'outstanding_qty' => $detail->outstanding_qty,
-                        'received_percentage' => $detail->received_percentage,
-                        'is_fully_received' => $detail->is_fully_received,
+                        'outstanding_qty' => $detail->getOutstandingQty(),
+                        'is_fully_received' => $detail->isFullyReceived(),
                     ];
                 }),
-                'received_percentage' => $pembelian->getReceivedPercentage(),
-                'is_fully_received' => $pembelian->isFullyReceived(),
-                'can_edit' => $pembelian->canBeEdited(),
-                'can_cancel' => $pembelian->canBeCancelled(),
-                'can_receive' => $pembelian->canBeReceived(),
-                'created_by' => $pembelian->createdBy?->nama_lengkap,
-                'updated_by' => $pembelian->updatedBy?->nama_lengkap,
-                'created_at' => $pembelian->created_at?->format('Y-m-d H:i:s'),
-                'updated_at' => $pembelian->updated_at?->format('Y-m-d H:i:s'),
             ]
         ]);
     }
@@ -347,49 +270,37 @@ class PembelianController extends Controller
      */
     public function edit(Pembelian $pembelian)
     {
-        if (!$pembelian->canBeEdited()) {
-            return redirect()->route('pembelian.index')
-                ->with('flash', [
-                    'message' => 'Purchase Order tidak dapat diedit karena statusnya sudah ' . $pembelian->status_label,
-                    'type' => 'error'
-                ]);
-        }
+        // 1. Eager load relasi yang dibutuhkan
+        $pembelian->load(['supplier', 'detail']);
 
-        $pembelian->load(['detail', 'supplier']);
+        // 2. Ambil semua supplier untuk dropdown
+        $suppliers = Supplier::select('supplier_id', 'nama_supplier')->orderBy('nama_supplier')->get();
 
-        $suppliers = Supplier::active()
-            ->select('supplier_id', 'nama_supplier', 'kontak_person', 'telepon')
-            ->orderBy('nama_supplier')
-            ->get();
+        // 3. Format data untuk dikirim ke frontend
+        $pembelianData = [
+            'pembelian_id' => $pembelian->pembelian_id,
+            'pengadaan_id' => $pembelian->pengadaan_id,
+            'nomor_po' => $pembelian->nomor_po,
+            'supplier_id' => $pembelian->supplier_id,
+            'tanggal_pembelian' => $pembelian->tanggal_pembelian->format('Y-m-d'),
+            'tanggal_kirim_diharapkan' => $pembelian->tanggal_kirim_diharapkan?->format('Y-m-d'),
+            'total_biaya' => $pembelian->total_biaya,
+            'status' => $pembelian->status,
+            'catatan' => $pembelian->catatan,
+            'can_be_edited' => $pembelian->canBeEdited(),
+            'detail' => $pembelian->detail->map(function ($item) {
+                return [
+                    'pembelian_detail_id' => $item->pembelian_detail_id,
+                    'nama_item' => $item->nama_item,
+                    'satuan' => $item->satuan,
+                    'qty_dipesan' => $item->qty_dipesan,
+                    'harga_satuan' => $item->harga_satuan,
+                ];
+            }),
+        ];
 
         return Inertia::render('pembelian/edit', [
-            'pembelian' => [
-                'pembelian_id' => $pembelian->pembelian_id,
-                'pengadaan_id' => $pembelian->pengadaan_id,
-                'supplier_id' => $pembelian->supplier_id,
-                'nomor_po' => $pembelian->nomor_po,
-                'tanggal_pembelian' => $pembelian->tanggal_pembelian?->format('Y-m-d'),
-                'tanggal_jatuh_tempo' => $pembelian->tanggal_jatuh_tempo?->format('Y-m-d'),
-                'pajak' => $pembelian->pajak,
-                'diskon' => $pembelian->diskon,
-                'metode_pembayaran' => $pembelian->metode_pembayaran,
-                'terms_conditions' => $pembelian->terms_conditions,
-                'catatan' => $pembelian->catatan,
-                'detail' => $pembelian->detail->map(function ($detail) {
-                    return [
-                        'pembelian_detail_id' => $detail->pembelian_detail_id,
-                        'pengadaan_detail_id' => $detail->pengadaan_detail_id,
-                        'item_type' => $detail->item_type,
-                        'item_id' => $detail->item_id,
-                        'nama_item' => $detail->nama_item,
-                        'satuan' => $detail->satuan,
-                        'qty_po' => $detail->qty_po,
-                        'harga_satuan' => $detail->harga_satuan,
-                        'spesifikasi' => $detail->spesifikasi,
-                        'catatan' => $detail->catatan,
-                    ];
-                }),
-            ],
+            'pembelian' => $pembelianData,
             'suppliers' => $suppliers,
         ]);
     }
@@ -400,81 +311,62 @@ class PembelianController extends Controller
     public function update(Request $request, Pembelian $pembelian)
     {
         if (!$pembelian->canBeEdited()) {
-            return redirect()->route('pembelian.show', $pembelian->pembelian_id)
-                ->with('flash', [
-                    'message' => 'Purchase Order tidak dapat diedit karena statusnya sudah ' . $pembelian->status_label,
-                    'type' => 'error'
-                ]);
+            return redirect()->back()->with('flash', [
+                'message' => 'Pembelian dengan status "' . $pembelian->status . '" tidak dapat diubah.',
+                'type' => 'error',
+            ]);
         }
 
-        $validated = $request->validate([
+        $validator = Validator::make($request->all(), [
             'supplier_id' => 'required|exists:supplier,supplier_id',
             'tanggal_pembelian' => 'required|date',
-            'tanggal_jatuh_tempo' => 'nullable|date|after:tanggal_pembelian',
-            'pajak' => 'numeric|min:0|max:999999999.99',
-            'diskon' => 'numeric|min:0|max:999999999.99',
-            'metode_pembayaran' => 'nullable|in:cash,transfer,credit,cheque',
-            'terms_conditions' => 'nullable|string|max:1000',
-            'catatan' => 'nullable|string|max:500',
-            'detail' => 'required|array|min:1',
-            'detail.*.pembelian_detail_id' => 'nullable|exists:pembelian_detail,pembelian_detail_id',
-            'detail.*.qty_po' => 'required|integer|min:1',
-            'detail.*.harga_satuan' => 'required|numeric|min:0',
-            'detail.*.spesifikasi' => 'nullable|string|max:500',
-            'detail.*.catatan' => 'nullable|string|max:255',
+            'tanggal_kirim_diharapkan' => 'nullable|date|after_or_equal:tanggal_pembelian',
+            'catatan' => 'nullable|string',
+            'items' => 'required|array|min:1',
+            'items.*.pembelian_detail_id' => 'required|exists:pembelian_detail,pembelian_detail_id',
+            'items.*.qty_dipesan' => 'required|numeric|min:1',
+            'items.*.harga_satuan' => 'required|numeric|min:0',
         ]);
 
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        DB::beginTransaction();
         try {
-            DB::beginTransaction();
+            // Update header pembelian
+            $pembelian->update($request->only([
+                'supplier_id',
+                'tanggal_pembelian',
+                'tanggal_kirim_diharapkan',
+                'catatan',
+            ]));
 
-            // Update pembelian
-            $pembelian->update([
-                'supplier_id' => $validated['supplier_id'],
-                'tanggal_pembelian' => $validated['tanggal_pembelian'],
-                'tanggal_jatuh_tempo' => $validated['tanggal_jatuh_tempo'],
-                'pajak' => $validated['pajak'] ?? 0,
-                'diskon' => $validated['diskon'] ?? 0,
-                'metode_pembayaran' => $validated['metode_pembayaran'],
-                'terms_conditions' => $validated['terms_conditions'],
-                'catatan' => $validated['catatan'],
-                'updated_by' => Auth::id(),
-            ]);
-
-            // Update detail
-            foreach ($validated['detail'] as $detailData) {
-                if (isset($detailData['pembelian_detail_id'])) {
-                    // Update existing detail
-                    $detail = PembelianDetail::find($detailData['pembelian_detail_id']);
-                    if ($detail) {
-                        $detail->update([
-                            'qty_po' => $detailData['qty_po'],
-                            'harga_satuan' => $detailData['harga_satuan'],
-                            'spesifikasi' => $detailData['spesifikasi'],
-                            'catatan' => $detailData['catatan'],
-                        ]);
-                    }
+            // Update detail pembelian
+            foreach ($request->items as $itemData) {
+                $detail = PembelianDetail::find($itemData['pembelian_detail_id']);
+                if ($detail && $detail->pembelian_id === $pembelian->pembelian_id) {
+                    $detail->update([
+                        'qty_dipesan' => $itemData['qty_dipesan'],
+                        'harga_satuan' => $itemData['harga_satuan'],
+                        'total_harga' => $itemData['qty_dipesan'] * $itemData['harga_satuan'],
+                    ]);
                 }
             }
-
-            // Recalculate totals
-            $pembelian->calculateTotals();
+            // Model event akan otomatis update total biaya
 
             DB::commit();
 
-            return redirect()->route('pembelian.show', $pembelian->pembelian_id)
-                ->with('flash', [
-                    'message' => 'Purchase Order berhasil diupdate!',
-                    'type' => 'success'
-                ]);
+            return redirect()->route('pembelian.index')->with('flash', [
+                'message' => 'Purchase Order berhasil diperbarui.',
+                'type' => 'success',
+            ]);
         } catch (\Exception $e) {
             DB::rollBack();
-
-            return redirect()->back()
-                ->withInput()
-                ->with('flash', [
-                    'message' => 'Gagal mengupdate Purchase Order: ' . $e->getMessage(),
-                    'type' => 'error'
-                ]);
+            return redirect()->back()->with('flash', [
+                'message' => 'Terjadi kesalahan saat memperbarui PO: ' . $e->getMessage(),
+                'type' => 'error',
+            ]);
         }
     }
 
@@ -485,261 +377,30 @@ class PembelianController extends Controller
     {
         if (!$pembelian->canBeCancelled()) {
             return redirect()->route('pembelian.index')
-                ->with('flash', [
-                    'message' => 'Purchase Order tidak dapat dibatalkan karena statusnya sudah ' . $pembelian->status_label,
-                    'type' => 'error'
-                ]);
+                ->with('flash', ['message' => 'PO tidak dapat dibatalkan karena statusnya.', 'type' => 'error']);
         }
 
-        try {
-            DB::beginTransaction();
+        // Alternatifnya bisa dengan update status menjadi 'cancelled'
+        // $pembelian->update(['status' => 'cancelled']);
+        $pembelian->delete();
 
-            // Update status to cancelled instead of deleting
-            $pembelian->update([
-                'status' => 'cancelled',
-                'updated_by' => Auth::id(),
-            ]);
-
-            // If linked to pengadaan, revert pengadaan status
-            if ($pembelian->pengadaan_id) {
-                $pengadaan = Pengadaan::find($pembelian->pengadaan_id);
-                if ($pengadaan && $pengadaan->status === 'po_sent') {
-                    $pengadaan->update([
-                        'status' => 'approved',
-                        'nomor_po' => null,
-                        'updated_by' => Auth::id(),
-                    ]);
-                }
-            }
-
-            DB::commit();
-
-            return redirect()->route('pembelian.index')
-                ->with('flash', [
-                    'message' => 'Purchase Order berhasil dibatalkan!',
-                    'type' => 'success'
-                ]);
-        } catch (\Exception $e) {
-            DB::rollBack();
-
-            return redirect()->back()
-                ->with('flash', [
-                    'message' => 'Gagal membatalkan Purchase Order: ' . $e->getMessage(),
-                    'type' => 'error'
-                ]);
-        }
+        return redirect()->route('pembelian.index')
+            ->with('flash', ['message' => 'Purchase Order berhasil dihapus/dibatalkan!', 'type' => 'success']);
     }
 
     /**
-     * Update purchase order status
+     * Helper untuk mendapatkan label status yang lebih ramah pengguna.
      */
-    public function updateStatus(Request $request, Pembelian $pembelian)
+    private function getStatusLabel($status)
     {
-        $validated = $request->validate([
-            'status' => 'required|in:sent,confirmed,received,invoiced,paid,cancelled',
-            'catatan' => 'nullable|string|max:500',
-        ]);
-
-        if (!$pembelian->updateStatus($validated['status'])) {
-            return redirect()->back()
-                ->with('flash', [
-                    'message' => 'Status tidak dapat diubah dari ' . $pembelian->status_label . ' ke ' . $validated['status'],
-                    'type' => 'error'
-                ]);
-        }
-
-        // Add status change note
-        if (!empty($validated['catatan'])) {
-            $currentNote = $pembelian->catatan ?? '';
-            $newNote = $currentNote . "\n" . date('Y-m-d H:i') . " - Status changed to {$validated['status']}: " . $validated['catatan'];
-            $pembelian->update([
-                'catatan' => $newNote,
-                'updated_by' => Auth::id(),
-            ]);
-        }
-
-        return redirect()->back()
-            ->with('flash', [
-                'message' => 'Status Purchase Order berhasil diupdate!',
-                'type' => 'success'
-            ]);
-    }
-
-    /**
-     * Receive items from purchase order
-     */
-    public function receive(Request $request, Pembelian $pembelian)
-    {
-        if (!$pembelian->canBeReceived()) {
-            return redirect()->back()
-                ->with('flash', [
-                    'message' => 'Purchase Order tidak dapat diterima karena statusnya ' . $pembelian->status_label,
-                    'type' => 'error'
-                ]);
-        }
-
-        $validated = $request->validate([
-            'detail' => 'required|array',
-            'detail.*.pembelian_detail_id' => 'required|exists:pembelian_detail,pembelian_detail_id',
-            'detail.*.qty_diterima' => 'required|integer|min:0',
-            'catatan' => 'nullable|string|max:500',
-        ]);
-
-        try {
-            DB::beginTransaction();
-
-            foreach ($validated['detail'] as $detailData) {
-                $detail = PembelianDetail::find($detailData['pembelian_detail_id']);
-                if ($detail && $detail->pembelian_id === $pembelian->pembelian_id) {
-                    $detail->receiveQuantity($detailData['qty_diterima']);
-                }
-            }
-
-            // Update pembelian status based on received items
-            if ($pembelian->isFullyReceived()) {
-                $pembelian->updateStatus('received');
-            } else {
-                // Create custom status for partial received if not exists
-                $pembelian->update(['status' => 'partial_received']);
-            }
-
-            // Add receive note
-            if (!empty($validated['catatan'])) {
-                $currentNote = $pembelian->catatan ?? '';
-                $newNote = $currentNote . "\n" . date('Y-m-d H:i') . " - Items received: " . $validated['catatan'];
-                $pembelian->update(['catatan' => $newNote]);
-            }
-
-            DB::commit();
-
-            return redirect()->back()
-                ->with('flash', [
-                    'message' => 'Items berhasil diterima!',
-                    'type' => 'success'
-                ]);
-        } catch (\Exception $e) {
-            DB::rollBack();
-
-            return redirect()->back()
-                ->with('flash', [
-                    'message' => 'Gagal menerima items: ' . $e->getMessage(),
-                    'type' => 'error'
-                ]);
-        }
-    }
-
-    /**
-     * Get remaining quantity for pengadaan detail
-     */
-    private function getRemainingQuantity(string $pengadaanDetailId): int
-    {
-        $pengadaanDetail = PengadaanDetail::find($pengadaanDetailId);
-        if (!$pengadaanDetail) {
-            return 0;
-        }
-
-        $qtyTelahDipesan = PembelianDetail::where('pengadaan_detail_id', $pengadaanDetailId)
-            ->sum('qty_po');
-
-        return max(0, $pengadaanDetail->qty_disetujui - $qtyTelahDipesan);
-    }
-
-    /**
-     * Validate detail quantities against pengadaan
-     */
-    private function validateDetailQuantities(array $details): array
-    {
-        $errors = [];
-
-        foreach ($details as $index => $detail) {
-            if (isset($detail['pengadaan_detail_id']) && $detail['pengadaan_detail_id']) {
-                $remainingQty = $this->getRemainingQuantity($detail['pengadaan_detail_id']);
-
-                if ($detail['qty_po'] > $remainingQty) {
-                    $errors["detail.{$index}.qty_po"] = "Kuantitas melebihi sisa yang tersedia ({$remainingQty} {$detail['satuan']})";
-                }
-            }
-        }
-
-        return $errors;
-    }
-
-    /**
-     * Get pengadaan details with remaining quantities
-     */
-    public function createFromPengadaan(Pengadaan $pengadaan)
-    {
-        if ($pengadaan->status !== 'approved') {
-            abort(403, 'Pengadaan belum disetujui');
-        }
-
-        $suppliers = Supplier::active()
-            ->select('supplier_id', 'nama_supplier', 'alamat', 'telepon', 'email', 'kontak_person')
-            ->orderBy('nama_supplier')
-            ->get();
-
-        // Get pengadaan details with remaining quantities
-        $pengadaanDetails = $pengadaan->detail->map(function ($detail) {
-            $remainingQty = $this->getRemainingQuantity($detail->pengadaan_detail_id);
-
-            return [
-                'pengadaan_detail_id' => $detail->pengadaan_detail_id,
-                'item_type' => $detail->item_type,
-                'item_id' => $detail->item_id,
-                'nama_item' => $detail->nama_item,
-                'satuan' => $detail->satuan,
-                'qty_disetujui' => $detail->qty_disetujui,
-                'qty_tersisa' => $remainingQty,
-                'harga_satuan' => $detail->harga_satuan,
-                'total_harga' => $detail->total_harga,
-                'alasan_kebutuhan' => $detail->alasan_kebutuhan,
-                'catatan' => $detail->catatan,
-            ];
-        })->filter(function ($detail) {
-            // Only include details that still have remaining quantity
-            return $detail['qty_tersisa'] > 0;
-        });
-
-        if ($pengadaanDetails->isEmpty()) {
-            return redirect()->route('pengadaan.show', $pengadaan->pengadaan_id)
-                ->with('flash', [
-                    'message' => 'Semua item dalam pengadaan ini sudah dipesan.',
-                    'type' => 'warning'
-                ]);
-        }
-
-        return Inertia::render('pembelian/create', [
-            'suppliers' => $suppliers,
-            'pengadaan' => [
-                'pengadaan_id' => $pengadaan->pengadaan_id,
-                'nomor_pengadaan' => $pengadaan->pengadaan_id,
-                'tanggal_pengadaan' => $pengadaan->tanggal_pengadaan?->format('Y-m-d'),
-                'total_biaya' => $pengadaan->total_biaya,
-                'supplier_id' => $pengadaan->supplier_id,
-            ],
-            'pengadaanDetails' => $pengadaanDetails->values(),
-        ]);
-    }
-
-    /**
-     * Generate PO number
-     */
-    private function generateNomorPO(): string
-    {
-        $prefix = 'PO';
-        $date = date('Ymd');
-
-        $lastPo = Pembelian::where('nomor_po', 'like', "{$prefix}-{$date}-%")
-            ->orderBy('nomor_po', 'desc')
-            ->first();
-
-        if ($lastPo) {
-            $lastNumber = (int) substr($lastPo->nomor_po, -3);
-            $newNumber = $lastNumber + 1;
-        } else {
-            $newNumber = 1;
-        }
-
-        return $prefix . '-' . $date . '-' . str_pad($newNumber, 3, '0', STR_PAD_LEFT);
+        return match ($status) {
+            'draft' => 'Draft',
+            'sent' => 'Terkirim ke Supplier',
+            'confirmed' => 'Dikonfirmasi Supplier',
+            'partially_received' => 'Diterima Sebagian',
+            'fully_received' => 'Diterima Lengkap',
+            'cancelled' => 'Dibatalkan',
+            default => ucfirst($status),
+        };
     }
 }

@@ -12,34 +12,33 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('pembelian', function (Blueprint $table) {
-            $table->string('pembelian_id')->primary();
-            $table->string('pengadaan_id'); // Reference to pengadaan
-            $table->string('supplier_id');
-            $table->string('nomor_po'); // Purchase Order Number
-            $table->date('tanggal_pembelian');
-            $table->date('tanggal_jatuh_tempo')->nullable();
-            $table->decimal('subtotal', 25, 2);
-            $table->decimal('pajak', 25, 2)->default(0);
-            $table->decimal('diskon', 25, 2)->default(0);
-            $table->decimal('total_biaya', 25, 2);
-            $table->enum('status', ['draft', 'sent', 'confirmed', 'received', 'invoiced', 'paid', 'cancelled'])->default('draft');
-            $table->enum('metode_pembayaran', ['cash', 'transfer', 'credit', 'cheque'])->nullable();
-            $table->text('terms_conditions')->nullable();
-            $table->text('catatan')->nullable();
-            $table->string('created_by');
-            $table->string('updated_by')->nullable();
-            $table->timestamps();
+            $table->string('pembelian_id', 10)->primary();
 
-            // Foreign keys
-            $table->foreign('pengadaan_id')->references('pengadaan_id')->on('pengadaan')->onDelete('cascade');
+            // Foreign key ke tabel pengadaan (permintaan internal)
+            $table->string('pengadaan_id', 10)->index();
+            $table->foreign('pengadaan_id')->references('pengadaan_id')->on('pengadaan')->onDelete('restrict');
+
+            // Foreign key ke tabel supplier
+            $table->string('supplier_id', 10)->index();
             $table->foreign('supplier_id')->references('supplier_id')->on('supplier')->onDelete('restrict');
-            $table->foreign('created_by')->references('user_id')->on('users')->onDelete('restrict');
-            $table->foreign('updated_by')->references('user_id')->on('users')->onDelete('restrict');
 
-            // Indexes
-            $table->index(['tanggal_pembelian', 'status']);
-            $table->index(['supplier_id', 'status']);
-            $table->index('nomor_po');
+            $table->string('nomor_po', 20)->unique()->comment('Nomor Purchase Order yang formal, cth: PO-202309-0001');
+            $table->date('tanggal_pembelian');
+            $table->date('tanggal_kirim_diharapkan')->nullable();
+            $table->decimal('total_biaya', 15, 2)->default(0);
+            $table->string('status', 30)->default('draft')->comment('draft, sent, confirmed, partially_received, fully_received, cancelled');
+            $table->text('catatan')->nullable();
+
+            // Foreign keys untuk tracking user
+            $table->string('created_by', 10)->nullable();
+            $table->foreign('created_by')->references('user_id')->on('users')->onDelete('set null');
+            $table->string('updated_by', 10)->nullable();
+            $table->foreign('updated_by')->references('user_id')->on('users')->onDelete('set null');
+            $table->string('deleted_by', 10)->nullable();
+            $table->foreign('deleted_by')->references('user_id')->on('users')->onDelete('set null');
+
+            $table->timestamps();
+            $table->softDeletes();
         });
     }
 

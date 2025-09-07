@@ -4,35 +4,32 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PembelianDetail extends Model
 {
     use HasFactory;
 
-    protected $table = 'pembelian_detail';
     protected $primaryKey = 'pembelian_detail_id';
-    public $incrementing = false;
     protected $keyType = 'string';
+    protected $table = 'pembelian_detail';
+    public $incrementing = false;
 
     protected $fillable = [
         'pembelian_detail_id',
         'pembelian_id',
-        'pengadaan_detail_id',
+        'pengadaan_detail_id', // Kunci untuk traceability ke permintaan awal
         'item_type',
         'item_id',
         'nama_item',
         'satuan',
-        'qty_po',
+        'qty_dipesan',
         'qty_diterima',
         'harga_satuan',
-        'total_harga',
-        'spesifikasi',
-        'catatan',
+        'total_harga'
     ];
 
     protected $casts = [
-        'qty_po' => 'integer',
+        'qty_dipesan' => 'integer',
         'qty_diterima' => 'integer',
         'harga_satuan' => 'decimal:2',
         'total_harga' => 'decimal:2',
@@ -43,82 +40,77 @@ class PembelianDetail extends Model
         parent::boot();
 
         static::creating(function ($model) {
-            if (empty($model->pembelian_detail_id)) {
-                $lastId = static::where('pembelian_id', $model->pembelian_id)->count();
-                $model->pembelian_detail_id = $model->pembelian_id . '-' . str_pad($lastId + 1, 3, '0', STR_PAD_LEFT);
+            if (!$model->pembelian_detail_id) {
+                $latest = static::orderBy('pembelian_detail_id', 'desc')->first();
+                $nextNumber = $latest ? (int)substr($latest->pembelian_detail_id, 4) + 1 : 1;
+                $model->pembelian_detail_id = 'PBLD' . str_pad($nextNumber, 7, '0', STR_PAD_LEFT);
+            }
+            // Set default qty_diterima
+            if (is_null($model->qty_diterima)) {
+                $model->qty_diterima = 0;
             }
         });
 
-        static::saving(function ($model) {
-            // Auto calculate total_harga
-            $model->total_harga = $model->qty_po * $model->harga_satuan;
+        static::saved(function ($model) {
+            // Hitung ulang total_harga jika ada perubahan pada qty atau harga
+            if ($model->isDirty('qty_dipesan') || $model->isDirty('harga_satuan')) {
+                $model->total_harga = $model->qty_dipesan * $model->harga_satuan;
+                // Simpan tanpa memicu event lagi untuk menghindari loop
+                $model->saveQuietly();
+            }
+
+            // Update total biaya di header pembelian
+            $model->pembelian->updateTotalBiaya();
+        });
+
+        static::deleted(function ($model) {
+            // Update total biaya di header setelah item dihapus
+            if ($model->pembelian) {
+                $model->pembelian->updateTotalBiaya();
+            }
         });
     }
 
     // Relationships
-    public function pembelian(): BelongsTo
+    public function pembelian()
     {
         return $this->belongsTo(Pembelian::class, 'pembelian_id', 'pembelian_id');
     }
 
-    public function pengadaanDetail(): BelongsTo
+    public function pengadaanDetail()
     {
         return $this->belongsTo(PengadaanDetail::class, 'pengadaan_detail_id', 'pengadaan_detail_id');
     }
 
-    public function bahanBaku(): BelongsTo
+    // Polymorphic relationship untuk item (sama seperti di PengadaanDetail)
+    public function bahanBaku()
     {
-        return $this->belongsTo(BahanBaku::class, 'item_id', 'bahan_baku_id')
-            ->where('item_type', 'bahan_baku');
+        return $this->belongsTo(BahanBaku::class, 'item_id', 'bahan_baku_id');
     }
 
-    public function produk(): BelongsTo
+    public function produk()
     {
-        return $this->belongsTo(Produk::class, 'item_id', 'produk_id')
-            ->where('item_type', 'produk');
+        return $this->belongsTo(Produk::class, 'item_id', 'produk_id');
     }
 
-    // Accessors
-    public function getOutstandingQtyAttribute(): int
+    public function getItemAttribute()
     {
-        return $this->qty_po - $this->qty_diterima;
-    }
-
-    public function getReceivedPercentageAttribute(): int
-    {
-        return $this->qty_po > 0 ? round(($this->qty_diterima / $this->qty_po) * 100) : 0;
-    }
-
-    public function getIsFullyReceivedAttribute(): bool
-    {
-        return $this->qty_diterima >= $this->qty_po;
-    }
-
-    public function getFormattedTotalAttribute(): string
-    {
-        return 'Rp ' . number_format($this->total_harga, 0, ',', '.');
+        if ($this->item_type === 'bahan_baku') {
+            return $this->bahanBaku;
+        } elseif ($this->item_type === 'produk') {
+            return $this->produk;
+        }
+        return null;
     }
 
     // Business Logic Methods
-    public function canReceiveQuantity(int $quantity): bool
+    public function isFullyReceived()
     {
-        return ($this->qty_diterima + $quantity) <= $this->qty_po;
+        return $this->qty_diterima >= $this->qty_dipesan;
     }
 
-    public function receiveQuantity(int $quantity): bool
+    public function getOutstandingQty()
     {
-        if (!$this->canReceiveQuantity($quantity)) {
-            return false;
-        }
-
-        $this->qty_diterima += $quantity;
-        return $this->save();
-    }
-
-    public function getItem()
-    {
-        return $this->item_type === 'bahan_baku'
-            ? $this->bahanBaku
-            : $this->produk;
+        return $this->qty_dipesan - $this->qty_diterima;
     }
 }

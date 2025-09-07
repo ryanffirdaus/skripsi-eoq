@@ -12,28 +12,31 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('pembelian_detail', function (Blueprint $table) {
-            $table->string('pembelian_detail_id')->primary();
-            $table->string('pembelian_id');
-            $table->string('pengadaan_detail_id'); // Reference to pengadaan detail
-            $table->enum('item_type', ['bahan_baku', 'produk']);
-            $table->string('item_id');
-            $table->string('nama_item');
-            $table->string('satuan');
-            $table->integer('qty_po'); // Quantity in PO
-            $table->integer('qty_diterima')->default(0); // Quantity received
-            $table->decimal('harga_satuan', 20, 2);
-            $table->decimal('total_harga', 25, 2);
-            $table->text('spesifikasi')->nullable();
-            $table->text('catatan')->nullable();
-            $table->timestamps();
+            $table->string('pembelian_detail_id', 11)->primary();
 
-            // Foreign keys
+            // Foreign key ke header pembelian
+            $table->string('pembelian_id', 10)->index();
             $table->foreign('pembelian_id')->references('pembelian_id')->on('pembelian')->onDelete('cascade');
+
+            // Foreign key ke detail pengadaan untuk traceability
+            $table->string('pengadaan_detail_id', 11)->index();
             $table->foreign('pengadaan_detail_id')->references('pengadaan_detail_id')->on('pengadaan_detail')->onDelete('restrict');
 
-            // Indexes
-            $table->index(['pembelian_id', 'item_type', 'item_id']);
-            $table->index('pengadaan_detail_id');
+            // Kolom untuk item (bisa bahan baku atau produk)
+            $table->string('item_type', 50);
+            $table->string('item_id', 10);
+            $table->string('nama_item');
+            $table->string('satuan', 50);
+
+            // Kuantitas
+            $table->integer('qty_dipesan');
+            $table->integer('qty_diterima')->default(0);
+
+            // Harga
+            $table->decimal('harga_satuan', 15, 2);
+            $table->decimal('total_harga', 15, 2);
+
+            $table->timestamps();
         });
     }
 

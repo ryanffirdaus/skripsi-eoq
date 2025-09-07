@@ -1,60 +1,73 @@
+import { createDeleteAction, createEditAction, createViewAction } from '@/components/table/table-actions';
 import TableTemplate from '@/components/table/table-template';
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
-import { BreadcrumbItem } from '@/types';
-import { Head, router } from '@inertiajs/react';
-import { Building2, Calendar, Edit, Eye, FileText, Trash2 } from 'lucide-react';
-import { useMemo } from 'react';
+import { Button } from '@/components/ui/button';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { formatCurrency, formatDate } from '@/lib/formatters';
+import { type BreadcrumbItem } from '@/types';
+import { router } from '@inertiajs/react';
+import { useCallback, useMemo } from 'react';
+
+// 1. Interface disesuaikan untuk data Pembelian
+interface Pembelian extends Record<string, unknown> {
+    pembelian_id: string;
+    nomor_po: string;
+    pengadaan_id: string;
+    supplier_nama: string;
+    tanggal_pembelian: string;
+    tanggal_kirim?: string;
+    total_biaya: number;
+    status: string;
+    status_label: string;
+    dibuat_oleh: string;
+    can_edit: boolean;
+    can_cancel: boolean;
+    created_at: string;
+}
 
 interface Supplier {
     supplier_id: string;
     nama_supplier: string;
 }
 
-interface Pembelian extends Record<string, unknown> {
-    pembelian_id: string;
-    pengadaan_id?: string;
-    nomor_po: string;
-    supplier: Supplier;
-    tanggal_pembelian: string;
-    tanggal_jatuh_tempo?: string;
-    total_biaya: number;
-    status: string;
-    status_label: string;
-    metode_pembayaran?: string;
-    can_edit: boolean;
-    can_cancel: boolean;
-    created_at: string;
+interface PaginationLink {
+    url: string | null;
+    label: string;
+    active: boolean;
 }
 
-interface PaginatedData<T> {
-    data: T[];
+interface PaginatedPembelian {
+    data: Pembelian[];
     current_page: number;
     last_page: number;
     per_page: number;
     total: number;
     from: number;
     to: number;
-    links: Array<{
-        url: string | null;
-        label: string;
-        active: boolean;
-    }>;
+    links: PaginationLink[];
+}
+
+interface Filters {
+    search?: string;
+    status?: string;
+    supplier_id?: string;
+    sort_by: string;
+    sort_direction: 'asc' | 'desc';
+    per_page: number;
+    [key: string]: string | number | undefined;
 }
 
 interface Props {
-    pembelian: PaginatedData<Pembelian>;
-    suppliers: Supplier[];
-    filters: {
-        status?: string;
-        supplier_id?: string;
-        date_from?: string;
-        date_to?: string;
-        search?: string;
-        sort_by: string;
-        sort_direction: 'asc' | 'desc';
-        per_page: number;
-    };
+    pembelian: PaginatedPembelian;
+    filters: Filters;
+    suppliers: Supplier[]; // Menambahkan suppliers untuk filter
     flash?: {
         message?: string;
         type?: 'success' | 'error' | 'warning' | 'info';
@@ -62,168 +75,171 @@ interface Props {
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: '/dashboard' },
-    { title: 'Pembelian', href: '/pembelian' },
+    {
+        title: 'Pembelian',
+        href: '/pembelian',
+    },
 ];
 
-export default function Index({ pembelian, suppliers, filters, flash }: Props) {
-    const getStatusColor = (status: string) => {
-        const colors: Record<string, string> = {
-            draft: 'bg-gray-100 text-gray-800',
-            sent: 'bg-blue-100 text-blue-800',
-            confirmed: 'bg-purple-100 text-purple-800',
-            received: 'bg-green-100 text-green-800',
-            invoiced: 'bg-yellow-100 text-yellow-800',
-            paid: 'bg-emerald-100 text-emerald-800',
-            cancelled: 'bg-red-100 text-red-800',
-        };
-        return colors[status] || 'bg-gray-100 text-gray-800';
+export default function Index({ pembelian, filters, suppliers, flash }: Props) {
+    // 2. Badge disesuaikan untuk status Pembelian
+    const getStatusBadge = (status: string) => {
+        const statusColors = {
+            draft: 'outline',
+            sent: 'secondary',
+            confirmed: 'default',
+            partial_received: 'default',
+            fully_received: 'secondary', // pakai 'secondary' (atau 'default') biar aman
+            cancelled: 'destructive',
+        } as const;
+
+        return (
+            <Badge variant={statusColors[status as keyof typeof statusColors] || 'outline'}>
+                {status === 'draft' && 'Draft'}
+                {status === 'sent' && 'Terkirim'}
+                {status === 'confirmed' && 'Dikonfirmasi'}
+                {status === 'partial_received' && 'Diterima Sebagian'}
+                {status === 'fully_received' && 'Diterima Lengkap'}
+                {status === 'cancelled' && 'Dibatalkan'}
+            </Badge>
+        );
     };
 
-    const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('id-ID', {
-            style: 'currency',
-            currency: 'IDR',
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0,
-        }).format(amount);
-    };
+    // 3. Logika untuk update status Pembelian (endpoint disesuaikan)
+    const handleStatusUpdate = useCallback(async (pembelianId: string, newStatus: string) => {
+        try {
+            await router.patch(
+                `/pembelian/${pembelianId}/status`,
+                { status: newStatus },
+                {
+                    preserveScroll: true,
+                    only: ['pembelian', 'flash'],
+                    onSuccess: () => {
+                        // Handle success notification from flash message
+                    },
+                    onError: () => {
+                        alert('Gagal memperbarui status.');
+                    },
+                },
+            );
+        } catch (error) {
+            console.error('Error updating status:', error);
+            alert('Terjadi kesalahan saat memperbarui status');
+        }
+    }, []);
 
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('id-ID', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-        });
-    };
+    // 4. Aksi dropdown untuk mengubah status Pembelian
+    const renderStatusActions = useCallback(
+        (item: Pembelian) => {
+            const canUpdate = !['fully_received', 'cancelled'].includes(item.status);
 
-    const handleDelete = (item: Record<string, unknown>) => {
-        const pembelianItem = item as unknown as Pembelian;
-        router.delete(`/pembelian/${pembelianItem.pembelian_id}`, {
-            preserveScroll: true,
-        });
-    };
+            if (!canUpdate) return null;
 
+            return (
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm">
+                            Update Status
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                        <DropdownMenuLabel>Ubah Status</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+
+                        {item.status === 'draft' && (
+                            <DropdownMenuItem onClick={() => handleStatusUpdate(item.pembelian_id, 'sent')}>Tandai sebagai Terkirim</DropdownMenuItem>
+                        )}
+                        {item.status === 'sent' && (
+                            <DropdownMenuItem onClick={() => handleStatusUpdate(item.pembelian_id, 'confirmed')}>
+                                Konfirmasi oleh Supplier
+                            </DropdownMenuItem>
+                        )}
+                        {item.status === 'confirmed' && (
+                            <>
+                                <DropdownMenuItem onClick={() => handleStatusUpdate(item.pembelian_id, 'partial_received')}>
+                                    Terima Sebagian Barang
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleStatusUpdate(item.pembelian_id, 'fully_received')}>
+                                    Terima Semua Barang
+                                </DropdownMenuItem>
+                            </>
+                        )}
+                        {item.status === 'partial_received' && (
+                            <DropdownMenuItem onClick={() => handleStatusUpdate(item.pembelian_id, 'fully_received')}>
+                                Terima Sisa Barang
+                            </DropdownMenuItem>
+                        )}
+                        {item.can_cancel && (
+                            <>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={() => handleStatusUpdate(item.pembelian_id, 'cancelled')} className="text-red-600">
+                                    Batalkan Pembelian
+                                </DropdownMenuItem>
+                            </>
+                        )}
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            );
+        },
+        [handleStatusUpdate],
+    );
+
+    // 5. Definisi kolom untuk tabel Pembelian
     const columns = useMemo(
         () => [
             {
                 key: 'nomor_po',
-                label: 'Nomor PO',
+                label: 'No. PO',
                 sortable: true,
-                render: (item: Record<string, unknown>) => {
-                    const pembelianItem = item as unknown as Pembelian;
-                    return (
-                        <div className="space-y-1">
-                            <div className="font-medium text-gray-900">{pembelianItem.nomor_po}</div>
-                            {pembelianItem.pengadaan_id && (
-                                <div className="text-xs text-gray-500">
-                                    <FileText className="mr-1 inline h-3 w-3" />
-                                    {pembelianItem.pengadaan_id}
-                                </div>
-                            )}
-                        </div>
-                    );
-                },
+                defaultVisible: true,
             },
             {
-                key: 'supplier',
+                key: 'supplier_nama',
                 label: 'Supplier',
                 sortable: false,
-                render: (item: Record<string, unknown>) => {
-                    const pembelianItem = item as unknown as Pembelian;
-                    return (
-                        <div className="space-y-1">
-                            <div className="flex items-center">
-                                <Building2 className="mr-2 h-4 w-4 text-gray-400" />
-                                <span className="font-medium">{pembelianItem.supplier.nama_supplier}</span>
-                            </div>
-                        </div>
-                    );
-                },
+                defaultVisible: true,
             },
             {
                 key: 'tanggal_pembelian',
-                label: 'Tanggal',
+                label: 'Tgl. Pembelian',
                 sortable: true,
-                render: (item: Record<string, unknown>) => {
-                    const pembelianItem = item as unknown as Pembelian;
-                    return (
-                        <div className="space-y-1">
-                            <div className="flex items-center text-sm">
-                                <Calendar className="mr-2 h-4 w-4 text-gray-400" />
-                                <span>{formatDate(pembelianItem.tanggal_pembelian)}</span>
-                            </div>
-                            {pembelianItem.tanggal_jatuh_tempo && (
-                                <div className="text-xs text-gray-500">Jatuh Tempo: {formatDate(pembelianItem.tanggal_jatuh_tempo)}</div>
-                            )}
-                        </div>
-                    );
-                },
+                defaultVisible: true,
+                render: (item: Record<string, unknown>) => formatDate((item as Pembelian).tanggal_pembelian),
             },
             {
                 key: 'total_biaya',
                 label: 'Total Biaya',
                 sortable: true,
-                render: (item: Record<string, unknown>) => {
-                    const pembelianItem = item as unknown as Pembelian;
-                    return (
-                        <div className="text-right">
-                            <div className="font-semibold text-gray-900">{formatCurrency(pembelianItem.total_biaya)}</div>
-                            {pembelianItem.metode_pembayaran && (
-                                <div className="text-xs text-gray-500 capitalize">{pembelianItem.metode_pembayaran}</div>
-                            )}
-                        </div>
-                    );
-                },
+                defaultVisible: true,
+                render: (item: Record<string, unknown>) => formatCurrency((item as Pembelian).total_biaya),
             },
             {
                 key: 'status',
                 label: 'Status',
                 sortable: true,
+                defaultVisible: true,
                 render: (item: Record<string, unknown>) => {
-                    const pembelianItem = item as unknown as Pembelian;
-                    return <Badge className={cn('text-xs font-medium', getStatusColor(pembelianItem.status))}>{pembelianItem.status_label}</Badge>;
+                    const po = item as Pembelian;
+                    return (
+                        <div className="flex items-center gap-2">
+                            {getStatusBadge(po.status)}
+                            {renderStatusActions(po)}
+                        </div>
+                    );
                 },
+            },
+            {
+                key: 'dibuat_oleh',
+                label: 'Dibuat Oleh',
+                sortable: false,
+                hideable: true,
+                defaultVisible: false,
             },
         ],
-        [],
+        [renderStatusActions],
     );
 
-    const actions = useMemo(
-        () => [
-            {
-                label: 'View',
-                icon: Eye,
-                onClick: (item: Record<string, unknown>) => {
-                    const pembelianItem = item as unknown as Pembelian;
-                    router.visit(`/pembelian/${pembelianItem.pembelian_id}`);
-                },
-            },
-            {
-                label: 'Edit',
-                icon: Edit,
-                onClick: (item: Record<string, unknown>) => {
-                    const pembelianItem = item as unknown as Pembelian;
-                    router.visit(`/pembelian/${pembelianItem.pembelian_id}/edit`);
-                },
-                show: (item: Record<string, unknown>) => {
-                    const pembelianItem = item as unknown as Pembelian;
-                    return pembelianItem.can_edit;
-                },
-            },
-            {
-                label: 'Cancel',
-                icon: Trash2,
-                onClick: handleDelete,
-                show: (item: Record<string, unknown>) => {
-                    const pembelianItem = item as unknown as Pembelian;
-                    return pembelianItem.can_cancel;
-                },
-            },
-        ],
-        [],
-    );
-
+    // 6. Opsi filter untuk status dan supplier
     const filterOptions = useMemo(
         () => [
             {
@@ -233,11 +249,10 @@ export default function Index({ pembelian, suppliers, filters, flash }: Props) {
                 options: [
                     { value: '', label: 'Semua Status' },
                     { value: 'draft', label: 'Draft' },
-                    { value: 'sent', label: 'PO Dikirim' },
+                    { value: 'sent', label: 'Terkirim' },
                     { value: 'confirmed', label: 'Dikonfirmasi' },
-                    { value: 'received', label: 'Diterima' },
-                    { value: 'invoiced', label: 'Ditagih' },
-                    { value: 'paid', label: 'Dibayar' },
+                    { value: 'partial_received', label: 'Diterima Sebagian' },
+                    { value: 'fully_received', label: 'Diterima Lengkap' },
                     { value: 'cancelled', label: 'Dibatalkan' },
                 ],
             },
@@ -245,58 +260,45 @@ export default function Index({ pembelian, suppliers, filters, flash }: Props) {
                 key: 'supplier_id',
                 label: 'Supplier',
                 type: 'select' as const,
-                options: [
-                    { value: '', label: 'Semua Supplier' },
-                    ...suppliers.map((supplier) => ({
-                        value: supplier.supplier_id,
-                        label: supplier.nama_supplier,
-                    })),
-                ],
-            },
-            {
-                key: 'date_from',
-                label: 'Tanggal Dari',
-                type: 'text' as const,
-                placeholder: 'YYYY-MM-DD',
-            },
-            {
-                key: 'date_to',
-                label: 'Tanggal Sampai',
-                type: 'text' as const,
-                placeholder: 'YYYY-MM-DD',
+                options: [{ value: '', label: 'Semua Supplier' }, ...suppliers.map((s) => ({ value: s.supplier_id, label: s.nama_supplier }))],
             },
         ],
         [suppliers],
     );
 
+    // 7. Aksi untuk setiap baris (view, edit, delete)
+    const actions = useMemo(
+        () => [
+            createViewAction<Pembelian>((item) => `/pembelian/${item.pembelian_id}`),
+            createEditAction<Pembelian>(
+                (item) => `/pembelian/${item.pembelian_id}/edit`,
+                (item) => item.can_edit,
+            ),
+            createDeleteAction<Pembelian>(
+                (item) => {
+                    router.delete(`/pembelian/${item.pembelian_id}`);
+                },
+                (item) => item.can_cancel,
+            ),
+        ],
+        [],
+    );
+
     return (
-        <>
-            <Head title="Purchase Order" />
-            <TableTemplate<Pembelian>
-                title="Purchase Order"
-                breadcrumbs={breadcrumbs}
-                data={pembelian}
-                columns={columns}
-                createUrl="/pembelian/create"
-                createButtonText="Buat PO Baru"
-                searchPlaceholder="Cari nomor PO, supplier..."
-                filters={filters}
-                filterOptions={filterOptions}
-                baseUrl="/pembelian"
-                actions={actions}
-                flash={flash}
-                onDelete={handleDelete}
-                deleteDialogTitle="Batalkan Purchase Order"
-                deleteDialogMessage={(item) => {
-                    const pembelianItem = item as unknown as Pembelian;
-                    return `Apakah Anda yakin ingin membatalkan Purchase Order ${pembelianItem.nomor_po}? Tindakan ini tidak dapat dibatalkan.`;
-                }}
-                getItemName={(item) => {
-                    const pembelianItem = item as unknown as Pembelian;
-                    return pembelianItem.nomor_po;
-                }}
-                idField="pembelian_id"
-            />
-        </>
+        <TableTemplate<Pembelian>
+            title="Manajemen Pembelian"
+            breadcrumbs={breadcrumbs}
+            data={pembelian}
+            columns={columns}
+            createUrl="/pembelian/create"
+            createButtonText="Buat Pembelian Baru"
+            searchPlaceholder="Cari No. PO, supplier..."
+            filters={filters}
+            filterOptions={filterOptions}
+            baseUrl="/pembelian"
+            actions={actions}
+            flash={flash}
+            idField="pembelian_id"
+        />
     );
 }

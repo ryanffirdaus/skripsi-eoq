@@ -7,13 +7,14 @@ use App\Models\Pengadaan;
 use App\Models\Supplier;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Str;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Pembelian>
- */
 class PembelianFactory extends Factory
 {
+    /**
+     * The name of the factory's corresponding model.
+     *
+     * @var string
+     */
     protected $model = Pembelian::class;
 
     /**
@@ -23,119 +24,22 @@ class PembelianFactory extends Factory
      */
     public function definition(): array
     {
-        $tanggalPembelian = $this->faker->dateTimeBetween('-30 days', 'now');
-        $tanggalJatuhTempo = $this->faker->dateTimeBetween($tanggalPembelian, '+60 days');
-
-        $subtotal = $this->faker->numberBetween(1000000, 50000000);
-        $pajak = $subtotal * 0.11; // PPN 11%
-        $diskon = $this->faker->numberBetween(0, $subtotal * 0.1);
-        $totalBiaya = $subtotal + $pajak - $diskon;
-
-        $status = $this->faker->randomElement([
-            'draft',
-            'sent',
-            'confirmed',
-            'partial_received',
-            'received',
-            'invoiced',
-            'paid'
-        ]);
-
-        $metodePembayaran = $this->faker->randomElement([
-            'cash',
-            'transfer',
-            'credit',
-            'cheque'
-        ]);
+        // Ambil pengadaan dan supplier yang sudah ada untuk referensi
+        // Pastikan Anda sudah menjalankan seeder untuk Pengadaan, Supplier, dan User sebelumnya
+        $pengadaan = Pengadaan::inRandomOrder()->first();
+        $supplier = Supplier::inRandomOrder()->first();
+        $user = User::inRandomOrder()->first();
 
         return [
-            'pengadaan_id' => Pengadaan::inRandomOrder()->first()?->pengadaan_id ??
-                Pengadaan::factory()->create()->pengadaan_id,
-            'nomor_po' => 'PO-' . strtoupper(Str::random(8)),
-            'tanggal_pembelian' => $tanggalPembelian,
-            'tanggal_jatuh_tempo' => $tanggalJatuhTempo,
-            'supplier_id' => Supplier::inRandomOrder()->first()?->supplier_id ?? 'SUP001',
-            'subtotal' => $subtotal,
-            'pajak' => $pajak,
-            'diskon' => $diskon,
-            'total_biaya' => $totalBiaya,
-            'status' => $status,
-            'metode_pembayaran' => $metodePembayaran,
-            'catatan' => $this->faker->optional()->sentence(),
-            'created_by' => User::inRandomOrder()->first()?->user_id ?? 'US001',
+            // pembelian_id dan nomor_po akan di-generate oleh boot method di model
+            'pengadaan_id' => $pengadaan ? $pengadaan->pengadaan_id : null,
+            'supplier_id' => $supplier ? $supplier->supplier_id : null,
+            'tanggal_pembelian' => $this->faker->dateTimeBetween('-1 month', 'now'),
+            'tanggal_kirim_diharapkan' => $this->faker->dateTimeBetween('now', '+1 month'),
+            'total_biaya' => 0, // Akan dihitung ulang oleh seeder
+            'status' => $this->faker->randomElement(['sent', 'confirmed', 'partially_received', 'fully_received', 'cancelled']),
+            'catatan' => $this->faker->sentence,
+            'created_by' => $user ? $user->user_id : null,
         ];
-    }
-
-    /**
-     * Create pembelian from specific pengadaan
-     */
-    public function fromPengadaan(Pengadaan $pengadaan): static
-    {
-        return $this->state(function (array $attributes) use ($pengadaan) {
-            return [
-                'pengadaan_id' => $pengadaan->pengadaan_id,
-                'supplier_id' => $pengadaan->supplier_id,
-                'subtotal' => $pengadaan->total_biaya,
-                'pajak' => $pengadaan->total_biaya * 0.11,
-                'diskon' => 0,
-                'total_biaya' => $pengadaan->total_biaya * 1.11,
-                'tanggal_pembelian' => now(),
-                'tanggal_jatuh_tempo' => now()->addDays(30),
-                'status' => 'draft',
-                'created_by' => User::first()?->user_id ?? 'US001',
-            ];
-        });
-    }
-
-    /**
-     * Set status to specific value
-     */
-    public function status(string $status): static
-    {
-        return $this->state(function (array $attributes) use ($status) {
-            return [
-                'status' => $status,
-            ];
-        });
-    }
-
-    /**
-     * Set as draft status
-     */
-    public function draft(): static
-    {
-        return $this->status('draft');
-    }
-
-    /**
-     * Set as sent status
-     */
-    public function sent(): static
-    {
-        return $this->status('sent');
-    }
-
-    /**
-     * Set as confirmed status
-     */
-    public function confirmed(): static
-    {
-        return $this->status('confirmed');
-    }
-
-    /**
-     * Set as received status
-     */
-    public function received(): static
-    {
-        return $this->status('received');
-    }
-
-    /**
-     * Set as paid status
-     */
-    public function paid(): static
-    {
-        return $this->status('paid');
     }
 }

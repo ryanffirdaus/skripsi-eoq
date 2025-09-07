@@ -3,7 +3,21 @@ import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { Atom, Container, LayoutGrid, Package, PackageCheck, RotateCcw, ShoppingCart, Truck, Users } from 'lucide-react';
+// Ikon yang diimpor diperbarui
+import {
+    Box,
+    Building2,
+    Component,
+    Contact2,
+    LayoutGrid,
+    Package,
+    PackageCheck,
+    RotateCcw,
+    ShoppingBag,
+    ShoppingCart,
+    Truck,
+    Users,
+} from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
@@ -15,27 +29,32 @@ const mainNavItems: NavItem[] = [
     {
         title: 'Users',
         href: '/users',
-        icon: Users,
+        icon: Users, // Tetap untuk pengguna internal sistem
     },
     {
         title: 'Bahan Baku',
         href: '/bahan-baku',
-        icon: Atom,
+        icon: Component, // Lebih spesifik dari Atom
     },
     {
         title: 'Produk',
         href: '/produk',
-        icon: Container,
+        icon: Box, // Lebih spesifik dari Container
     },
     {
         title: 'Pelanggan',
         href: '/pelanggan',
-        icon: Users,
+        icon: Contact2, // Jelas membedakan dari Users
+    },
+    {
+        title: 'Supplier', // Contoh jika ditambahkan
+        href: '/supplier',
+        icon: Building2,
     },
     {
         title: 'Pesanan',
         href: '/pesanan',
-        icon: ShoppingCart,
+        icon: ShoppingCart, // Order dari pelanggan
     },
     {
         title: 'Pengiriman',
@@ -50,7 +69,7 @@ const mainNavItems: NavItem[] = [
     {
         title: 'Pembelian',
         href: '/pembelian',
-        icon: ShoppingCart,
+        icon: ShoppingBag, // Pembelian ke supplier
     },
     {
         title: 'Penerimaan Bahan Baku',
