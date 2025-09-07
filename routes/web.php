@@ -11,6 +11,9 @@ use App\Http\Controllers\PengirimanController;
 
 use App\Http\Controllers\PengadaanController;
 use App\Http\Controllers\PembelianController;
+use App\Http\Controllers\PenerimaanBahanBakuController;
+use App\Http\Controllers\ReturBahanBakuController;
+use App\Http\Controllers\SupplierController;
 
 Route::get('/', function () {
     return Inertia::render('welcome');
@@ -33,6 +36,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Pelanggan CRUD routes
     Route::resource('pelanggan', PelangganController::class);
 
+    // Supplier CRUD routes
+    Route::resource('supplier', SupplierController::class);
+
     // Pesanan CRUD routes
     Route::resource('pesanan', PesananController::class);
 
@@ -48,6 +54,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('pengadaan/{pengadaan}/approve', [PengadaanController::class, 'approve'])->name('pengadaan.approve');
     Route::patch('pengadaan/{pengadaan}/status', [PengadaanController::class, 'updateStatus'])->name('pengadaan.update-status');
     Route::post('pengadaan/{pengadaan}/receive', [PengadaanController::class, 'receiveItems'])->name('pengadaan.receive');
+    Route::post('pengadaan/calculate', [PengadaanController::class, 'calculateProcurement'])->name('pengadaan.calculate');
 
     // Pembelian (Purchase Order) CRUD routes
     Route::resource('pembelian', PembelianController::class);
@@ -55,6 +62,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('pembelian/{pembelian}/status', [PembelianController::class, 'updateStatus'])->name('pembelian.update-status');
     Route::get('pembelian/{pembelian}/receive', [PembelianController::class, 'showReceiveForm'])->name('pembelian.receive-form');
     Route::post('pembelian/{pembelian}/receive', [PembelianController::class, 'receiveItems'])->name('pembelian.receive');
+
+    // Penerimaan Bahan Baku CRUD routes
+    Route::resource('penerimaan-bahan-baku', PenerimaanBahanBakuController::class);
+    Route::get('penerimaan/pembelian/{pembelian}/details', [PenerimaanBahanBakuController::class, 'getPembelianDetails'])->name('penerimaan.pembelian-details');
+
+    // Retur Bahan Baku CRUD routes
+    Route::resource('retur-bahan-baku', ReturBahanBakuController::class);
+    Route::patch('retur-bahan-baku/{retur}/approve', [ReturBahanBakuController::class, 'approve'])->name('retur-bahan-baku.approve');
+    Route::patch('retur-bahan-baku/{retur}/reject', [ReturBahanBakuController::class, 'reject'])->name('retur-bahan-baku.reject');
+    Route::get('retur-bahan-baku/penerimaan-detail/{penerimaanDetail}', [ReturBahanBakuController::class, 'getPenerimaanDetail'])->name('retur-bahan-baku.penerimaan-detail');
 });
 
 require __DIR__ . '/settings.php';
