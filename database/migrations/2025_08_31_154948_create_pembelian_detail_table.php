@@ -21,8 +21,8 @@ return new class extends Migration
             $table->string('satuan');
             $table->integer('qty_po'); // Quantity in PO
             $table->integer('qty_diterima')->default(0); // Quantity received
-            $table->decimal('harga_satuan', 12, 2);
-            $table->decimal('total_harga', 15, 2);
+            $table->decimal('harga_satuan', 20, 2);
+            $table->decimal('total_harga', 25, 2);
             $table->text('spesifikasi')->nullable();
             $table->text('catatan')->nullable();
             $table->timestamps();

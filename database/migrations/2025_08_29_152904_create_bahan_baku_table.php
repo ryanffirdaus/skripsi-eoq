@@ -17,14 +17,14 @@ return new class extends Migration
             $table->integer('stok_bahan');
             $table->string('satuan_bahan');
             $table->string('lokasi_bahan');
-            $table->decimal('harga_bahan', 10, 2);
+            $table->decimal('harga_bahan', 20, 2);
             $table->integer('permintaan_harian_rata2_bahan');
             $table->integer('permintaan_harian_maksimum_bahan');
             $table->integer('waktu_tunggu_rata2_bahan');
             $table->integer('waktu_tunggu_maksimum_bahan');
             $table->integer('permintaan_tahunan');
-            $table->decimal('biaya_pemesanan_bahan', 10, 2);
-            $table->decimal('biaya_penyimpanan_bahan', 10, 2);
+            $table->decimal('biaya_pemesanan_bahan', 20, 2);
+            $table->decimal('biaya_penyimpanan_bahan', 20, 2);
             $table->integer('safety_stock_bahan');
             $table->integer('rop_bahan');
             $table->integer('eoq_bahan');

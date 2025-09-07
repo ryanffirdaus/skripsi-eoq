@@ -18,10 +18,10 @@ return new class extends Migration
             $table->string('nomor_po'); // Purchase Order Number
             $table->date('tanggal_pembelian');
             $table->date('tanggal_jatuh_tempo')->nullable();
-            $table->decimal('subtotal', 15, 2);
-            $table->decimal('pajak', 15, 2)->default(0);
-            $table->decimal('diskon', 15, 2)->default(0);
-            $table->decimal('total_biaya', 15, 2);
+            $table->decimal('subtotal', 25, 2);
+            $table->decimal('pajak', 25, 2)->default(0);
+            $table->decimal('diskon', 25, 2)->default(0);
+            $table->decimal('total_biaya', 25, 2);
             $table->enum('status', ['draft', 'sent', 'confirmed', 'received', 'invoiced', 'paid', 'cancelled'])->default('draft');
             $table->enum('metode_pembayaran', ['cash', 'transfer', 'credit', 'cheque'])->nullable();
             $table->text('terms_conditions')->nullable();

@@ -22,8 +22,8 @@ return new class extends Migration
             $table->integer('qty_diminta'); // Quantity requested
             $table->integer('qty_disetujui')->nullable(); // Quantity approved
             $table->integer('qty_diterima')->default(0); // Quantity received
-            $table->decimal('harga_satuan', 12, 2);
-            $table->decimal('total_harga', 15, 2);
+            $table->decimal('harga_satuan', 20, 2);
+            $table->decimal('total_harga', 25, 2);
             $table->text('catatan')->nullable();
             $table->string('alasan_kebutuhan')->nullable(); // Why this item is needed (for ROP: "Stok di bawah ROP")
             $table->timestamps();

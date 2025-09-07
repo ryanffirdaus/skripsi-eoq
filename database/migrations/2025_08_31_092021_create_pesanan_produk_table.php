@@ -16,8 +16,8 @@ return new class extends Migration
             $table->string('pesanan_id');
             $table->string('produk_id');
             $table->integer('jumlah_produk');
-            $table->decimal('harga_satuan', 15, 2);
-            $table->decimal('subtotal', 15, 2);
+            $table->decimal('harga_satuan', 25, 2);
+            $table->decimal('subtotal', 25, 2);
             $table->timestamps();
 
             $table->foreign('pesanan_id')->references('pesanan_id')->on('pesanan')->onDelete('cascade');
