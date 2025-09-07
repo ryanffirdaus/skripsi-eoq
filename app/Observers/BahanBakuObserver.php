@@ -51,7 +51,7 @@ class BahanBakuObserver
                 $query->where('item_type', 'bahan_baku')
                     ->where('item_id', $bahanBaku->bahan_baku_id);
             })
-                ->whereIn('status', ['draft', 'pending', 'approved', 'ordered'])
+                ->whereIn('status', ['draft', 'pending', 'procurement_approved', 'finance_approved', 'ordered'])
                 ->exists();
 
             if (!$existingPengadaan) {

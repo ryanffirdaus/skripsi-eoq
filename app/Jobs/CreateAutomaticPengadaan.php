@@ -75,7 +75,7 @@ class CreateAutomaticPengadaan implements ShouldQueue
                 $query->where('item_type', 'bahan_baku')
                     ->where('item_id', $bahanBaku->bahan_baku_id);
             })
-                ->whereIn('status', ['draft', 'pending', 'approved', 'ordered'])
+                ->whereIn('status', ['draft', 'pending', 'procurement_approved', 'finance_approved', 'ordered'])
                 ->exists();
 
             if (!$existingPengadaan) {
@@ -99,7 +99,7 @@ class CreateAutomaticPengadaan implements ShouldQueue
                 $query->where('item_type', 'produk')
                     ->where('item_id', $produk->produk_id);
             })
-                ->whereIn('status', ['draft', 'pending', 'approved', 'ordered'])
+                ->whereIn('status', ['draft', 'pending', 'procurement_approved', 'finance_approved', 'ordered'])
                 ->exists();
 
             if (!$existingPengadaan) {
@@ -121,15 +121,10 @@ class CreateAutomaticPengadaan implements ShouldQueue
             return;
         }
 
-        $threshold = $bahanBaku->rop_bahan + $bahanBaku->safety_stock_bahan;
-
         $pengadaan = Pengadaan::create([
             'supplier_id' => $supplier->supplier_id,
             'jenis_pengadaan' => 'rop',
             'tanggal_pengadaan' => Carbon::today(),
-            'tanggal_dibutuhkan' => Carbon::today()->addDays(3), // 3 hari dari sekarang
-            'prioritas' => $this->getPrioritas($bahanBaku->stok_bahan, $bahanBaku->rop_bahan, $bahanBaku->safety_stock_bahan),
-            'alasan_pengadaan' => "Pengadaan otomatis karena stok {$bahanBaku->nama_bahan} mencapai ROP ({$bahanBaku->stok_bahan} <= {$threshold})",
             'status' => 'pending', // Langsung pending untuk review
         ]);
 
@@ -164,15 +159,10 @@ class CreateAutomaticPengadaan implements ShouldQueue
             return;
         }
 
-        $thresholdProduk = $produk->rop_produk + $produk->safety_stock_produk;
-
         $pengadaan = Pengadaan::create([
             'supplier_id' => $supplier->supplier_id,
             'jenis_pengadaan' => 'rop',
             'tanggal_pengadaan' => Carbon::today(),
-            'tanggal_dibutuhkan' => Carbon::today()->addDays(3), // 3 hari dari sekarang
-            'prioritas' => $this->getPrioritas($produk->stok_produk, $produk->rop_produk, $produk->safety_stock_produk),
-            'alasan_pengadaan' => "Pengadaan otomatis karena stok {$produk->nama_produk} mencapai ROP ({$produk->stok_produk} <= {$thresholdProduk})",
             'status' => 'pending', // Langsung pending untuk review
         ]);
 
@@ -206,22 +196,5 @@ class CreateAutomaticPengadaan implements ShouldQueue
             }])
             ->orderByDesc('pengadaan_count')
             ->first();
-    }
-
-    /**
-     * Tentukan prioritas berdasarkan tingkat stok
-     */
-    private function getPrioritas($currentStock, $rop, $safetyStock)
-    {
-        $threshold = $rop + $safetyStock;
-        $criticalThreshold = $safetyStock;
-
-        if ($currentStock <= $criticalThreshold) {
-            return 'urgent'; // Stok di bawah safety stock
-        } elseif ($currentStock <= $threshold * 0.5) {
-            return 'high'; // Stok sangat rendah
-        } else {
-            return 'normal'; // Stok rendah tapi masih aman
-        }
     }
 }

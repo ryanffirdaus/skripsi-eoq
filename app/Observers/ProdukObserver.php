@@ -51,7 +51,7 @@ class ProdukObserver
                 $query->where('item_type', 'produk')
                     ->where('item_id', $produk->produk_id);
             })
-                ->whereIn('status', ['draft', 'pending', 'approved', 'ordered'])
+                ->whereIn('status', ['draft', 'pending', 'procurement_approved', 'finance_approved', 'ordered'])
                 ->exists();
 
             if (!$existingPengadaan) {
