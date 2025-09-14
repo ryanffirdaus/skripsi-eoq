@@ -93,13 +93,6 @@ class Produk extends Model
             ->withPivot('jumlah_bahan_baku');
     }
 
-    public function pesanans()
-    {
-        return $this->belongsToMany(Pesanan::class, 'pesanan_produk', 'produk_id', 'pesanan_id')
-            ->withPivot('jumlah_produk', 'harga_satuan', 'subtotal')
-            ->withTimestamps();
-    }
-
     /**
      * Get the route key for the model.
      */

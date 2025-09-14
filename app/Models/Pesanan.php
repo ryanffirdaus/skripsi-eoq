@@ -67,7 +67,7 @@ class Pesanan extends Model
 
     public function produk()
     {
-        return $this->belongsToMany(Produk::class, 'pesanan_produk', 'pesanan_id', 'produk_id')
+        return $this->belongsToMany(Produk::class, 'pesanan_detail', 'pesanan_id', 'produk_id')
             ->withPivot('jumlah_produk', 'harga_satuan', 'subtotal')
             ->withTimestamps();
     }
@@ -95,6 +95,14 @@ class Pesanan extends Model
     public function pengiriman()
     {
         return $this->hasMany(Pengiriman::class, 'pesanan_id', 'pesanan_id');
+    }
+
+
+    public function produks()
+    {
+        return $this->belongsToMany(Produk::class, 'pesanan_detail', 'pesanan_id', 'produk_id')
+            ->withPivot('jumlah_produk', 'harga_satuan', 'subtotal')
+            ->withTimestamps();
     }
 
     /**
