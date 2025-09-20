@@ -145,15 +145,15 @@ export default function Edit({ pengiriman }: Props) {
                                             <SelectValue placeholder="Pilih status" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="pending">Pending</SelectItem>
-                                            <SelectItem value="shipped">Dikirim</SelectItem>
-                                            <SelectItem value="delivered">Diterima</SelectItem>
-                                            <SelectItem value="cancelled">Dibatalkan</SelectItem>
+                                            <SelectItem value="pending">Menunggu Dikirim</SelectItem>
+                                            <SelectItem value="dikirim">Dikirim</SelectItem>
+                                            <SelectItem value="selesai">Selesai</SelectItem>
+                                            <SelectItem value="dibatalkan">Dibatalkan</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
 
-                                {formData.status === 'shipped' && (
+                                {formData.status === 'dikirim' && (
                                     <div className="space-y-2">
                                         <Label htmlFor="tanggal_kirim">Tanggal Kirim</Label>
                                         <Input
@@ -165,7 +165,7 @@ export default function Edit({ pengiriman }: Props) {
                                     </div>
                                 )}
 
-                                {formData.status === 'delivered' && (
+                                {formData.status === 'selesai' && (
                                     <div className="space-y-2">
                                         <Label htmlFor="tanggal_diterima">Tanggal Diterima</Label>
                                         <Input

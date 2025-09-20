@@ -24,7 +24,7 @@ class PengirimanFactory extends Factory
         $kurirOptions = ['JNE', 'J&T', 'TIKI', 'POS Indonesia', 'SiCepat', 'AnterAja', 'Gojek'];
         $selectedKurir = $this->faker->randomElement($kurirOptions);
 
-        $status = $this->faker->randomElement(['pending', 'shipped', 'delivered']);
+        $status = $this->faker->randomElement(['pending', 'dikirim', 'selesai', 'dibatalkan']);
         $tanggalKirim = $status !== 'pending' ? $this->faker->dateTimeBetween('-7 days', 'now') : null;
         $tanggalDiterima = $status === 'delivered' && $tanggalKirim ?
             $this->faker->dateTimeBetween($tanggalKirim, '+3 days') : null;

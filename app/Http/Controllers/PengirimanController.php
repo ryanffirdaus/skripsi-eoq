@@ -99,7 +99,7 @@ class PengirimanController extends Controller
     public function create()
     {
         $pesanan = Pesanan::with('pelanggan')
-            ->whereIn('status', ['confirmed', 'processing'])
+            ->whereIn('status', ['pending', 'diproses'])
             ->whereDoesntHave('pengiriman')
             ->get()
             ->map(function ($item) {
@@ -142,6 +142,9 @@ class PengirimanController extends Controller
         }
 
         $pengiriman = Pengiriman::create($request->all());
+
+        // Update status pesanan terkait menjadi 'diproses'
+        $pengiriman->pesanan()->update(['status' => 'diproses']);
 
         return redirect()->route('pengiriman.index')
             ->with('flash', [
@@ -226,28 +229,43 @@ class PengirimanController extends Controller
      */
     public function update(Request $request, Pengiriman $pengiriman)
     {
-        $validator = Validator::make($request->all(), [
+        // Gunakan method validated() untuk mendapatkan data yang sudah lolos validasi
+        $validatedData = $request->validate([
             'nomor_resi' => 'nullable|string|max:255|unique:pengiriman,nomor_resi,' . $pengiriman->pengiriman_id . ',pengiriman_id',
             'kurir' => 'required|string|max:255',
             'biaya_pengiriman' => 'required|numeric|min:0',
             'estimasi_hari' => 'required|integer|min:1',
-            'status' => 'required|in:pending,shipped,delivered,cancelled',
+            'status' => 'required|in:pending,shipped,delivered,cancelled', // Sebaiknya gunakan status yang konsisten, misal 'dikirim', 'selesai'
             'tanggal_kirim' => 'nullable|date',
             'tanggal_diterima' => 'nullable|date|after_or_equal:tanggal_kirim',
             'catatan' => 'nullable|string',
         ]);
 
-        if ($validator->fails()) {
-            return redirect()->back()
-                ->withErrors($validator)
+        // Validasi kondisional: jika status 'dikirim', maka tanggal kirim wajib diisi
+        if ($validatedData['status'] === 'dikirim' && empty($validatedData['tanggal_kirim'])) {
+            return back()
+                ->withErrors(['tanggal_kirim' => 'Tanggal kirim wajib diisi jika status pesanan adalah "dikirim".'])
                 ->withInput();
         }
 
-        $pengiriman->update($request->all());
+        // Validasi kondisional: jika status 'selesai', maka tanggal diterima wajib diisi
+        if ($validatedData['status'] === 'selesai' && empty($validatedData['tanggal_diterima'])) {
+            return back()
+                ->withErrors(['tanggal_diterima' => 'Tanggal diterima wajib diisi jika status pesanan adalah "selesai".'])
+                ->withInput();
+        }
+
+        // Update data pengiriman dengan data yang sudah tervalidasi
+        $pengiriman->update($validatedData);
+
+        // Update status pesanan terkait berdasarkan status pengiriman
+        if ($validatedData['status'] === 'dikirim' || $validatedData['status'] === 'selesai') {
+            $pengiriman->pesanan()->update(['status' => $validatedData['status']]);
+        }
 
         return redirect()->route('pengiriman.index')
             ->with('flash', [
-                'message' => 'Pengiriman berhasil diperbarui!',
+                'message' => 'Data pengiriman berhasil diperbarui!',
                 'type' => 'success'
             ]);
     }

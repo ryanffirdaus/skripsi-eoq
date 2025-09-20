@@ -74,16 +74,16 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const statusColors = {
     pending: 'bg-yellow-100 text-yellow-800',
-    shipped: 'bg-blue-100 text-blue-800',
-    delivered: 'bg-green-100 text-green-800',
-    cancelled: 'bg-red-100 text-red-800',
+    dikirim: 'bg-blue-100 text-blue-800',
+    selesai: 'bg-green-100 text-green-800',
+    dibatalkan: 'bg-red-100 text-red-800',
 };
 
 const statusLabels = {
     pending: 'Menunggu Dikirim',
-    shipped: 'Dikirim',
-    delivered: 'Terkirim',
-    cancelled: 'Dibatalkan',
+    dikirim: 'Dikirim',
+    selesai: 'Selesai',
+    dibatalkan: 'Dibatalkan',
 };
 
 export default function Index({ pengiriman, filters, flash }: Props) {
@@ -246,9 +246,9 @@ export default function Index({ pengiriman, filters, flash }: Props) {
                 options: [
                     { value: '', label: 'Semua Status' },
                     { value: 'pending', label: 'Menunggu Dikirim' },
-                    { value: 'shipped', label: 'Dikirim' },
-                    { value: 'delivered', label: 'Terkirim' },
-                    { value: 'cancelled', label: 'Dibatalkan' },
+                    { value: 'dikirim', label: 'Dikirim' },
+                    { value: 'selesai', label: 'Selesai' },
+                    { value: 'dibatalkan', label: 'Dibatalkan' },
                 ],
             },
             {
