@@ -162,4 +162,9 @@ class Pengadaan extends Model
     {
         return $query->where('jenis_pengadaan', $jenis);
     }
+
+    public function penugasan()
+    {
+        return $this->hasMany(PenugasanProduksi::class, 'pengadaan_id', 'pengadaan_id');
+    }
 }

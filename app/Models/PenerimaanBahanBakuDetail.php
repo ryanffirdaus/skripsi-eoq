@@ -58,4 +58,12 @@ class PenerimaanBahanBakuDetail extends Model
     {
         return $this->belongsTo(BahanBaku::class, 'bahan_baku_id', 'bahan_baku_id');
     }
+
+    /**
+     * Relasi untuk mengecek apakah detail penerimaan ini sudah memiliki detail retur.
+     */
+    public function returDetail()
+    {
+        return $this->hasOne(ReturBahanBakuDetail::class, 'penerimaan_detail_id', 'penerimaan_detail_id');
+    }
 }
