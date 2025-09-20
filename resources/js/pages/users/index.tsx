@@ -1,6 +1,8 @@
+import { createDeleteAction, createEditAction } from '@/components/table/table-actions';
 import TableTemplate from '@/components/table/table-template';
 import { type BreadcrumbItem } from '@/types';
 import { router } from '@inertiajs/react';
+import { useMemo } from 'react';
 
 interface Role {
     role_id: string;
@@ -112,34 +114,21 @@ export default function Index({ users, roles, filters, flash }: Props) {
         },
     ];
 
-    const actions = [
-        {
-            label: 'Detail',
-            variant: 'outline' as const,
-            onClick: (item: User) => {
-                router.visit(`/users/${item.user_id}`);
-            },
-        },
-        {
-            label: 'Edit',
-            variant: 'outline' as const,
-            onClick: (item: User) => {
-                router.visit(`/users/${item.user_id}/edit`);
-            },
-        },
-        {
-            label: 'Delete',
-            variant: 'destructive' as const,
-            onClick: (item: User) => {
+    const actions = useMemo(
+        () => [
+            // createViewAction<User>((item) => `/users/${item.user_id}`),
+            createEditAction<User>((item) => `/users/${item.user_id}/edit`),
+            createDeleteAction<User>((item) => {
                 router.delete(`/users/${item.user_id}`, {
                     preserveState: false,
                     onError: (errors) => {
                         console.error('Delete failed:', errors);
                     },
                 });
-            },
-        },
-    ];
+            }),
+        ],
+        [],
+    );
 
     return (
         <TableTemplate<User>

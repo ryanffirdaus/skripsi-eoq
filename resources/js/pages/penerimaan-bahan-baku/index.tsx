@@ -41,7 +41,6 @@ interface Penerimaan extends Record<string, unknown> {
     };
 }
 
-// FIX: Added missing properties for sorting and pagination
 interface Filters {
     search?: string;
     sort_by: string;

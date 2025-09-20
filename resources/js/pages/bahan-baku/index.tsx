@@ -1,5 +1,5 @@
 // Index.tsx - Bahan Baku (Fixed version)
-import { createDeleteAction, createEditAction, createViewAction } from '@/components/table/table-actions';
+import { createDeleteAction, createEditAction } from '@/components/table/table-actions';
 import TableTemplate from '@/components/table/table-template';
 import { formatCurrency } from '@/lib/formatters';
 import { type BreadcrumbItem } from '@/types';
@@ -166,7 +166,7 @@ export default function Index({ bahanBaku, filters, uniqueLokasi, uniqueSatuan, 
 
     // Actions using action templates
     const actions = [
-        createViewAction<BahanBaku>((item) => `/bahan-baku/${item.bahan_baku_id}`),
+        // createViewAction<BahanBaku>((item) => `/bahan-baku/${item.bahan_baku_id}`),
         createEditAction<BahanBaku>((item) => `/bahan-baku/${item.bahan_baku_id}/edit`),
         createDeleteAction<BahanBaku>((item) => {
             router.delete(`/bahan-baku/${item.bahan_baku_id}`, {

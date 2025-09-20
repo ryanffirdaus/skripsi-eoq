@@ -175,13 +175,7 @@ export default function Index({ pesanan, filters, flash }: Props) {
 
     const actions = useMemo(
         () => [
-            {
-                label: 'Detail',
-                variant: 'outline' as const,
-                onClick: (item: Pesanan) => {
-                    router.visit(`/pesanan/${item.pesanan_id}`);
-                },
-            },
+            // createViewAction<Pesanan>((item) => `/pesanan/${item.pesanan_id}`),
             createEditAction<Pesanan>((item) => `/pesanan/${item.pesanan_id}/edit`),
             createDeleteAction<Pesanan>((item) => {
                 router.delete(`/pesanan/${item.pesanan_id}`, {
