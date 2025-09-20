@@ -16,7 +16,7 @@ class PesananFactory extends Factory
      */
     public function definition(): array
     {
-        $statuses = ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'];
+        $statuses = ['pending', 'diproses', 'dikirim', 'selesai', 'dibatalkan'];
         $statusWeights = [20, 30, 15, 15, 15, 5]; // Weighted probability for more realistic distribution
 
         return [

@@ -21,7 +21,7 @@ interface Pesanan extends Record<string, unknown> {
     pelanggan_id: string;
     tanggal_pemesanan: string;
     total_harga: number;
-    status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+    status: 'pending' | 'diproses' | 'dikirim' | 'selesai' | 'dibatalkan';
     pelanggan: Pelanggan;
     produk: Produk[];
     created_at: string;
@@ -71,20 +71,19 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const statusColors = {
     pending: 'bg-yellow-100 text-yellow-800',
-    confirmed: 'bg-blue-100 text-blue-800',
-    processing: 'bg-purple-100 text-purple-800',
-    shipped: 'bg-indigo-100 text-indigo-800',
-    delivered: 'bg-green-100 text-green-800',
-    cancelled: 'bg-red-100 text-red-800',
+    diproses: 'bg-blue-100 text-blue-800',
+    dikirim: 'bg-purple-100 text-purple-800',
+    selesai: 'bg-green-100 text-green-800',
+    dibatalkan: 'bg-red-100 text-red-800',
 };
 
 const statusLabels = {
     pending: 'Pending',
-    confirmed: 'Dikonfirmasi',
-    processing: 'Diproses',
-    shipped: 'Dikirim',
-    delivered: 'Diterima',
-    cancelled: 'Dibatalkan',
+    diproses: 'Diproses',
+    dikirim: 'Dikirim',
+    diterima: 'Diterima',
+    selesai: 'Selesai',
+    dibatalkan: 'Dibatalkan',
 };
 
 export default function Index({ pesanan, filters, flash }: Props) {
@@ -162,11 +161,10 @@ export default function Index({ pesanan, filters, flash }: Props) {
                 placeholder: 'Semua Status',
                 options: [
                     { value: 'pending', label: 'Pending' },
-                    { value: 'confirmed', label: 'Dikonfirmasi' },
-                    { value: 'processing', label: 'Diproses' },
-                    { value: 'shipped', label: 'Dikirim' },
-                    { value: 'delivered', label: 'Diterima' },
-                    { value: 'cancelled', label: 'Dibatalkan' },
+                    { value: 'diproses', label: 'Diproses' },
+                    { value: 'dikirim', label: 'Dikirim' },
+                    { value: 'selesai', label: 'Selesai' },
+                    { value: 'dibatalkan', label: 'Dibatalkan' },
                 ],
             },
         ],

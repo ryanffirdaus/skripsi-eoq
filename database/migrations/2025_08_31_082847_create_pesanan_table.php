@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('pelanggan_id');
             $table->date('tanggal_pemesanan');
             $table->decimal('total_harga', 25, 2);
-            $table->string('status');
+            $table->enum('status', ['pending', 'diproses', 'dikirim', 'selesai', 'dibatalkan'])->default('pending');
             $table->text('catatan')->nullable();
             $table->string('created_by')->nullable();
             $table->string('updated_by')->nullable();
