@@ -192,8 +192,8 @@ class PengadaanController extends Controller
             if ($stokSaatIni < $jumlahDipesan) {
                 $kekuranganProduk = $jumlahDipesan - $stokSaatIni;
                 $procurementItems[] = [
-                    'item_type'       => 'produk',
-                    'item_id'         => $produk->produk_id,
+                    'jenis_barang'    => 'produk',
+                    'barang_id'       => $produk->produk_id,
                     'nama_item'       => $produk->nama_produk,
                     'satuan'          => $produk->satuan_produk,
                     'qty_needed'      => $kekuranganProduk,
@@ -214,8 +214,8 @@ class PengadaanController extends Controller
 
                     if (!isset($bahanBakuNeeded[$bahanBakuId])) {
                         $bahanBakuNeeded[$bahanBakuId] = [
-                            'item_type'        => 'bahan_baku',
-                            'item_id'          => $bahanBaku->bahan_baku_id,
+                            'jenis_barang'     => 'bahan_baku',
+                            'barang_id'        => $bahanBaku->bahan_baku_id,
                             'nama_item'        => $bahanBaku->nama_bahan,
                             // PERBAIKAN: Gunakan nama properti yang benar
                             'satuan'           => $bahanBaku->satuan,
@@ -258,8 +258,8 @@ class PengadaanController extends Controller
                 }
 
                 $procurementItems[] = [
-                    'item_type'       => 'bahan_baku',
-                    'item_id'         => $bahan['item_id'],
+                    'jenis_barang'    => 'bahan_baku',
+                    'barang_id'       => $bahan['barang_id'],
                     'nama_item'       => $bahan['nama_item'],
                     'satuan'          => $bahan['satuan'],
                     'qty_needed'      => $kekurangan,
@@ -290,9 +290,10 @@ class PengadaanController extends Controller
             'tanggal_pengadaan' => 'required|date',
             'catatan'           => 'nullable|string',
             'items'             => 'required|array|min:1',
-            'items.*.item_type' => 'required|in:bahan_baku,produk',
-            'items.*.item_id'   => 'required|string',
-            'items.*.qty_procurement' => 'required|numeric|min:1',
+            'items.*.jenis_barang' => 'required|in:bahan_baku,produk',
+            'items.*.barang_id'   => 'required|string',
+            'items.*.qty' => 'required|numeric|min:1',
+            'items.*.harga_satuan' => 'required|numeric|min:0',
             'items.*.catatan'   => 'nullable|string',
             'items.*.pemasok_id' => 'nullable|exists:pemasok,pemasok_id',
         ]);
@@ -315,40 +316,14 @@ class PengadaanController extends Controller
 
         // --- MODIFIED PENGADAAN DETAIL CREATION ---
         foreach ($request->items as $item) {
-            $itemModel = null;
-            $namaItem = '';
-            $satuan = '';
-            $harga = 0;
-            $qtyProcurement = $item['qty_procurement'];
-
-            if ($item['item_type'] === 'bahan_baku') {
-                $itemModel = BahanBaku::find($item['item_id']);
-                if ($itemModel) {
-                    $namaItem = $itemModel->nama_bahan;
-                    $satuan = $itemModel->satuan_bahan;
-                    $harga = $itemModel->harga_bahan;
-                }
-            } elseif ($item['item_type'] === 'produk') {
-                $itemModel = Produk::find($item['item_id']);
-                if ($itemModel) {
-                    $namaItem = $itemModel->nama_produk;
-                    $satuan = $itemModel->satuan_produk;
-                    $harga = $itemModel->hpp_produk;
-                }
-            }
-
-            // 1. Added 'pemasok_id' to PengadaanDetail.
-            // 2. Set pemasok_id only if item_type is 'bahan_baku', otherwise it's null.
+            // Create detail using new structure
             PengadaanDetail::create([
                 'pengadaan_id'  => $pengadaan->pengadaan_id,
-                'pemasok_id'   => $item['pemasok_id'] ?? null,
-                'item_type'     => $item['item_type'],
-                'item_id'       => $item['item_id'],
-                'nama_item'     => $namaItem,
-                'satuan'        => $satuan,
-                'qty_diminta'   => $qtyProcurement,
-                'harga_satuan'  => $harga,
-                'total_harga'   => $qtyProcurement * $harga,
+                'pemasok_id'    => $item['pemasok_id'] ?? null,
+                'jenis_barang'  => $item['jenis_barang'],
+                'barang_id'     => $item['barang_id'],
+                'qty'           => $item['qty'],
+                'harga_satuan'  => $item['harga_satuan'],
                 'catatan'       => $item['catatan'] ?? null,
             ]);
         }
@@ -406,18 +381,14 @@ class PengadaanController extends Controller
                             'pemasok_id'    => $detail->pemasok->pemasok_id,
                             'nama_pemasok'  => $detail->pemasok->nama_pemasok,
                         ] : null,
-                        'item_type'           => $detail->item_type,
-                        'item_id'             => $detail->item_id,
+                        'jenis_barang'        => $detail->jenis_barang,
+                        'barang_id'           => $detail->barang_id,
                         'nama_item'           => $detail->nama_item,
                         'satuan'              => $detail->satuan,
-                        'qty_diminta'         => $detail->qty_diminta,
-                        'qty_disetujui'       => $detail->qty_disetujui,
-                        'qty_diterima'        => $detail->qty_diterima,
+                        'qty'                 => $detail->qty,
                         'harga_satuan'        => $detail->harga_satuan,
                         'total_harga'         => $detail->total_harga,
                         'catatan'             => $detail->catatan,
-                        'outstanding_qty'     => $detail->getOutstandingQty(),
-                        'is_fully_received'   => $detail->isFullyReceived(),
                     ];
                 }),
                 'can_edit'          => $pengadaan->canBeEdited(),
@@ -456,11 +427,23 @@ class PengadaanController extends Controller
                 'pengadaan_id'      => $pengadaan->pengadaan_id,
                 'jenis_pengadaan'   => $pengadaan->jenis_pengadaan,
                 'pesanan_id'        => $pengadaan->pesanan_id,
-                'tanggal_pengadaan' => $pengadaan->tanggal_pengadaan?->format('Y-m-d'),
+                'tanggal_pengadaan' => $pengadaan->tanggal_pengadaan,
                 'catatan'           => $pengadaan->catatan,
-                'detail'            => $pengadaan->detail,
+                'detail'            => $pengadaan->detail->map(function ($detail) {
+                    return [
+                        'pengadaan_detail_id' => $detail->pengadaan_detail_id,
+                        'pemasok_id'          => $detail->pemasok_id,
+                        'jenis_barang'        => $detail->jenis_barang,
+                        'barang_id'           => $detail->barang_id,
+                        'nama_item'           => $detail->nama_item,
+                        'satuan'              => $detail->satuan,
+                        'qty'                 => $detail->qty,
+                        'harga_satuan'        => $detail->harga_satuan,
+                        'catatan'             => $detail->catatan,
+                    ];
+                }),
             ],
-            'pemasok' => $pemasok,
+            'pemasoks' => $pemasok,
         ]);
     }
 

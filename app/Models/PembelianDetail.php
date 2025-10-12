@@ -18,14 +18,6 @@ class PembelianDetail extends Model
         'pembelian_detail_id',
         'pembelian_id',
         'pengadaan_detail_id', // Kunci untuk traceability ke permintaan awal
-        'item_type',
-        'item_id',
-        'nama_item',
-        'satuan',
-        'qty_dipesan',
-        'qty_diterima',
-        'harga_satuan',
-        'total_harga'
     ];
 
     protected $casts = [
@@ -82,35 +74,23 @@ class PembelianDetail extends Model
         return $this->belongsTo(PengadaanDetail::class, 'pengadaan_detail_id', 'pengadaan_detail_id');
     }
 
-    // Polymorphic relationship untuk item (sama seperti di PengadaanDetail)
-    public function bahanBaku()
+    public function penerimaanBahanBaku()
     {
-        return $this->belongsTo(BahanBaku::class, 'item_id', 'bahan_baku_id');
-    }
-
-    public function produk()
-    {
-        return $this->belongsTo(Produk::class, 'item_id', 'produk_id');
-    }
-
-    public function getItemAttribute()
-    {
-        if ($this->item_type === 'bahan_baku') {
-            return $this->bahanBaku;
-        } elseif ($this->item_type === 'produk') {
-            return $this->produk;
-        }
-        return null;
+        return $this->hasMany(PenerimaanBahanBaku::class, 'pembelian_detail_id', 'pembelian_detail_id');
     }
 
     // Business Logic Methods
     public function isFullyReceived()
     {
-        return $this->qty_diterima >= $this->qty_dipesan;
+        $totalDiterima = $this->penerimaanBahanBaku()->sum('qty_diterima');
+        $qtyDipesan = $this->pengadaanDetail->qty_disetujui ?? $this->pengadaanDetail->qty_diminta;
+        return $totalDiterima >= $qtyDipesan;
     }
 
     public function getOutstandingQty()
     {
-        return $this->qty_dipesan - $this->qty_diterima;
+        $totalDiterima = $this->penerimaanBahanBaku()->sum('qty_diterima');
+        $qtyDipesan = $this->pengadaanDetail->qty_disetujui ?? $this->pengadaanDetail->qty_diminta;
+        return $qtyDipesan - $totalDiterima;
     }
 }

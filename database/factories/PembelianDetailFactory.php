@@ -24,17 +24,12 @@ class PembelianDetailFactory extends Factory
     {
         // Factory ini akan lebih banyak diatur dari seeder
         // karena butuh konteks dari Pembelian dan PengadaanDetail
-
-        $hargaSatuan = $this->faker->numberBetween(5000, 100000);
-        $qtyDipesan = $this->faker->numberBetween(5, 50);
+        // Struktur baru: hanya menyimpan pengadaan_detail_id
+        // Data lain diambil dari relasi pengadaanDetail
 
         return [
             // ID akan di-generate oleh model
-            'qty_dipesan' => $qtyDipesan,
-            'qty_diterima' => $this->faker->numberBetween(0, $qtyDipesan),
-            'harga_satuan' => $hargaSatuan,
-            'total_harga' => $hargaSatuan * $qtyDipesan,
-            // Kolom lain (pembelian_id, pengadaan_detail_id, item_type, dll.) akan diisi dari seeder
+            // pembelian_id dan pengadaan_detail_id akan diisi dari seeder
         ];
     }
 }

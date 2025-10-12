@@ -16,12 +16,8 @@ return new class extends Migration
             $table->string('nama_pemasok');
             $table->string('narahubung')->nullable();
             $table->string('email')->nullable();
-            $table->string('telepon')->nullable();
+            $table->string('nomor_telepon')->nullable();
             $table->text('alamat')->nullable();
-            $table->string('kota')->nullable();
-            $table->string('provinsi')->nullable();
-            $table->string('kode_pos')->nullable();
-            $table->enum('status', ['active', 'inactive'])->default('active');
             $table->text('catatan')->nullable();
             $table->string('created_by')->nullable();
             $table->string('updated_by')->nullable();

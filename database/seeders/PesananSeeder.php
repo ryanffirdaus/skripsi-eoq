@@ -24,27 +24,26 @@ class PesananSeeder extends Seeder
         for ($i = 0; $i < 100; $i++) {
             $pesanan = Pesanan::factory()->create([
                 'pelanggan_id' => $pelanggan->random()->pelanggan_id,
+                'total_harga' => 0, // Will be updated by model event
             ]);
 
             // Each pesanan has 1-5 different produk
             $randomProduk = $produk->random(rand(1, 5));
-            $totalHarga = 0;
 
             foreach ($randomProduk as $p) {
                 $jumlah = rand(1, 10);
                 $hargaSatuan = $p->harga_jual * $faker->randomFloat(2, 0.8, 1.2); // ±20% variation
-                $subtotal = $jumlah * $hargaSatuan;
-                $totalHarga += $subtotal;
 
-                $pesanan->produk()->attach($p->produk_id, [
+                // Create PesananDetail records instead of using pivot
+                \App\Models\PesananDetail::create([
+                    'pesanan_id' => $pesanan->pesanan_id,
+                    'produk_id' => $p->produk_id,
                     'jumlah_produk' => $jumlah,
                     'harga_satuan' => $hargaSatuan,
-                    'subtotal' => $subtotal,
+                    // subtotal will be auto-calculated by model
                 ]);
             }
-
-            // Update total_harga
-            $pesanan->update(['total_harga' => $totalHarga]);
+            // total_harga will be auto-updated by PesananDetail model event
         }
     }
 }

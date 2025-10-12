@@ -48,8 +48,8 @@ class BahanBakuObserver
         if ($bahanBaku->stok_bahan <= $threshold) {
             // Check if there's already a pending pengadaan for this item
             $existingPengadaan = Pengadaan::whereHas('detail', function ($query) use ($bahanBaku) {
-                $query->where('item_type', 'bahan_baku')
-                    ->where('item_id', $bahanBaku->bahan_baku_id);
+                $query->where('jenis_barang', 'bahan_baku')
+                    ->where('barang_id', $bahanBaku->bahan_baku_id);
             })
                 ->whereIn('status', ['draft', 'pending', 'procurement_approved', 'finance_approved', 'ordered'])
                 ->exists();

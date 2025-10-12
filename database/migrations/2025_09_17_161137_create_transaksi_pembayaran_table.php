@@ -12,9 +12,10 @@ return new class extends Migration
             $table->string('transaksi_pembayaran_id', 11)->primary();
             $table->string('pembelian_id', 50);
             $table->foreign('pembelian_id')->references('pembelian_id')->on('pembelian');
+            $table->enum('jenis_pembayaran', ['dp', 'termin', 'pelunasan'])->default('pelunasan');
             $table->dateTime('tanggal_pembayaran');
             $table->decimal('total_pembayaran', 15, 2);
-            $table->string('bukti_pembayaran', 255);
+            $table->string('bukti_pembayaran', 255)->nullable();
             $table->text('deskripsi')->nullable();
             $table->timestamps();
         });

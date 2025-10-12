@@ -15,13 +15,9 @@ return new class extends Migration
             $table->string('pengadaan_id')->primary();
             $table->enum('jenis_pengadaan', ['pesanan', 'rop']); // Trigger: order-based, ROP-based, or manual
             $table->string('pesanan_id')->nullable(); // Reference to pesanan if triggered by order
-            $table->date('tanggal_pengadaan');
-            $table->date('tanggal_delivery')->nullable();
-            $table->decimal('total_biaya', 15, 2)->default(0);
             $table->enum('status', ['pending', 'disetujui_procurement', 'disetujui_finance', 'diproses', 'diterima', 'dibatalkan'])
                 ->default('pending');
             $table->text('catatan')->nullable();
-            $table->string('nomor_po')->nullable(); // Purchase Order number
             $table->string('created_by')->nullable();
             $table->string('updated_by')->nullable();
             $table->string('deleted_by')->nullable();

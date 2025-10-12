@@ -22,8 +22,8 @@ interface PengadaanDetail {
     pengadaan_detail_id: string;
     pemasok_id: string;
     pemasok_nama: string;
-    item_type: 'bahan_baku' | 'produk';
-    item_id: string;
+    jenis_barang: 'bahan_baku' | 'produk';
+    barang_id: string;
     nama_item: string;
     satuan: string;
     qty_disetujui: number;
@@ -42,8 +42,8 @@ interface Pengadaan {
 
 interface ItemPembelian {
     pengadaan_detail_id: string;
-    item_type: 'bahan_baku' | 'produk';
-    item_id: string;
+    jenis_barang: 'bahan_baku' | 'produk';
+    barang_id: string;
     nama_item: string;
     satuan: string;
     qty_dipesan: number;
@@ -68,6 +68,9 @@ export default function Create({ pengadaans, pemasoks }: Props) {
         nomor_po: '',
         tanggal_pembelian: new Date().toISOString().split('T')[0],
         tanggal_kirim_diharapkan: '',
+        metode_pembayaran: 'tunai' as 'tunai' | 'transfer' | 'termin',
+        termin_pembayaran: '',
+        jumlah_dp: '',
         catatan: '',
         items: [] as ItemPembelian[],
     });
@@ -90,8 +93,8 @@ export default function Create({ pengadaans, pemasoks }: Props) {
                 .filter((d) => d.pemasok_id === data.pemasok_id)
                 .map((d) => ({
                     pengadaan_detail_id: d.pengadaan_detail_id,
-                    item_type: d.item_type,
-                    item_id: d.item_id,
+                    jenis_barang: d.jenis_barang,
+                    barang_id: d.barang_id,
                     nama_item: d.nama_item,
                     satuan: d.satuan,
                     qty_dipesan: d.qty_disetujui,
@@ -242,18 +245,82 @@ export default function Create({ pengadaans, pemasoks }: Props) {
                     />
                     {errors.tanggal_kirim_diharapkan && <p className="mt-1 text-sm text-red-600">{errors.tanggal_kirim_diharapkan}</p>}
                 </div>
+            </div>
 
-                <div className="md:col-span-2">
-                    <Label htmlFor="catatan">Catatan</Label>
-                    <Textarea
-                        id="catatan"
-                        value={data.catatan}
-                        onChange={(e) => setData('catatan', e.target.value)}
-                        className="mt-1"
-                        rows={3}
-                        placeholder="Catatan tambahan untuk pemasok..."
-                    />
+            {/* Payment Section */}
+            <div className="mt-8 border-t pt-6">
+                <h3 className={cn(colors.text.primary, 'mb-4 text-lg font-medium')}>Informasi Pembayaran</h3>
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                    <div>
+                        <Label htmlFor="metode_pembayaran">Metode Pembayaran *</Label>
+                        <Select
+                            value={data.metode_pembayaran}
+                            onValueChange={(value: 'tunai' | 'transfer' | 'termin') => setData('metode_pembayaran', value)}
+                        >
+                            <SelectTrigger className={cn('mt-1', errors.metode_pembayaran && 'border-red-500')}>
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="tunai">Tunai</SelectItem>
+                                <SelectItem value="transfer">Transfer</SelectItem>
+                                <SelectItem value="termin">Termin</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        {errors.metode_pembayaran && <p className="mt-1 text-sm text-red-600">{errors.metode_pembayaran}</p>}
+                        <p className="mt-1 text-xs text-gray-500">
+                            {data.metode_pembayaran === 'termin'
+                                ? 'Pembayaran bertahap sesuai kesepakatan dengan pemasok'
+                                : data.metode_pembayaran === 'tunai'
+                                  ? 'Pembayaran tunai langsung'
+                                  : 'Pembayaran melalui transfer bank'}
+                        </p>
+                    </div>
+
+                    {data.metode_pembayaran === 'termin' && (
+                        <>
+                            <div>
+                                <Label htmlFor="jumlah_dp">Jumlah Down Payment (DP)</Label>
+                                <Input
+                                    id="jumlah_dp"
+                                    type="number"
+                                    step="0.01"
+                                    value={data.jumlah_dp}
+                                    onChange={(e) => setData('jumlah_dp', e.target.value)}
+                                    className={cn('mt-1', errors.jumlah_dp && 'border-red-500')}
+                                    placeholder="Masukkan jumlah DP jika ada"
+                                />
+                                {errors.jumlah_dp && <p className="mt-1 text-sm text-red-600">{errors.jumlah_dp}</p>}
+                                <p className="mt-1 text-xs text-gray-500">Opsional, kosongkan jika tidak ada DP</p>
+                            </div>
+
+                            <div className="md:col-span-2">
+                                <Label htmlFor="termin_pembayaran">Ketentuan Termin Pembayaran *</Label>
+                                <Textarea
+                                    id="termin_pembayaran"
+                                    value={data.termin_pembayaran}
+                                    onChange={(e) => setData('termin_pembayaran', e.target.value)}
+                                    className={cn('mt-1', errors.termin_pembayaran && 'border-red-500')}
+                                    rows={3}
+                                    placeholder="Contoh: 30% DP, 40% setelah pengiriman 50%, 30% setelah barang diterima lengkap"
+                                />
+                                {errors.termin_pembayaran && <p className="mt-1 text-sm text-red-600">{errors.termin_pembayaran}</p>}
+                            </div>
+                        </>
+                    )}
                 </div>
+            </div>
+
+            {/* Notes Section */}
+            <div className="mt-6">
+                <Label htmlFor="catatan">Catatan</Label>
+                <Textarea
+                    id="catatan"
+                    value={data.catatan}
+                    onChange={(e) => setData('catatan', e.target.value)}
+                    className="mt-1"
+                    rows={3}
+                    placeholder="Catatan tambahan untuk pemasok..."
+                />
             </div>
 
             {/* Detail Item Pembelian */}
@@ -271,7 +338,7 @@ export default function Create({ pengadaans, pemasoks }: Props) {
                                 <div className="grid grid-cols-1 items-start gap-4 md:grid-cols-12">
                                     <div className="md:col-span-6">
                                         <p className="font-medium">{item.nama_item}</p>
-                                        <p className="text-sm text-gray-500">{item.item_type === 'bahan_baku' ? 'Bahan Baku' : 'Produk'}</p>
+                                        <p className="text-sm text-gray-500">{item.jenis_barang === 'bahan_baku' ? 'Bahan Baku' : 'Produk'}</p>
                                     </div>
                                     <div className="md:col-span-2">
                                         <Label>Harga Satuan</Label>

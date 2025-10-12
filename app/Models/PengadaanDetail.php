@@ -18,17 +18,13 @@ class PengadaanDetail extends Model
         'pengadaan_detail_id',
         'pengadaan_id',
         'pemasok_id',
-        'item_type',
-        'item_id',
-        'nama_item',
-        'satuan',
+        'jenis_barang',
+        'barang_id',
         'qty_diminta',
         'qty_disetujui',
         'qty_diterima',
         'harga_satuan',
-        'total_harga',
         'catatan',
-        'alasan_kebutuhan'
     ];
 
     protected $casts = [
@@ -36,8 +32,9 @@ class PengadaanDetail extends Model
         'qty_disetujui' => 'integer',
         'qty_diterima' => 'integer',
         'harga_satuan' => 'decimal:2',
-        'total_harga' => 'decimal:2',
     ];
+
+    protected $appends = ['total_harga', 'nama_item', 'satuan'];
 
     protected static function boot()
     {
@@ -52,12 +49,8 @@ class PengadaanDetail extends Model
         });
 
         static::saved(function ($model) {
-            // Update total_harga when qty or harga_satuan changes
-            $model->where('pengadaan_detail_id', $model->pengadaan_detail_id)
-                ->update(['total_harga' => ($model->qty_disetujui ?? $model->qty_diminta) * $model->harga_satuan]);
-
-            // Update pengadaan total
-            $model->pengadaan->updateTotalBiaya();
+            // total_harga is calculated as an accessor, no need to store in database
+            // Note: If Pengadaan model has updateTotalBiaya(), it will be called here
         });
     }
 
@@ -74,23 +67,49 @@ class PengadaanDetail extends Model
 
     public function bahanBaku()
     {
-        return $this->belongsTo(BahanBaku::class, 'item_id', 'bahan_baku_id');
+        return $this->belongsTo(BahanBaku::class, 'barang_id', 'bahan_baku_id');
     }
 
     public function produk()
     {
-        return $this->belongsTo(Produk::class, 'item_id', 'produk_id');
+        return $this->belongsTo(Produk::class, 'barang_id', 'produk_id');
     }
 
     // Accessor for item relationship
     public function getItemAttribute()
     {
-        if ($this->item_type === 'bahan_baku') {
+        if ($this->jenis_barang === 'bahan_baku') {
             return $this->bahanBaku;
-        } elseif ($this->item_type === 'produk') {
+        } elseif ($this->jenis_barang === 'produk') {
             return $this->produk;
         }
         return null;
+    }
+
+    public function getTotalHargaAttribute()
+    {
+        $qty = $this->qty_disetujui ?? $this->qty_diminta;
+        return $qty * $this->harga_satuan;
+    }
+
+    public function getNamaItemAttribute()
+    {
+        if ($this->jenis_barang === 'bahan_baku' && $this->bahanBaku) {
+            return $this->bahanBaku->nama_bahan;
+        } elseif ($this->jenis_barang === 'produk' && $this->produk) {
+            return $this->produk->nama_produk;
+        }
+        return 'N/A';
+    }
+
+    public function getSatuanAttribute()
+    {
+        if ($this->jenis_barang === 'bahan_baku' && $this->bahanBaku) {
+            return $this->bahanBaku->satuan;
+        } elseif ($this->jenis_barang === 'produk' && $this->produk) {
+            return $this->produk->satuan;
+        }
+        return '-';
     }
 
     // Business logic methods
@@ -107,12 +126,12 @@ class PengadaanDetail extends Model
     // Scope methods
     public function scopeByItemType($query, $type)
     {
-        return $query->where('item_type', $type);
+        return $query->where('jenis_barang', $type);
     }
 
     public function scopeByItem($query, $type, $id)
     {
-        return $query->where('item_type', $type)->where('item_id', $id);
+        return $query->where('jenis_barang', $type)->where('barang_id', $id);
     }
 
     public function scopeOutstanding($query)

@@ -91,7 +91,7 @@ class PembelianController extends Controller
         return Inertia::render('pembelian/index', [
             'pembelian' => $pembelian,
             'filters'   => $filters,
-            'pemasok'   => $pemasok,
+            'pemasoks'  => $pemasok,
         ]);
     }
 
@@ -113,17 +113,17 @@ class PembelianController extends Controller
                 }
                 return [
                     'pengadaan_id' => $pengadaan->pengadaan_id,
-                    'display_text' => $pengadaan->pengadaan_id . ' (' . $pengadaan->tanggal_pengadaan->format('d M Y') . ')',
+                    'display_text' => $pengadaan->pengadaan_id . ' (' . $pengadaan->tanggal_pengadaan . ')',
                     'detail' => $pengadaan->detail->map(function ($detail) {
                         return [
                             'pengadaan_detail_id' => $detail->pengadaan_detail_id,
                             'pemasok_id' => $detail->pemasok_id,
                             'pemasok_nama' => $detail->pemasok->nama_pemasok ?? 'N/A',
-                            'item_type' => $detail->item_type,
-                            'item_id' => $detail->item_id,
+                            'jenis_barang' => $detail->jenis_barang,
+                            'barang_id' => $detail->barang_id,
                             'nama_item' => $detail->nama_item,
                             'satuan' => $detail->satuan,
-                            'qty_disetujui' => $detail->qty_disetujui,
+                            'qty' => $detail->qty,
                             'harga_satuan' => $detail->harga_satuan,
                         ];
                     }),
@@ -145,7 +145,7 @@ class PembelianController extends Controller
      */
     public function store(Request $request)
     {
-        // 1. Validasi input dari form
+        // 1. Validasi input dari user
         $validator = Validator::make($request->all(), [
             'pengadaan_id' => 'required|exists:pengadaan,pengadaan_id',
             'pemasok_id' => 'required|exists:pemasok,pemasok_id',
@@ -153,9 +153,11 @@ class PembelianController extends Controller
             'nomor_po' => 'nullable|string|max:50|unique:pembelian,nomor_po',
             'tanggal_kirim_diharapkan' => 'nullable|date|after_or_equal:tanggal_pembelian',
             'catatan' => 'nullable|string',
+            'metode_pembayaran' => 'required|in:tunai,transfer,termin',
+            'termin_pembayaran' => 'nullable|string|max:50',
+            'jumlah_dp' => 'required_if:metode_pembayaran,termin|numeric|min:0',
             'items' => 'required|array|min:1',
             'items.*.pengadaan_detail_id' => 'required|exists:pengadaan_detail,pengadaan_detail_id',
-            'items.*.qty_dipesan' => 'required|numeric|min:1',
         ]);
 
         if ($validator->fails()) {
@@ -173,6 +175,9 @@ class PembelianController extends Controller
                 'tanggal_pembelian' => $request->tanggal_pembelian,
                 'tanggal_kirim_diharapkan' => $request->tanggal_kirim_diharapkan,
                 'catatan' => $request->catatan,
+                'metode_pembayaran' => $request->metode_pembayaran,
+                'termin_pembayaran' => $request->termin_pembayaran,
+                'jumlah_dp' => $request->metode_pembayaran === 'termin' ? $request->jumlah_dp : 0,
                 'status' => 'draft', // Status awal untuk PO baru
             ]);
 
@@ -181,13 +186,6 @@ class PembelianController extends Controller
                 PembelianDetail::create([
                     'pembelian_id' => $pembelian->pembelian_id,
                     'pengadaan_detail_id' => $item['pengadaan_detail_id'],
-                    'item_type' => $item['item_type'],
-                    'item_id' => $item['item_id'],
-                    'nama_item' => $item['nama_item'],
-                    'satuan' => $item['satuan'],
-                    'qty_dipesan' => $item['qty_dipesan'],
-                    'harga_satuan' => $item['harga_satuan'],
-                    'total_harga' => $item['qty_dipesan'] * $item['harga_satuan'],
                 ]);
             }
 
@@ -222,7 +220,9 @@ class PembelianController extends Controller
         $pembelian->load([
             'pemasok',
             'pengadaan:pengadaan_id,pesanan_id',
-            'detail.pengadaanDetail',
+            'detail.pengadaanDetail.bahanBaku',
+            'detail.pengadaanDetail.produk',
+            'transaksiPembayaran',
             'createdBy:user_id,nama_lengkap',
             'updatedBy:user_id,nama_lengkap'
         ]);
@@ -233,12 +233,19 @@ class PembelianController extends Controller
                 'nomor_po' => $pembelian->nomor_po,
                 'pengadaan_id' => $pembelian->pengadaan_id,
                 'pemasok' => $pembelian->pemasok,
-                'tanggal_pembelian' => $pembelian->tanggal_pembelian?->format('Y-m-d'),
-                'tanggal_kirim_diharapkan' => $pembelian->tanggal_kirim_diharapkan?->format('Y-m-d'),
+                'tanggal_pembelian' => $pembelian->tanggal_pembelian,
+                'tanggal_kirim_diharapkan' => $pembelian->tanggal_kirim_diharapkan,
                 'total_biaya' => $pembelian->total_biaya,
                 'status' => $pembelian->status,
                 'status_label' => $this->getStatusLabel($pembelian->status),
                 'catatan' => $pembelian->catatan,
+                'metode_pembayaran' => $pembelian->metode_pembayaran,
+                'termin_pembayaran' => $pembelian->termin_pembayaran,
+                'jumlah_dp' => $pembelian->jumlah_dp,
+                'total_dibayar' => $pembelian->total_dibayar,
+                'sisa_pembayaran' => $pembelian->sisa_pembayaran,
+                'is_dp_paid' => $pembelian->isDpPaid(),
+                'is_fully_paid' => $pembelian->isFullyPaid(),
                 'created_by' => $pembelian->createdBy,
                 'updated_by' => $pembelian->updatedBy,
                 'created_at' => $pembelian->created_at?->format('d-m-Y H:i'),
@@ -246,19 +253,30 @@ class PembelianController extends Controller
                 'can_edit' => $pembelian->canBeEdited(),
                 'can_cancel' => $pembelian->canBeCancelled(),
                 'detail' => $pembelian->detail->map(function ($detail) {
+                    $pengadaanDetail = $detail->pengadaanDetail;
                     return [
                         'pembelian_detail_id' => $detail->pembelian_detail_id,
                         'pengadaan_detail_id' => $detail->pengadaan_detail_id,
-                        'item_type' => $detail->item_type,
-                        'item_id' => $detail->item_id,
-                        'nama_item' => $detail->nama_item,
-                        'satuan' => $detail->satuan,
-                        'qty_dipesan' => $detail->qty_dipesan,
-                        'qty_diterima' => $detail->qty_diterima,
-                        'harga_satuan' => $detail->harga_satuan,
-                        'total_harga' => $detail->total_harga,
+                        'jenis_barang' => $pengadaanDetail->jenis_barang,
+                        'barang_id' => $pengadaanDetail->barang_id,
+                        'nama_item' => $pengadaanDetail->nama_item,
+                        'satuan' => $pengadaanDetail->satuan,
+                        'qty_dipesan' => $pengadaanDetail->qty,
+                        'qty_diterima' => $detail->penerimaanBahanBaku->sum('qty_diterima'),
+                        'harga_satuan' => $pengadaanDetail->harga_satuan,
+                        'total_harga' => $pengadaanDetail->total_harga,
                         'outstanding_qty' => $detail->getOutstandingQty(),
                         'is_fully_received' => $detail->isFullyReceived(),
+                    ];
+                }),
+                'transaksi_pembayaran' => $pembelian->transaksiPembayaran->map(function ($transaksi) {
+                    return [
+                        'transaksi_pembayaran_id' => $transaksi->transaksi_pembayaran_id,
+                        'jenis_pembayaran' => $transaksi->jenis_pembayaran,
+                        'tanggal_pembayaran' => $transaksi->tanggal_pembayaran,
+                        'jumlah_pembayaran' => $transaksi->jumlah_pembayaran,
+                        'metode_pembayaran' => $transaksi->metode_pembayaran,
+                        'bukti_pembayaran' => $transaksi->bukti_pembayaran,
                     ];
                 }),
             ]
@@ -271,7 +289,7 @@ class PembelianController extends Controller
     public function edit(Pembelian $pembelian)
     {
         // 1. Eager load relasi yang dibutuhkan
-        $pembelian->load(['pemasok', 'detail']);
+        $pembelian->load(['pemasok', 'detail.pengadaanDetail']);
 
         // 2. Ambil semua pemasok untuk dropdown
         $pemasok = Pemasok::select('pemasok_id', 'nama_pemasok')->orderBy('nama_pemasok')->get();
@@ -282,19 +300,24 @@ class PembelianController extends Controller
             'pengadaan_id' => $pembelian->pengadaan_id,
             'nomor_po' => $pembelian->nomor_po,
             'pemasok_id' => $pembelian->pemasok_id,
-            'tanggal_pembelian' => $pembelian->tanggal_pembelian->format('Y-m-d'),
-            'tanggal_kirim_diharapkan' => $pembelian->tanggal_kirim_diharapkan?->format('Y-m-d'),
+            'tanggal_pembelian' => $pembelian->tanggal_pembelian,
+            'tanggal_kirim_diharapkan' => $pembelian->tanggal_kirim_diharapkan,
             'total_biaya' => $pembelian->total_biaya,
             'status' => $pembelian->status,
             'catatan' => $pembelian->catatan,
+            'metode_pembayaran' => $pembelian->metode_pembayaran,
+            'termin_pembayaran' => $pembelian->termin_pembayaran,
+            'jumlah_dp' => $pembelian->jumlah_dp,
             'can_be_edited' => $pembelian->canBeEdited(),
             'detail' => $pembelian->detail->map(function ($item) {
+                $pengadaanDetail = $item->pengadaanDetail;
                 return [
                     'pembelian_detail_id' => $item->pembelian_detail_id,
-                    'nama_item' => $item->nama_item,
-                    'satuan' => $item->satuan,
-                    'qty_dipesan' => $item->qty_dipesan,
-                    'harga_satuan' => $item->harga_satuan,
+                    'pengadaan_detail_id' => $item->pengadaan_detail_id,
+                    'nama_item' => $pengadaanDetail->nama_item,
+                    'satuan' => $pengadaanDetail->satuan,
+                    'qty_dipesan' => $pengadaanDetail->qty,
+                    'harga_satuan' => $pengadaanDetail->harga_satuan,
                 ];
             }),
         ];
@@ -322,10 +345,9 @@ class PembelianController extends Controller
             'tanggal_pembelian' => 'required|date',
             'tanggal_kirim_diharapkan' => 'nullable|date|after_or_equal:tanggal_pembelian',
             'catatan' => 'nullable|string',
-            'items' => 'required|array|min:1',
-            'items.*.pembelian_detail_id' => 'required|exists:pembelian_detail,pembelian_detail_id',
-            'items.*.qty_dipesan' => 'required|numeric|min:1',
-            'items.*.harga_satuan' => 'required|numeric|min:0',
+            'metode_pembayaran' => 'required|in:tunai,transfer,termin',
+            'termin_pembayaran' => 'nullable|string|max:50',
+            'jumlah_dp' => 'required_if:metode_pembayaran,termin|numeric|min:0',
         ]);
 
         if ($validator->fails()) {
@@ -335,24 +357,17 @@ class PembelianController extends Controller
         DB::beginTransaction();
         try {
             // Update header pembelian
-            $pembelian->update($request->only([
-                'pemasok_id',
-                'tanggal_pembelian',
-                'tanggal_kirim_diharapkan',
-                'catatan',
-            ]));
+            $pembelian->update([
+                'pemasok_id' => $request->pemasok_id,
+                'tanggal_pembelian' => $request->tanggal_pembelian,
+                'tanggal_kirim_diharapkan' => $request->tanggal_kirim_diharapkan,
+                'catatan' => $request->catatan,
+                'metode_pembayaran' => $request->metode_pembayaran,
+                'termin_pembayaran' => $request->termin_pembayaran,
+                'jumlah_dp' => $request->metode_pembayaran === 'termin' ? $request->jumlah_dp : 0,
+            ]);
 
-            // Update detail pembelian
-            foreach ($request->items as $itemData) {
-                $detail = PembelianDetail::find($itemData['pembelian_detail_id']);
-                if ($detail && $detail->pembelian_id === $pembelian->pembelian_id) {
-                    $detail->update([
-                        'qty_dipesan' => $itemData['qty_dipesan'],
-                        'harga_satuan' => $itemData['harga_satuan'],
-                        'total_harga' => $itemData['qty_dipesan'] * $itemData['harga_satuan'],
-                    ]);
-                }
-            }
+            // Detail items tidak perlu diupdate karena data diambil dari pengadaan_detail
             // Model event akan otomatis update total biaya
 
             DB::commit();

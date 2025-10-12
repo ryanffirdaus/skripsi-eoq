@@ -17,13 +17,8 @@ class PenerimaanBahanBaku extends Model
 
     protected $fillable = [
         'penerimaan_id',
-        'pembelian_id',
-        'pemasok_id',
-        'nomor_penerimaan',
-        'nomor_surat_jalan',
-        'tanggal_penerimaan',
-        'status',
-        'catatan',
+        'pembelian_detail_id',
+        'qty_diterima',
         'created_by',
         'updated_by',
     ];

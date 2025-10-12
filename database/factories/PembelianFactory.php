@@ -30,6 +30,8 @@ class PembelianFactory extends Factory
         $pemasok = Pemasok::inRandomOrder()->first();
         $user = User::inRandomOrder()->first();
 
+        $metodePembayaran = $this->faker->randomElement(['tunai', 'transfer', 'termin']);
+
         return [
             // pembelian_id dan nomor_po akan di-generate oleh boot method di model
             'pengadaan_id' => $pengadaan ? $pengadaan->pengadaan_id : null,
@@ -39,6 +41,9 @@ class PembelianFactory extends Factory
             'total_biaya' => 0, // Akan dihitung ulang oleh seeder
             'status' => $this->faker->randomElement(['sent', 'confirmed', 'partially_received', 'fully_received', 'cancelled']),
             'catatan' => $this->faker->sentence,
+            'metode_pembayaran' => $metodePembayaran,
+            'termin_pembayaran' => $metodePembayaran === 'termin' ? $this->faker->randomElement(['2 termin (50%-50%)', '3 termin (40%-30%-30%)', 'DP 30% + Pelunasan']) : null,
+            'jumlah_dp' => $metodePembayaran === 'termin' ? $this->faker->numberBetween(1000000, 5000000) : 0,
             'created_by' => $user ? $user->user_id : null,
         ];
     }

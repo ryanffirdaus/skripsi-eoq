@@ -102,26 +102,21 @@ class PesananController extends Controller
         ]);
 
         DB::transaction(function () use ($validated) {
-            // Calculate total
-            $totalHarga = 0;
-            foreach ($validated['produk'] as $item) {
-                $totalHarga += $item['jumlah_produk'] * $item['harga_satuan'];
-            }
-
-            // Create pesanan
+            // Create pesanan (total_harga will be auto-calculated by model)
             $pesanan = Pesanan::create([
                 'pelanggan_id' => $validated['pelanggan_id'],
                 'tanggal_pemesanan' => $validated['tanggal_pemesanan'],
-                'total_harga' => $totalHarga,
+                'total_harga' => 0, // Will be updated by model event
             ]);
 
-            // Attach products with pivot data
+            // Create detail records using PesananDetail model
             foreach ($validated['produk'] as $item) {
-                $subtotal = $item['jumlah_produk'] * $item['harga_satuan'];
-                $pesanan->produk()->attach($item['produk_id'], [
+                \App\Models\PesananDetail::create([
+                    'pesanan_id' => $pesanan->pesanan_id,
+                    'produk_id' => $item['produk_id'],
                     'jumlah_produk' => $item['jumlah_produk'],
                     'harga_satuan' => $item['harga_satuan'],
-                    'subtotal' => $subtotal,
+                    // subtotal will be auto-calculated by model
                 ]);
             }
         });
@@ -139,7 +134,7 @@ class PesananController extends Controller
     {
         $pesanan = Pesanan::with([
             'pelanggan',
-            'produk',
+            'detail.produk',
             'createdBy:user_id,nama_lengkap',
             'updatedBy:user_id,nama_lengkap'
         ])->where('pesanan_id', $pesanan_id)->firstOrFail();
@@ -154,7 +149,7 @@ class PesananController extends Controller
      */
     public function edit($pesanan_id)
     {
-        $pesanan = Pesanan::with(['pelanggan', 'produk'])->where('pesanan_id', $pesanan_id)->firstOrFail();
+        $pesanan = Pesanan::with(['pelanggan', 'detail.produk'])->where('pesanan_id', $pesanan_id)->firstOrFail();
         $pelanggan = Pelanggan::all();
         $produk = Produk::all();
 
@@ -183,32 +178,27 @@ class PesananController extends Controller
         ]);
 
         DB::transaction(function () use ($validated, $pesanan) {
-            // Calculate total
-            $totalHarga = 0;
-            foreach ($validated['products'] as $item) {
-                $totalHarga += $item['jumlah_produk'] * $item['harga_satuan'];
-            }
-
             // Update pesanan
             $pesanan->update([
                 'pelanggan_id' => $validated['pelanggan_id'],
                 'tanggal_pemesanan' => $validated['tanggal_pemesanan'],
                 'status' => $validated['status'],
                 'catatan' => $validated['catatan'],
-                'total_harga' => $totalHarga,
             ]);
 
-            // Sync products with pivot data
-            $syncData = [];
+            // Delete old details and create new ones
+            $pesanan->detail()->delete();
+
             foreach ($validated['products'] as $item) {
-                $subtotal = $item['jumlah_produk'] * $item['harga_satuan'];
-                $syncData[$item['produk_id']] = [
+                \App\Models\PesananDetail::create([
+                    'pesanan_id' => $pesanan->pesanan_id,
+                    'produk_id' => $item['produk_id'],
                     'jumlah_produk' => $item['jumlah_produk'],
                     'harga_satuan' => $item['harga_satuan'],
-                    'subtotal' => $subtotal,
-                ];
+                    // subtotal will be auto-calculated by model
+                ]);
             }
-            $pesanan->produk()->sync($syncData);
+            // total_harga will be auto-updated by model event
         });
 
         return redirect()->route('pesanan.index')->with('flash', [

@@ -20,12 +20,8 @@ class Pengadaan extends Model
         'pengadaan_id',
         'jenis_pengadaan',
         'pesanan_id',
-        'tanggal_pengadaan',
-        'tanggal_delivery',
-        'total_biaya',
         'status',
         'catatan',
-        'nomor_po',
         'created_by',
         'updated_by',
         'deleted_by'

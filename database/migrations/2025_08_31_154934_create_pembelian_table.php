@@ -22,10 +22,13 @@ return new class extends Migration
             $table->string('pemasok_id', 10)->index();
             $table->foreign('pemasok_id')->references('pemasok_id')->on('pemasok')->onDelete('restrict');
 
-            $table->string('nomor_po', 20)->unique()->comment('Nomor Purchase Order yang formal, cth: PO-202309-0001');
+            $table->string('nomor_po', 20)->unique()->nullable()->comment('Nomor Purchase Order yang formal, cth: PO-202309-0001');
             $table->date('tanggal_pembelian');
             $table->date('tanggal_kirim_diharapkan')->nullable();
             $table->decimal('total_biaya', 15, 2)->default(0);
+            $table->string('metode_pembayaran', 20)->default('tunai')->comment('tunai, transfer, termin');
+            $table->string('termin_pembayaran', 50)->nullable()->comment('contoh: 30% DP, 70% saat kirim');
+            $table->decimal('jumlah_dp', 15, 2)->default(0)->comment('Jumlah uang muka / down payment');
             $table->string('status', 30)->default('draft')->comment('draft, sent, confirmed, partially_received, fully_received, cancelled');
             $table->text('catatan')->nullable();
 

@@ -65,11 +65,9 @@ class Pesanan extends Model
         });
     }
 
-    public function produk()
+    public function detail()
     {
-        return $this->belongsToMany(Produk::class, 'pesanan_detail', 'pesanan_id', 'produk_id')
-            ->withPivot('jumlah_produk', 'harga_satuan', 'subtotal')
-            ->withTimestamps();
+        return $this->hasMany(PesananDetail::class, 'pesanan_id', 'pesanan_id');
     }
 
     public function pelanggan()
@@ -97,12 +95,13 @@ class Pesanan extends Model
         return $this->hasMany(Pengiriman::class, 'pesanan_id', 'pesanan_id');
     }
 
-
-    public function produks()
+    /**
+     * Update total harga from detail
+     */
+    public function updateTotalHarga()
     {
-        return $this->belongsToMany(Produk::class, 'pesanan_detail', 'pesanan_id', 'produk_id')
-            ->withPivot('jumlah_produk', 'harga_satuan', 'subtotal')
-            ->withTimestamps();
+        $this->total_harga = $this->detail()->sum('subtotal');
+        $this->saveQuietly();
     }
 
     /**

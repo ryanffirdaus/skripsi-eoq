@@ -12,17 +12,13 @@ class PenerimaanBahanBakuFactory extends Factory
 
     public function definition(): array
     {
-        // Ambil pembelian yang sudah dikirim atau sedang dalam proses penerimaan
-        $pembelian = Pembelian::whereIn('status', ['sent', 'partially_received'])->inRandomOrder()->first();
+        // Struktur baru: simplified penerimaan
+        // Hanya menyimpan pembelian_detail_id dan qty_diterima
+        // Data lain diambil dari relasi
 
         return [
-            'pembelian_id' => $pembelian->pembelian_id,
-            'pemasok_id' => $pembelian->pemasok_id,
-            'nomor_surat_jalan' => 'SJ-' . $this->faker->unique()->numberBetween(1000, 9999),
-            'tanggal_penerimaan' => $this->faker->dateTimeBetween($pembelian->tanggal_pembelian, '+2 weeks'),
-            'status' => 'confirmed',
-            'catatan' => $this->faker->sentence,
-            'created_by' => 'US001',
+            // pembelian_detail_id dan qty_diterima akan diisi dari seeder
+            // karena butuh konteks dari PembelianDetail
         ];
     }
 }

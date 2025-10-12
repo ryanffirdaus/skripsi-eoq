@@ -20,10 +20,12 @@ class Pembelian extends Model
         'pembelian_id',
         'pengadaan_id',
         'pemasok_id',
-        'nomor_po',
         'tanggal_pembelian',
         'tanggal_kirim_diharapkan',
         'total_biaya',
+        'metode_pembayaran',
+        'termin_pembayaran',
+        'jumlah_dp',
         'status', // Contoh: draft, sent, confirmed, partially_received, fully_received, cancelled
         'catatan',
         'created_by',
@@ -91,6 +93,11 @@ class Pembelian extends Model
         return $this->hasMany(PembelianDetail::class, 'pembelian_id', 'pembelian_id');
     }
 
+    public function transaksiPembayaran()
+    {
+        return $this->hasMany(TransaksiPembayaran::class, 'pembelian_id', 'pembelian_id');
+    }
+
     public function createdBy()
     {
         return $this->belongsTo(User::class, 'created_by', 'user_id');
@@ -109,8 +116,16 @@ class Pembelian extends Model
     // Business Logic Methods
     public function updateTotalBiaya()
     {
-        $this->total_biaya = $this->detail()->sum('total_harga');
-        $this->save();
+        // Calculate total from pengadaan_detail via pembelian_detail
+        $total = 0;
+        foreach ($this->detail as $detail) {
+            if ($detail->pengadaanDetail) {
+                $qty = $detail->pengadaanDetail->qty_disetujui ?? $detail->pengadaanDetail->qty_diminta;
+                $total += $qty * $detail->pengadaanDetail->harga_satuan;
+            }
+        }
+        $this->total_biaya = $total;
+        $this->saveQuietly();
     }
 
     public function canBeEdited()
@@ -121,6 +136,38 @@ class Pembelian extends Model
     public function canBeCancelled()
     {
         return !in_array($this->status, ['fully_received', 'cancelled']);
+    }
+
+    /**
+     * Get total yang sudah dibayar
+     */
+    public function getTotalDibayarAttribute()
+    {
+        return $this->transaksiPembayaran()->sum('total_pembayaran');
+    }
+
+    /**
+     * Get sisa pembayaran
+     */
+    public function getSisaPembayaranAttribute()
+    {
+        return $this->total_biaya - $this->total_dibayar;
+    }
+
+    /**
+     * Check if DP sudah dibayar
+     */
+    public function isDpPaid()
+    {
+        return $this->transaksiPembayaran()->where('jenis_pembayaran', 'dp')->exists();
+    }
+
+    /**
+     * Check if sudah lunas
+     */
+    public function isFullyPaid()
+    {
+        return $this->sisa_pembayaran <= 0;
     }
 
     // Scope Methods

@@ -17,18 +17,28 @@ class PenerimaanBahanBakuController extends Controller
 {
     public function index(Request $request)
     {
-        $query = PenerimaanBahanBaku::with(['pembelian:pembelian_id,nomor_po', 'pemasok:pemasok_id,nama_pemasok']);
+        $query = PenerimaanBahanBaku::with(['pembelianDetail.pembelian', 'pembelianDetail.pengadaanDetail']);
 
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
-                $q->where('nomor_penerimaan', 'like', "%{$search}%")
-                    ->orWhere('nomor_surat_jalan', 'like', "%{$search}%")
-                    ->orWhereHas('pembelian', fn($subq) => $subq->where('nomor_po', 'like', "%{$search}%"));
+                $q->where('penerimaan_id', 'like', "%{$search}%")
+                    ->orWhereHas('pembelianDetail.pembelian', fn($subq) => $subq->where('nomor_po', 'like', "%{$search}%"));
             });
         }
 
-        $penerimaan = $query->orderBy('tanggal_penerimaan', 'desc')->paginate(10)->withQueryString();
+        $penerimaan = $query->orderBy('created_at', 'desc')->paginate(10)->withQueryString();
+
+        $penerimaan->getCollection()->transform(function ($item) {
+            return [
+                'penerimaan_id' => $item->penerimaan_id,
+                'pembelian_detail_id' => $item->pembelian_detail_id,
+                'nomor_po' => $item->pembelianDetail->pembelian->nomor_po ?? 'N/A',
+                'nama_item' => $item->pembelianDetail->pengadaanDetail->nama_item ?? 'N/A',
+                'qty_diterima' => $item->qty_diterima,
+                'created_at' => $item->created_at?->format('Y-m-d H:i:s'),
+            ];
+        });
 
         return Inertia::render('penerimaan-bahan-baku/index', [
             'penerimaan' => $penerimaan,
@@ -38,15 +48,32 @@ class PenerimaanBahanBakuController extends Controller
 
     public function create()
     {
-        $pembelians = Pembelian::whereIn('status', ['confirmed', 'partial_received'])
-            ->whereHas('detail', fn($q) => $q->where('item_type', 'bahan_baku')->whereRaw('qty_dipesan > qty_diterima'))
+        $pembelians = Pembelian::whereIn('status', ['confirmed', 'partially_received'])
+            ->with(['pemasok:pemasok_id,nama_pemasok', 'detail.pengadaanDetail'])
             ->orderBy('tanggal_pembelian', 'desc')
-            ->with('pemasok:pemasok_id,nama_pemasok')
             ->get()
             ->map(fn($pembelian) => [
                 'pembelian_id' => $pembelian->pembelian_id,
+                'nomor_po' => $pembelian->nomor_po,
+                'pemasok_nama' => $pembelian->pemasok->nama_pemasok ?? 'N/A',
                 'display_text' => $pembelian->nomor_po . ' - ' . ($pembelian->pemasok->nama_pemasok ?? 'N/A'),
-            ]);
+                'details' => $pembelian->detail->map(function ($detail) {
+                    $pengadaanDetail = $detail->pengadaanDetail;
+                    $qtyDiterima = $detail->penerimaanBahanBaku->sum('qty_diterima');
+                    $outstanding = $pengadaanDetail->qty - $qtyDiterima;
+
+                    return [
+                        'pembelian_detail_id' => $detail->pembelian_detail_id,
+                        'nama_item' => $pengadaanDetail->nama_item,
+                        'satuan' => $pengadaanDetail->satuan,
+                        'qty_dipesan' => $pengadaanDetail->qty,
+                        'qty_diterima' => $qtyDiterima,
+                        'outstanding_qty' => $outstanding,
+                    ];
+                })->filter(fn($d) => $d['outstanding_qty'] > 0)->values(),
+            ])
+            ->filter(fn($p) => $p['details']->isNotEmpty())
+            ->values();
 
         return Inertia::render('penerimaan-bahan-baku/create', ['pembelians' => $pembelians]);
     }
@@ -54,10 +81,6 @@ class PenerimaanBahanBakuController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'pembelian_id' => 'required|exists:pembelian,pembelian_id',
-            'nomor_surat_jalan' => 'required|string|max:255',
-            'tanggal_penerimaan' => 'required|date',
-            'catatan' => 'nullable|string',
             'items' => 'required|array|min:1',
             'items.*.pembelian_detail_id' => 'required|exists:pembelian_detail,pembelian_detail_id',
             'items.*.qty_diterima' => 'required|numeric|min:1',
@@ -74,34 +97,30 @@ class PenerimaanBahanBakuController extends Controller
 
         DB::beginTransaction();
         try {
-            $pembelian = Pembelian::with('detail')->findOrFail($request->pembelian_id);
-
-            // 1. Buat Header Penerimaan
-            $penerimaan = PenerimaanBahanBaku::create($request->only(['pembelian_id', 'nomor_surat_jalan', 'tanggal_penerimaan', 'catatan']) + [
-                'pemasok_id' => $pembelian->pemasok_id,
-                'status' => 'confirmed',
-            ]);
-
-            // 2. Proses setiap item untuk Penerimaan
+            // Proses setiap item untuk Penerimaan
             foreach ($itemsToProcess as $itemData) {
-                $pembelianDetail = $pembelian->detail->find($itemData['pembelian_detail_id']);
-                if ($pembelianDetail && $pembelianDetail->item_type === 'bahan_baku') {
-                    PenerimaanBahanBakuDetail::create([
-                        'penerimaan_id' => $penerimaan->penerimaan_id,
-                        'pembelian_detail_id' => $pembelianDetail->pembelian_detail_id,
-                        'bahan_baku_id' => $pembelianDetail->item_id,
-                        'qty_diterima' => $itemData['qty_diterima'],
-                    ]);
+                $pembelianDetail = PembelianDetail::with('pengadaanDetail')->findOrFail($itemData['pembelian_detail_id']);
+                $pengadaanDetail = $pembelianDetail->pengadaanDetail;
 
-                    // Update kuantitas & stok untuk yang diterima
-                    $pembelianDetail->increment('qty_diterima', $itemData['qty_diterima']);
-                    BahanBaku::find($pembelianDetail->item_id)->increment('stok_bahan', $itemData['qty_diterima']);
+                // Create penerimaan record
+                PenerimaanBahanBaku::create([
+                    'pembelian_detail_id' => $pembelianDetail->pembelian_detail_id,
+                    'qty_diterima' => $itemData['qty_diterima'],
+                ]);
+
+                // Update stok bahan baku atau produk
+                if ($pengadaanDetail->jenis_barang === 'bahan_baku') {
+                    BahanBaku::find($pengadaanDetail->barang_id)->increment('stok_bahan', $itemData['qty_diterima']);
+                } elseif ($pengadaanDetail->jenis_barang === 'produk') {
+                    \App\Models\Produk::find($pengadaanDetail->barang_id)->increment('stok_produk', $itemData['qty_diterima']);
                 }
             }
 
-            // 3. Update status Pembelian
-            $allReceived = $pembelian->fresh()->detail->every(fn($detail) => $detail->isFullyReceived());
-            $pembelian->status = $allReceived ? 'fully_received' : 'partial_received';
+            // Update status Pembelian
+            $pembelianId = PembelianDetail::find($itemsToProcess[0]['pembelian_detail_id'])->pembelian_id;
+            $pembelian = Pembelian::with('detail')->find($pembelianId);
+            $allReceived = $pembelian->detail->every(fn($detail) => $detail->isFullyReceived());
+            $pembelian->status = $allReceived ? 'fully_received' : 'partially_received';
             $pembelian->save();
 
             DB::commit();
@@ -116,27 +135,47 @@ class PenerimaanBahanBakuController extends Controller
     public function show(PenerimaanBahanBaku $penerimaanBahanBaku)
     {
         $penerimaanBahanBaku->load([
-            'pembelian:pembelian_id,nomor_po,tanggal_pembelian',
-            'pemasok:pemasok_id,nama_pemasok,alamat',
-            'detail.bahanBaku'
+            'pembelianDetail.pembelian.pemasok',
+            'pembelianDetail.pengadaanDetail'
         ]);
 
         return Inertia::render('penerimaan-bahan-baku/show', [
-            'penerimaan' => $penerimaanBahanBaku
+            'penerimaan' => [
+                'penerimaan_id' => $penerimaanBahanBaku->penerimaan_id,
+                'pembelian_detail_id' => $penerimaanBahanBaku->pembelian_detail_id,
+                'qty_diterima' => $penerimaanBahanBaku->qty_diterima,
+                'pembelian' => [
+                    'nomor_po' => $penerimaanBahanBaku->pembelianDetail->pembelian->nomor_po ?? 'N/A',
+                    'tanggal_pembelian' => $penerimaanBahanBaku->pembelianDetail->pembelian->tanggal_pembelian,
+                    'pemasok' => $penerimaanBahanBaku->pembelianDetail->pembelian->pemasok,
+                ],
+                'item' => [
+                    'nama_item' => $penerimaanBahanBaku->pembelianDetail->pengadaanDetail->nama_item ?? 'N/A',
+                    'satuan' => $penerimaanBahanBaku->pembelianDetail->pengadaanDetail->satuan ?? '-',
+                    'qty_dipesan' => $penerimaanBahanBaku->pembelianDetail->pengadaanDetail->qty ?? 0,
+                ],
+                'created_at' => $penerimaanBahanBaku->created_at?->format('Y-m-d H:i:s'),
+            ]
         ]);
     }
 
     public function getPembelianDetails(Pembelian $pembelian)
     {
-        $pembelian->load(['detail' => fn($query) => $query->where('item_type', 'bahan_baku')->whereRaw('qty_dipesan > qty_diterima')]);
-        return response()->json($pembelian->detail->map(fn($detail) => [
-            'pembelian_detail_id' => $detail->pembelian_detail_id,
-            'item_id' => $detail->item_id,
-            'nama_item' => $detail->nama_item,
-            'satuan' => $detail->satuan,
-            'qty_dipesan' => $detail->qty_dipesan,
-            'qty_diterima_sebelumnya' => $detail->qty_diterima,
-            'qty_sisa' => $detail->getOutstandingQty(),
-        ]));
+        $pembelian->load('detail.pengadaanDetail');
+
+        return response()->json($pembelian->detail->map(function ($detail) {
+            $pengadaanDetail = $detail->pengadaanDetail;
+            $qtyDiterima = $detail->penerimaanBahanBaku->sum('qty_diterima');
+            $outstanding = $pengadaanDetail->qty - $qtyDiterima;
+
+            return [
+                'pembelian_detail_id' => $detail->pembelian_detail_id,
+                'nama_item' => $pengadaanDetail->nama_item,
+                'satuan' => $pengadaanDetail->satuan,
+                'qty_dipesan' => $pengadaanDetail->qty,
+                'qty_diterima_sebelumnya' => $qtyDiterima,
+                'qty_sisa' => $outstanding,
+            ];
+        })->filter(fn($d) => $d['qty_sisa'] > 0)->values());
     }
 }

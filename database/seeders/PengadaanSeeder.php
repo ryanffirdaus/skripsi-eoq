@@ -43,7 +43,6 @@ class PengadaanSeeder extends Seeder
             [
                 'jenis_pengadaan' => 'pesanan',
                 'pesanan_id' => $pesanans->random()->pesanan_id,
-                'tanggal_pengadaan' => now()->subDays(2),
                 'status' => 'pending',
                 'created_by' => 'US001',
                 'details' => [
@@ -54,7 +53,6 @@ class PengadaanSeeder extends Seeder
             // 2. Status: Pending, Jenis: ROP (Hanya Bahan Baku)
             [
                 'jenis_pengadaan' => 'rop',
-                'tanggal_pengadaan' => now()->subDays(8),
                 'status' => 'pending',
                 'created_by' => 'US001',
                 'details' => [
@@ -65,66 +63,55 @@ class PengadaanSeeder extends Seeder
             // 3. Status: Procurement Approved
             [
                 'jenis_pengadaan' => 'rop',
-                'tanggal_pengadaan' => now()->subDays(10),
                 'status' => 'disetujui_procurement',
                 'created_by' => 'US001',
                 'details' => [
-                    ['type' => 'bahan_baku', 'qty' => 100, 'qty_disetujui' => 100],
-                    ['type' => 'bahan_baku', 'qty' => 50, 'qty_disetujui' => 45], // Contoh qty disetujui beda
+                    ['type' => 'bahan_baku', 'qty' => 100],
+                    ['type' => 'bahan_baku', 'qty' => 50],
                 ]
             ],
             // 4. Status: Finance Approved -> Siap untuk dibuat PO oleh PembelianSeeder
             [
                 'jenis_pengadaan' => 'pesanan',
                 'pesanan_id' => $pesanans->random()->pesanan_id,
-                'tanggal_pengadaan' => now()->subDays(5),
                 'status' => 'disetujui_finance',
                 'created_by' => 'US001',
                 'details' => [
-                    ['type' => 'bahan_baku', 'qty' => 200, 'qty_disetujui' => 200],
+                    ['type' => 'bahan_baku', 'qty' => 200],
                 ]
             ],
             // 5. Status: Ordered -> Sudah diproses oleh PembelianSeeder
             [
                 'jenis_pengadaan' => 'pesanan',
                 'pesanan_id' => $pesanans->random()->pesanan_id,
-                'tanggal_pengadaan' => now()->subDays(20),
                 'status' => 'diproses',
-                'nomor_po' => 'PO-' . now()->subDays(20)->format('Ymd') . '-001',
                 'created_by' => 'US001',
                 'details' => [
-                    ['type' => 'produk', 'qty' => 25, 'qty_disetujui' => 25],
+                    ['type' => 'produk', 'qty' => 25],
                 ]
             ],
             // 6. Status: Partial Received
             [
                 'jenis_pengadaan' => 'rop',
-                'tanggal_pengadaan' => now()->subDays(25),
-                'tanggal_delivery' => now()->subDays(5),
                 'status' => 'diproses',
-                'nomor_po' => 'PO-' . now()->subDays(25)->format('Ymd') . '-002',
                 'created_by' => 'US001',
                 'details' => [
-                    ['type' => 'bahan_baku', 'qty' => 150, 'qty_disetujui' => 150, 'qty_diterima' => 100],
+                    ['type' => 'bahan_baku', 'qty' => 150],
                 ]
             ],
             // 7. Status: Received (Lengkap)
             [
                 'jenis_pengadaan' => 'rop',
-                'tanggal_pengadaan' => now()->subDays(30),
-                'tanggal_delivery' => now()->subDays(10),
                 'status' => 'diterima',
-                'nomor_po' => 'PO-' . now()->subDays(30)->format('Ymd') . '-003',
                 'created_by' => 'US001',
                 'details' => [
-                    ['type' => 'bahan_baku', 'qty' => 50, 'qty_disetujui' => 50, 'qty_diterima' => 50],
+                    ['type' => 'bahan_baku', 'qty' => 50],
                 ]
             ],
             // 8. Status: Cancelled
             [
                 'jenis_pengadaan' => 'pesanan',
                 'pesanan_id' => $pesanans->random()->pesanan_id,
-                'tanggal_pengadaan' => now()->subDays(4),
                 'status' => 'dibatalkan',
                 'created_by' => 'US001',
                 'details' => [
@@ -162,22 +149,15 @@ class PengadaanSeeder extends Seeder
                 PengadaanDetail::create([
                     'pengadaan_id' => $pengadaan->pengadaan_id,
                     'pemasok_id' => $pemasoks->random()->pemasok_id,
-                    'item_type' => $item['type'],
-                    'item_id' => $detailData['item_id'],
-                    'nama_item' => $detailData['nama_item'],
-                    'satuan' => $detailData['satuan'],
-                    'harga_satuan' => $detailData['harga_satuan'],
+                    'jenis_barang' => $item['type'],
+                    'barang_id' => $detailData['item_id'],
                     'qty_diminta' => $item['qty'],
-                    'qty_disetujui' => $item['qty_disetujui'] ?? null,
+                    'qty_disetujui' => $item['qty_disetujui'] ?? $item['qty'],
                     'qty_diterima' => $item['qty_diterima'] ?? 0,
-                    'total_harga' => ($item['qty_disetujui'] ?? $item['qty']) * $detailData['harga_satuan'],
+                    'harga_satuan' => $detailData['harga_satuan'],
                     'catatan' => 'Catatan seeder ' . $item['type'],
-                    'alasan_kebutuhan' => 'Kebutuhan dari seeder'
                 ]);
             }
-
-            // Update total biaya setelah semua detail ditambahkan
-            $pengadaan->updateTotalBiaya();
         }
 
         $this->command->info('Seeding untuk Pengadaan selesai dengan sukses.');

@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('pesanan_detail', function (Blueprint $table) {
-            $table->id('pesanan_detail_id');
+            $table->string('pesanan_detail_id', 11)->primary();
             $table->string('pesanan_id');
             $table->string('produk_id');
             $table->integer('jumlah_produk');
@@ -23,7 +23,7 @@ return new class extends Migration
             $table->foreign('pesanan_id')->references('pesanan_id')->on('pesanan')->onDelete('cascade');
             $table->foreign('produk_id')->references('produk_id')->on('produk')->onDelete('cascade');
 
-            $table->unique(['pesanan_id', 'produk_id']);
+            $table->index(['pesanan_id', 'produk_id']);
         });
     }
 

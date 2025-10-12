@@ -20,12 +20,8 @@ class PemasokSeeder extends Seeder
                 'nama_pemasok' => 'PT Bahan Baku Utama',
                 'narahubung' => 'Andi Setiawan',
                 'email' => 'andi@bahan-utama.com',
-                'telepon' => '021-1234567',
-                'alamat' => 'Jl. Industri Raya No. 123',
-                'kota' => 'Jakarta',
-                'provinsi' => 'DKI Jakarta',
-                'kode_pos' => '12345',
-                'status' => 'active',
+                'nomor_telepon' => '021-1234567',
+                'alamat' => 'Jl. Industri Raya No. 123, Jakarta',
                 'catatan' => 'pemasok utama untuk bahan baku kimia',
                 'created_by' => 'US001',
             ],
@@ -34,12 +30,8 @@ class PemasokSeeder extends Seeder
                 'nama_pemasok' => 'CV Sumber Plastik',
                 'narahubung' => 'Budi Raharja',
                 'email' => 'budi@sumber-plastik.com',
-                'telepon' => '031-2345678',
-                'alamat' => 'Jl. Raya Surabaya No. 456',
-                'kota' => 'Surabaya',
-                'provinsi' => 'Jawa Timur',
-                'kode_pos' => '60123',
-                'status' => 'active',
+                'nomor_telepon' => '031-2345678',
+                'alamat' => 'Jl. Raya Surabaya No. 456, Surabaya',
                 'catatan' => 'Spesialis plastik dan packaging',
                 'created_by' => 'US001',
             ],
@@ -48,12 +40,8 @@ class PemasokSeeder extends Seeder
                 'nama_pemasok' => 'PT Logam Berkualitas',
                 'narahubung' => 'Sari Wijaya',
                 'email' => 'sari@logam-berkualitas.com',
-                'telepon' => '022-3456789',
-                'alamat' => 'Jl. Logam Mulia No. 789',
-                'kota' => 'Bandung',
-                'provinsi' => 'Jawa Barat',
-                'kode_pos' => '40123',
-                'status' => 'active',
+                'nomor_telepon' => '022-3456789',
+                'alamat' => 'Jl. Logam Mulia No. 789, Bandung',
                 'catatan' => 'pemasok bahan logam dan komponen',
                 'created_by' => 'US001',
             ],
@@ -62,12 +50,8 @@ class PemasokSeeder extends Seeder
                 'nama_pemasok' => 'UD Elektronik Jaya',
                 'narahubung' => 'Dedi Kurniawan',
                 'email' => 'dedi@elektronik-jaya.com',
-                'telepon' => '024-4567890',
-                'alamat' => 'Jl. Elektronik No. 101',
-                'kota' => 'Semarang',
-                'provinsi' => 'Jawa Tengah',
-                'kode_pos' => '50123',
-                'status' => 'active',
+                'nomor_telepon' => '024-4567890',
+                'alamat' => 'Jl. Elektronik No. 101, Semarang',
                 'catatan' => 'Komponen elektronik dan suku cadang',
                 'created_by' => 'US001',
             ],
@@ -76,27 +60,21 @@ class PemasokSeeder extends Seeder
                 'nama_pemasok' => 'PT Kemasan Modern',
                 'narahubung' => 'Lisa Handayani',
                 'email' => 'lisa@kemasan-modern.com',
-                'telepon' => '061-5678901',
-                'alamat' => 'Jl. Kemasan Indah No. 202',
-                'kota' => 'Medan',
-                'provinsi' => 'Sumatera Utara',
-                'kode_pos' => '20123',
-                'status' => 'active',
+                'nomor_telepon' => '061-5678901',
+                'alamat' => 'Jl. Kemasan Indah No. 202, Medan',
                 'catatan' => 'Spesialis kemasan dan packaging premium',
                 'created_by' => 'US001',
             ]
         ];
 
         foreach ($pemasoks as $pemasok) {
-            pemasok::create($pemasok);
+            Pemasok::create($pemasok);
         }
 
         // Create additional random pemasoks
-        pemasok::factory()
+        Pemasok::factory()
             ->count(10)
             ->active()
             ->create();
-
-        echo "pemasok seeder completed successfully!\n";
     }
 }

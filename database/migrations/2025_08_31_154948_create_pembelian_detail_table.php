@@ -22,20 +22,6 @@ return new class extends Migration
             $table->string('pengadaan_detail_id', 11)->index();
             $table->foreign('pengadaan_detail_id')->references('pengadaan_detail_id')->on('pengadaan_detail')->onDelete('restrict');
 
-            // Kolom untuk item (bisa bahan baku atau produk)
-            $table->string('item_type', 50);
-            $table->string('item_id', 10);
-            $table->string('nama_item');
-            $table->string('satuan', 50);
-
-            // Kuantitas
-            $table->integer('qty_dipesan');
-            $table->integer('qty_diterima')->default(0);
-
-            // Harga
-            $table->decimal('harga_satuan', 15, 2);
-            $table->decimal('total_harga', 15, 2);
-
             $table->timestamps();
         });
     }

@@ -20,12 +20,8 @@ class PemasokFactory extends Factory
             'nama_pemasok' => 'PT ' . $this->faker->company(),
             'narahubung' => $this->faker->name(),
             'email' => $this->faker->unique()->safeEmail(),
-            'telepon' => $this->faker->phoneNumber(),
+            'nomor_telepon' => $this->faker->phoneNumber(),
             'alamat' => $this->faker->address(),
-            'kota' => $this->faker->city(),
-            'provinsi' => $this->faker->state(),
-            'kode_pos' => $this->faker->postcode(),
-            'status' => $this->faker->randomElement(['active', 'inactive']),
             'catatan' => $this->faker->optional()->sentence(),
             'created_by' => 'US001', // Default admin user
         ];
@@ -37,7 +33,7 @@ class PemasokFactory extends Factory
     public function active(): static
     {
         return $this->state(fn(array $attributes) => [
-            'status' => 'active',
+            // No status field anymore, all are considered active
         ]);
     }
 
@@ -47,7 +43,7 @@ class PemasokFactory extends Factory
     public function inactive(): static
     {
         return $this->state(fn(array $attributes) => [
-            'status' => 'inactive',
+            // No status field anymore
         ]);
     }
 }

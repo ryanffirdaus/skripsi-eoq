@@ -36,6 +36,16 @@ interface PembelianDetail {
     persentase_diterima: number;
 }
 
+interface TransaksiPembayaran {
+    transaksi_pembayaran_id: string;
+    jenis_pembayaran: 'dp' | 'termin' | 'pelunasan';
+    tanggal_pembayaran: string;
+    jumlah_pembayaran: number;
+    metode_pembayaran: string;
+    nomor_referensi?: string;
+    keterangan?: string;
+}
+
 interface Pembelian extends Record<string, unknown> {
     pembelian_id: string;
     pengadaan?: Pengadaan;
@@ -46,7 +56,12 @@ interface Pembelian extends Record<string, unknown> {
     total_biaya: number;
     status: string;
     status_label: string;
-    metode_pembayaran?: string;
+    metode_pembayaran?: 'tunai' | 'transfer' | 'termin';
+    termin_pembayaran?: string;
+    jumlah_dp?: number;
+    total_dibayar?: number;
+    sisa_pembayaran?: number;
+    is_dp_paid?: boolean;
     catatan?: string;
     can_edit: boolean;
     can_cancel: boolean;
@@ -56,6 +71,7 @@ interface Pembelian extends Record<string, unknown> {
     created_at: string;
     updated_at: string;
     details: PembelianDetail[];
+    transaksi_pembayaran?: TransaksiPembayaran[];
 }
 
 interface Props {
@@ -267,6 +283,118 @@ export default function Show({ pembelian, flash }: Props) {
                                 )}
                             </CardContent>
                         </Card>
+
+                        {/* Payment Information Card */}
+                        {pembelian.metode_pembayaran === 'termin' && (
+                            <Card>
+                                <CardHeader>
+                                    <div className="flex items-center justify-between">
+                                        <CardTitle className="flex items-center gap-2">
+                                            <CreditCard className="h-5 w-5" />
+                                            Informasi Pembayaran Termin
+                                        </CardTitle>
+                                        {pembelian.is_dp_paid && (
+                                            <Badge variant="outline" className="bg-green-50 text-green-700">
+                                                <CheckCircle className="mr-1 h-3 w-3" />
+                                                DP Dibayar
+                                            </Badge>
+                                        )}
+                                    </div>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    {/* Payment Progress */}
+                                    <div className="space-y-2">
+                                        <div className="flex items-center justify-between text-sm">
+                                            <span>Progress Pembayaran</span>
+                                            <span className="font-medium">
+                                                {(((pembelian.total_dibayar || 0) / pembelian.total_biaya) * 100 || 0).toFixed(1)}%
+                                            </span>
+                                        </div>
+                                        <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
+                                            <div
+                                                className="h-full bg-green-500 transition-all"
+                                                style={{
+                                                    width: `${Math.min(((pembelian.total_dibayar || 0) / pembelian.total_biaya) * 100, 100)}%`,
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <Separator />
+
+                                    {/* Payment Summary */}
+                                    <div className="grid gap-4 sm:grid-cols-3">
+                                        <div>
+                                            <p className="text-sm text-gray-500">Total Biaya</p>
+                                            <p className="text-lg font-bold">{formatCurrency(pembelian.total_biaya)}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-gray-500">Total Dibayar</p>
+                                            <p className="text-lg font-bold text-green-600">{formatCurrency(pembelian.total_dibayar || 0)}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-gray-500">Sisa Pembayaran</p>
+                                            <p className="text-lg font-bold text-orange-600">{formatCurrency(pembelian.sisa_pembayaran || 0)}</p>
+                                        </div>
+                                    </div>
+
+                                    {pembelian.jumlah_dp && pembelian.jumlah_dp > 0 && (
+                                        <div className="rounded-lg bg-blue-50 p-3">
+                                            <p className="text-sm font-medium text-blue-900">Down Payment (DP)</p>
+                                            <p className="mt-1 text-lg font-bold text-blue-700">{formatCurrency(pembelian.jumlah_dp)}</p>
+                                        </div>
+                                    )}
+
+                                    {pembelian.termin_pembayaran && (
+                                        <div>
+                                            <p className="mb-2 text-sm font-medium text-gray-500">Ketentuan Termin</p>
+                                            <p className="rounded-lg bg-gray-50 p-3 text-sm whitespace-pre-wrap">{pembelian.termin_pembayaran}</p>
+                                        </div>
+                                    )}
+
+                                    {/* Payment History */}
+                                    {pembelian.transaksi_pembayaran && pembelian.transaksi_pembayaran.length > 0 && (
+                                        <div>
+                                            <h4 className="mb-3 text-sm font-medium">Riwayat Pembayaran</h4>
+                                            <div className="space-y-2">
+                                                {pembelian.transaksi_pembayaran.map((transaksi) => (
+                                                    <div
+                                                        key={transaksi.transaksi_pembayaran_id}
+                                                        className="flex items-center justify-between rounded-lg border bg-white p-3"
+                                                    >
+                                                        <div>
+                                                            <p className="font-medium">
+                                                                <Badge
+                                                                    variant="outline"
+                                                                    className={cn(
+                                                                        transaksi.jenis_pembayaran === 'dp'
+                                                                            ? 'bg-blue-50 text-blue-700'
+                                                                            : transaksi.jenis_pembayaran === 'termin'
+                                                                              ? 'bg-purple-50 text-purple-700'
+                                                                              : 'bg-green-50 text-green-700',
+                                                                    )}
+                                                                >
+                                                                    {transaksi.jenis_pembayaran === 'dp'
+                                                                        ? 'DP'
+                                                                        : transaksi.jenis_pembayaran === 'termin'
+                                                                          ? 'Termin'
+                                                                          : 'Pelunasan'}
+                                                                </Badge>
+                                                                <span className="ml-2">{formatCurrency(transaksi.jumlah_pembayaran)}</span>
+                                                            </p>
+                                                            <p className="text-sm text-gray-500">
+                                                                {formatDate(transaksi.tanggal_pembayaran)}
+                                                                {transaksi.nomor_referensi && ` • Ref: ${transaksi.nomor_referensi}`}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        )}
 
                         {/* Purchase Order Details */}
                         <Card>
