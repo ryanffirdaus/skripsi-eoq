@@ -386,7 +386,7 @@ export default function Show({ pengadaan }: Props) {
                             <div className="space-y-2">
                                 <div className="flex items-center text-sm font-medium text-gray-600">
                                     <User className="mr-2 h-4 w-4" />
-                                    Kontak Person
+                                    Narahubung
                                 </div>
                                 <p className="text-sm">{pengadaan.pemasok.narahubung}</p>
                             </div>

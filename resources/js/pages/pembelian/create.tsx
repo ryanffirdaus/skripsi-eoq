@@ -34,7 +34,7 @@ interface PengadaanDetail {
 interface Pengadaan {
     pengadaan_id: string;
     jenis_pengadaan: string;
-    tanggal_pengadaan: string;
+    tanggal_pengadaan?: string;
     status: string;
     display_text: string;
     detail: PengadaanDetail[];
@@ -82,13 +82,14 @@ export default function Create({ pengadaans, pemasoks }: Props) {
     }, [data.pengadaan_id, pengadaans]);
 
     const availablePemasoks = React.useMemo(() => {
-        if (!selectedPengadaan) return [];
+        if (!selectedPengadaan || !selectedPengadaan.detail || !Array.isArray(selectedPengadaan.detail)) return [];
+        if (!pemasoks || !Array.isArray(pemasoks)) return [];
         const pemasokIds = new Set(selectedPengadaan.detail.map((d) => d.pemasok_id));
         return pemasoks.filter((s) => pemasokIds.has(s.pemasok_id));
     }, [selectedPengadaan, pemasoks]);
 
     React.useEffect(() => {
-        if (selectedPengadaan && data.pemasok_id) {
+        if (selectedPengadaan && selectedPengadaan.detail && Array.isArray(selectedPengadaan.detail) && data.pemasok_id) {
             const itemsForPemasok = selectedPengadaan.detail
                 .filter((d) => d.pemasok_id === data.pemasok_id)
                 .map((d) => ({

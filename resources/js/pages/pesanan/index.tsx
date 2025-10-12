@@ -5,26 +5,16 @@ import { type BreadcrumbItem } from '@/types';
 import { router } from '@inertiajs/react';
 import { useMemo } from 'react';
 
-interface Produk {
-    produk_id: string;
-    nama_produk: string;
-    satuan_produk: string;
-}
-
-interface Pelanggan {
-    pelanggan_id: string;
-    nama_pelanggan: string;
-}
-
 interface Pesanan extends Record<string, unknown> {
     pesanan_id: string;
     pelanggan_id: string;
+    nama_pelanggan: string;
     tanggal_pemesanan: string;
     total_harga: number;
+    jumlah_produk: number;
     status: 'pending' | 'diproses' | 'dikirim' | 'selesai' | 'dibatalkan';
-    pelanggan: Pelanggan;
-    produk: Produk[];
     created_at: string;
+    updated_at: string;
 }
 
 interface PaginationLink {
@@ -99,10 +89,10 @@ export default function Index({ pesanan, filters, flash }: Props) {
             {
                 key: 'pelanggan',
                 label: 'Pelanggan',
-                sortable: false,
+                sortable: true,
                 hideable: true,
                 defaultVisible: true,
-                render: (item: Pesanan) => item.pelanggan?.nama_pelanggan || '-',
+                render: (item: Pesanan) => item.nama_pelanggan || '-',
             },
             {
                 key: 'tanggal_pemesanan',
@@ -138,7 +128,7 @@ export default function Index({ pesanan, filters, flash }: Props) {
                 sortable: false,
                 hideable: true,
                 defaultVisible: true,
-                render: (item: Pesanan) => `${item.produk?.length || 0} item`,
+                render: (item: Pesanan) => `${item.jumlah_produk || 0} item`,
             },
             {
                 key: 'created_at',

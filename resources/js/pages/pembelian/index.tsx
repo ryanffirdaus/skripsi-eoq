@@ -88,8 +88,8 @@ export default function Index({ pembelian, filters, pemasoks, flash }: Props) {
             draft: 'outline',
             sent: 'secondary',
             confirmed: 'default',
-            partial_received: 'default',
-            fully_received: 'secondary', // pakai 'secondary' (atau 'default') biar aman
+            partially_received: 'default',
+            fully_received: 'secondary',
             cancelled: 'destructive',
         } as const;
 
@@ -98,7 +98,7 @@ export default function Index({ pembelian, filters, pemasoks, flash }: Props) {
                 {status === 'draft' && 'Draft'}
                 {status === 'sent' && 'Terkirim'}
                 {status === 'confirmed' && 'Dikonfirmasi'}
-                {status === 'partial_received' && 'Diterima Sebagian'}
+                {status === 'partially_received' && 'Diterima Sebagian'}
                 {status === 'fully_received' && 'Diterima Lengkap'}
                 {status === 'cancelled' && 'Dibatalkan'}
             </Badge>
@@ -156,7 +156,7 @@ export default function Index({ pembelian, filters, pemasoks, flash }: Props) {
                         )}
                         {item.status === 'confirmed' && (
                             <>
-                                <DropdownMenuItem onClick={() => handleStatusUpdate(item.pembelian_id, 'partial_received')}>
+                                <DropdownMenuItem onClick={() => handleStatusUpdate(item.pembelian_id, 'partially_received')}>
                                     Terima Sebagian Barang
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => handleStatusUpdate(item.pembelian_id, 'fully_received')}>
@@ -164,7 +164,7 @@ export default function Index({ pembelian, filters, pemasoks, flash }: Props) {
                                 </DropdownMenuItem>
                             </>
                         )}
-                        {item.status === 'partial_received' && (
+                        {item.status === 'partially_received' && (
                             <DropdownMenuItem onClick={() => handleStatusUpdate(item.pembelian_id, 'fully_received')}>
                                 Terima Sisa Barang
                             </DropdownMenuItem>
@@ -251,7 +251,7 @@ export default function Index({ pembelian, filters, pemasoks, flash }: Props) {
                     { value: 'draft', label: 'Draft' },
                     { value: 'sent', label: 'Terkirim' },
                     { value: 'confirmed', label: 'Dikonfirmasi' },
-                    { value: 'partial_received', label: 'Diterima Sebagian' },
+                    { value: 'partially_received', label: 'Diterima Sebagian' },
                     { value: 'fully_received', label: 'Diterima Lengkap' },
                     { value: 'cancelled', label: 'Dibatalkan' },
                 ],
@@ -260,7 +260,10 @@ export default function Index({ pembelian, filters, pemasoks, flash }: Props) {
                 key: 'pemasok_id',
                 label: 'Pemasok',
                 type: 'select' as const,
-                options: [{ value: '', label: 'Semua Pemasok' }, ...pemasoks.map((s) => ({ value: s.pemasok_id, label: s.nama_pemasok }))],
+                options: [
+                    { value: '', label: 'Semua Pemasok' },
+                    ...(pemasoks && Array.isArray(pemasoks) ? pemasoks.map((s) => ({ value: s.pemasok_id, label: s.nama_pemasok })) : []),
+                ],
             },
         ],
         [pemasoks],

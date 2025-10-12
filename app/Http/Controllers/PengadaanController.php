@@ -12,6 +12,7 @@ use App\Services\PengadaanService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 
 class PengadaanController extends Controller
 {
@@ -101,16 +102,27 @@ class PengadaanController extends Controller
     public function create()
     {
         $pemasok = Pemasok::active()
-            ->select('pemasok_id', 'nama_pemasok', 'narahubung', 'telepon')
+            ->select('pemasok_id', 'nama_pemasok', 'narahubung', 'nomor_telepon')
             ->orderBy('nama_pemasok')
             ->get();
 
-        // Add pesanan dropdown - get orders that might need procurement
-        $pesanan = Pesanan::with(['pelanggan:pelanggan_id,nama_pelanggan', 'produk'])
+        // Add pesanan dropdown - ONLY show orders where products exceed stock
+        $pesanan = Pesanan::with(['pelanggan:pelanggan_id,nama_pelanggan', 'detail.produk'])
             ->select('pesanan_id', 'pelanggan_id', 'tanggal_pemesanan', 'total_harga', 'status')
             ->whereIn('status', ['pending', 'confirmed', 'processing']) // Only active orders
             ->orderBy('tanggal_pemesanan', 'desc')
             ->get()
+            ->filter(function ($item) {
+                // Filter: Only include orders where at least one product qty exceeds stock
+                $hasExceedingProduct = false;
+                foreach ($item->detail as $detail) {
+                    if ($detail->jumlah_produk > $detail->produk->stok_produk) {
+                        $hasExceedingProduct = true;
+                        break;
+                    }
+                }
+                return $hasExceedingProduct;
+            })
             ->map(function ($item) {
                 return [
                     'pesanan_id' => $item->pesanan_id,
@@ -120,11 +132,12 @@ class PengadaanController extends Controller
                     'total_harga' => $item->total_harga,
                     'status' => $item->status,
                     'display_text' => $item->pesanan_id . ' - ' . ($item->pelanggan->nama_pelanggan ?? 'Unknown') . ' (' . date('d/m/Y', strtotime($item->tanggal_pemesanan)) . ')',
-                    'produk' => $item->produk->map(function ($produk) {
+                    'produk' => $item->detail->map(function ($detail) {
+                        $produk = $detail->produk;
                         return [
                             'produk_id' => $produk->produk_id,
                             'nama_produk' => $produk->nama_produk,
-                            'jumlah_produk' => $produk->pivot->jumlah_produk,
+                            'jumlah_produk' => $detail->jumlah_produk,
                             'stok_produk' => $produk->stok_produk,
                             'eoq_produk' => $produk->eoq_produk,
                             'hpp_produk' => $produk->hpp_produk,
@@ -132,7 +145,8 @@ class PengadaanController extends Controller
                         ];
                     })
                 ];
-            });
+            })
+            ->values(); // Re-index array after filter
 
         $bahanBaku = BahanBaku::select('bahan_baku_id', 'nama_bahan', 'satuan_bahan as satuan', 'harga_bahan as harga_per_unit', 'stok_bahan as stok_saat_ini', 'rop_bahan as reorder_point', 'eoq_bahan as eoq')
             ->orderBy('nama_bahan')
@@ -167,7 +181,7 @@ class PengadaanController extends Controller
             });
 
         return Inertia::render('pengadaan/create', [
-            'pemasok' => $pemasok,
+            'pemasoks' => $pemasok,  // ✅ FIXED: Frontend expect 'pemasoks' plural
             'pesanan' => $pesanan,
             'bahanBaku' => $bahanBaku,
             'produk' => $produk,
@@ -178,14 +192,15 @@ class PengadaanController extends Controller
     public function calculateProcurement(Request $request)
     {
         $pesananId = $request->input('pesanan_id');
-        $pesanan = Pesanan::with(['produk.bahanBaku'])->findOrFail($pesananId);
+        $pesanan = Pesanan::with(['detail.produk.bahanBaku'])->findOrFail($pesananId);
 
         $procurementItems = [];
         $bahanBakuNeeded = [];
 
         // 1. Hitung kebutuhan produk
-        foreach ($pesanan->produk as $produk) {
-            $jumlahDipesan = $produk->pivot->jumlah_produk;
+        foreach ($pesanan->detail as $detail) {
+            $produk = $detail->produk;
+            $jumlahDipesan = $detail->jumlah_produk;
             $stokSaatIni = $produk->stok_produk;
             $eoq = $produk->eoq_produk;
 
@@ -197,7 +212,7 @@ class PengadaanController extends Controller
                     'nama_item'       => $produk->nama_produk,
                     'satuan'          => $produk->satuan_produk,
                     'qty_needed'      => $kekuranganProduk,
-                    'qty_procurement' => $eoq + $kekuranganProduk,
+                    'qty_diminta'     => $eoq + $kekuranganProduk,  // SOURCE OF TRUTH
                     'harga_satuan'    => $produk->hpp_produk,
                     'catatan'         => "Produk dipesan: {$jumlahDipesan}, Stok: {$stokSaatIni}, Kekurangan: {$kekuranganProduk}"
                 ];
@@ -263,7 +278,7 @@ class PengadaanController extends Controller
                     'nama_item'       => $bahan['nama_item'],
                     'satuan'          => $bahan['satuan'],
                     'qty_needed'      => $kekurangan,
-                    'qty_procurement' => $qtyProcurement,
+                    'qty_diminta'     => $qtyProcurement,  // SOURCE OF TRUTH
                     'harga_satuan'    => $bahan['harga_satuan'],
                     'catatan'         => trim($detailCatatan)
                 ];
@@ -277,7 +292,7 @@ class PengadaanController extends Controller
             'summary' => [
                 'total_items' => count($procurementItems),
                 'total_cost'  => array_sum(array_map(function ($item) {
-                    return $item['qty_procurement'] * $item['harga_satuan'];
+                    return $item['qty_diminta'] * $item['harga_satuan'];  // SOURCE OF TRUTH
                 }, $procurementItems))
             ]
         ]);
@@ -285,56 +300,95 @@ class PengadaanController extends Controller
 
     public function store(Request $request)
     {
+        Log::info('Pengadaan Store - Request Data:', $request->all());
+
+        // SOURCE OF TRUTH: Validation menggunakan field name dari database migration
         $validator = Validator::make($request->all(), [
             'pesanan_id'        => 'required|exists:pesanan,pesanan_id',
-            'tanggal_pengadaan' => 'required|date',
             'catatan'           => 'nullable|string',
             'items'             => 'required|array|min:1',
             'items.*.jenis_barang' => 'required|in:bahan_baku,produk',
             'items.*.barang_id'   => 'required|string',
-            'items.*.qty' => 'required|numeric|min:1',
-            'items.*.harga_satuan' => 'required|numeric|min:0',
+            'items.*.qty_diminta' => 'required|numeric|min:1',
+            'items.*.harga_satuan' => 'nullable|numeric|min:0',
             'items.*.catatan'   => 'nullable|string',
             'items.*.pemasok_id' => 'nullable|exists:pemasok,pemasok_id',
         ]);
 
+        // Custom validation for barang_id based on jenis_barang
+        $validator->after(function ($validator) use ($request) {
+            if ($request->has('items')) {
+                foreach ($request->items as $index => $item) {
+                    if (isset($item['jenis_barang']) && isset($item['barang_id'])) {
+                        if ($item['jenis_barang'] === 'bahan_baku') {
+                            if (!BahanBaku::where('bahan_baku_id', $item['barang_id'])->exists()) {
+                                $validator->errors()->add("items.{$index}.barang_id", "Bahan baku dengan ID {$item['barang_id']} tidak ditemukan.");
+                            }
+                        } elseif ($item['jenis_barang'] === 'produk') {
+                            if (!Produk::where('produk_id', $item['barang_id'])->exists()) {
+                                $validator->errors()->add("items.{$index}.barang_id", "Produk dengan ID {$item['barang_id']} tidak ditemukan.");
+                            }
+                        }
+                    }
+                }
+            }
+        });
 
         if ($validator->fails()) {
+            Log::error('Pengadaan Store - Validation Failed:', $validator->errors()->toArray());
             return redirect()->back()
                 ->withErrors($validator)
                 ->withInput();
         }
 
-        // --- MODIFIED PENGADAAN CREATION ---
-        // Removed 'pemasok_id' from the main procurement record.
-        $pengadaan = Pengadaan::create([
-            'pesanan_id'        => $request->pesanan_id,
-            'tanggal_pengadaan' => $request->tanggal_pengadaan,
-            'catatan'           => $request->catatan,
-            'jenis_pengadaan'   => 'pesanan',
-        ]);
+        try {
+            Log::info('Pengadaan Store - Creating header');
 
-        // --- MODIFIED PENGADAAN DETAIL CREATION ---
-        foreach ($request->items as $item) {
-            // Create detail using new structure
-            PengadaanDetail::create([
-                'pengadaan_id'  => $pengadaan->pengadaan_id,
-                'pemasok_id'    => $item['pemasok_id'] ?? null,
-                'jenis_barang'  => $item['jenis_barang'],
-                'barang_id'     => $item['barang_id'],
-                'qty'           => $item['qty'],
-                'harga_satuan'  => $item['harga_satuan'],
-                'catatan'       => $item['catatan'] ?? null,
+            // Create pengadaan header
+            $pengadaan = Pengadaan::create([
+                'pesanan_id'     => $request->pesanan_id,
+                'catatan'        => $request->catatan,
+                'jenis_pengadaan' => 'pesanan',
             ]);
+
+            Log::info('Pengadaan Store - Header created:', ['pengadaan_id' => $pengadaan->pengadaan_id]);
+
+            // Create pengadaan details - SOURCE OF TRUTH: Langsung pakai field name dari request
+            foreach ($request->items as $index => $item) {
+                Log::info("Pengadaan Store - Creating detail {$index}:", $item);
+
+                PengadaanDetail::create([
+                    'pengadaan_id'  => $pengadaan->pengadaan_id,
+                    'pemasok_id'    => $item['pemasok_id'] ?? null,
+                    'jenis_barang'  => $item['jenis_barang'],
+                    'barang_id'     => $item['barang_id'],
+                    'qty_diminta'   => $item['qty_diminta'],
+                    'harga_satuan'  => $item['harga_satuan'] ?? 0,
+                    'catatan'       => $item['catatan'] ?? null,
+                ]);
+            }
+
+            Log::info('Pengadaan Store - All details created, updating total');
+
+            $pengadaan->updateTotalBiaya();
+
+            Log::info('Pengadaan Store - Success!');
+
+            return redirect()->route('pengadaan.index')
+                ->with('flash', [
+                    'message' => 'Pengadaan berhasil dibuat!',
+                    'type'    => 'success'
+                ]);
+        } catch (\Exception $e) {
+            Log::error('Pengadaan Store - Exception:', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return redirect()->back()
+                ->withErrors(['error' => 'Gagal membuat pengadaan: ' . $e->getMessage()])
+                ->withInput();
         }
-
-        $pengadaan->updateTotalBiaya();
-
-        return redirect()->route('pengadaan.index')
-            ->with('flash', [
-                'message' => 'Pengadaan berhasil dibuat!',
-                'type'    => 'success'
-            ]);
     }
 
     /**
@@ -356,12 +410,9 @@ class PengadaanController extends Controller
                 'pengadaan_id'      => $pengadaan->pengadaan_id,
                 'jenis_pengadaan'   => $pengadaan->jenis_pengadaan,
                 'pesanan_id'        => $pengadaan->pesanan_id,
-                'tanggal_pengadaan' => $pengadaan->tanggal_pengadaan?->format('Y-m-d'),
-                'tanggal_delivery'  => $pengadaan->tanggal_delivery?->format('Y-m-d'),
                 'total_biaya'       => $pengadaan->total_biaya,
                 'status'            => $pengadaan->status,
                 'status_label'      => $this->getStatusLabel($pengadaan->status),
-                'nomor_po'          => $pengadaan->nomor_po,
                 'catatan'           => $pengadaan->catatan,
                 // Main 'pemasok' object is removed from here
                 'pesanan'           => $pengadaan->pesanan ? [
@@ -377,15 +428,15 @@ class PengadaanController extends Controller
                 'detail'            => $pengadaan->detail->map(function ($detail) {
                     return [
                         'pengadaan_detail_id' => $detail->pengadaan_detail_id,
-                        'pemasok'             => $detail->pemasok ? [ // Include pemasok info if it exists
-                            'pemasok_id'    => $detail->pemasok->pemasok_id,
-                            'nama_pemasok'  => $detail->pemasok->nama_pemasok,
-                        ] : null,
+                        'pemasok_id'          => $detail->pemasok_id,
+                        'nama_pemasok'        => $detail->pemasok?->nama_pemasok,
                         'jenis_barang'        => $detail->jenis_barang,
                         'barang_id'           => $detail->barang_id,
                         'nama_item'           => $detail->nama_item,
                         'satuan'              => $detail->satuan,
-                        'qty'                 => $detail->qty,
+                        'qty_diminta'         => $detail->qty_diminta,
+                        'qty_disetujui'       => $detail->qty_disetujui,
+                        'qty_diterima'        => $detail->qty_diterima,
                         'harga_satuan'        => $detail->harga_satuan,
                         'total_harga'         => $detail->total_harga,
                         'catatan'             => $detail->catatan,
@@ -427,7 +478,6 @@ class PengadaanController extends Controller
                 'pengadaan_id'      => $pengadaan->pengadaan_id,
                 'jenis_pengadaan'   => $pengadaan->jenis_pengadaan,
                 'pesanan_id'        => $pengadaan->pesanan_id,
-                'tanggal_pengadaan' => $pengadaan->tanggal_pengadaan,
                 'catatan'           => $pengadaan->catatan,
                 'detail'            => $pengadaan->detail->map(function ($detail) {
                     return [
@@ -437,7 +487,7 @@ class PengadaanController extends Controller
                         'barang_id'           => $detail->barang_id,
                         'nama_item'           => $detail->nama_item,
                         'satuan'              => $detail->satuan,
-                        'qty'                 => $detail->qty,
+                        'qty_diminta'         => $detail->qty_diminta,
                         'harga_satuan'        => $detail->harga_satuan,
                         'catatan'             => $detail->catatan,
                     ];
@@ -461,9 +511,10 @@ class PengadaanController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'pemasok_id' => 'required|exists:pemasok,pemasok_id',
-            'tanggal_pengadaan' => 'required|date',
             'catatan' => 'nullable|string',
+            'details' => 'required|array|min:1',
+            'details.*.pengadaan_detail_id' => 'required|exists:pengadaan_detail,pengadaan_detail_id',
+            'details.*.pemasok_id' => 'nullable|exists:pemasok,pemasok_id',
         ]);
 
         if ($validator->fails()) {
@@ -472,11 +523,14 @@ class PengadaanController extends Controller
                 ->withInput();
         }
 
-        $pengadaan->update($request->only([
-            'pemasok_id',
-            'tanggal_pengadaan',
-            'catatan'
-        ]));
+        // Update pengadaan data
+        $pengadaan->update($request->only(['catatan']));
+
+        // Update each detail's pemasok_id
+        foreach ($request->details as $detailData) {
+            PengadaanDetail::where('pengadaan_detail_id', $detailData['pengadaan_detail_id'])
+                ->update(['pemasok_id' => $detailData['pemasok_id']]);
+        }
 
         return redirect()->route('pengadaan.index')
             ->with('flash', [

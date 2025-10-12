@@ -80,9 +80,9 @@ const statusColors = {
 };
 
 const statusLabels = {
-    pending: 'Menunggu Dikirim',
+    pending: 'Pending',
     dikirim: 'Dikirim',
-    selesai: 'Selesai',
+    selesai: 'Diterima',
     dibatalkan: 'Dibatalkan',
 };
 
@@ -245,9 +245,9 @@ export default function Index({ pengiriman, filters, flash }: Props) {
                 type: 'select' as const,
                 options: [
                     { value: '', label: 'Semua Status' },
-                    { value: 'pending', label: 'Menunggu Dikirim' },
+                    { value: 'pending', label: 'Pending' },
                     { value: 'dikirim', label: 'Dikirim' },
-                    { value: 'selesai', label: 'Selesai' },
+                    { value: 'selesai', label: 'Diterima' },
                     { value: 'dibatalkan', label: 'Dibatalkan' },
                 ],
             },
@@ -273,7 +273,10 @@ export default function Index({ pengiriman, filters, flash }: Props) {
     const actions = useMemo(
         () => [
             createViewAction<Pengiriman>((item) => `/pengiriman/${item.pengiriman_id}`),
-            createEditAction<Pengiriman>((item) => `/pengiriman/${item.pengiriman_id}/edit`),
+            createEditAction<Pengiriman>(
+                (item) => `/pengiriman/${item.pengiriman_id}/edit`,
+                (item) => item.status !== 'selesai' && item.status !== 'dibatalkan',
+            ),
             createDeleteAction<Pengiriman>((item) => {
                 router.delete(`/pengiriman/${item.pengiriman_id}`, {
                     preserveState: false,

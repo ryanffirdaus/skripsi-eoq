@@ -8,9 +8,9 @@ import { useMemo } from 'react';
 interface Pemasok extends Record<string, unknown> {
     pemasok_id: string;
     nama_pemasok: string;
-    kontak_person: string | null;
+    narahubung: string | null;
     email: string | null;
-    telepon: string | null;
+    nomor_telepon: string | null;
     alamat: string | null;
     status: 'active' | 'inactive';
     catatan: string | null;
@@ -69,8 +69,8 @@ export default function Index({ pemasok, filters, flash }: Props) {
             defaultVisible: true,
         },
         {
-            key: 'kontak_person',
-            label: 'Kontak Person',
+            key: 'narahubung',
+            label: 'Narahubung',
             sortable: true,
             hideable: true,
             defaultVisible: true,
@@ -138,15 +138,35 @@ export default function Index({ pemasok, filters, flash }: Props) {
 
     const actions = useMemo(
         () => [
-            createEditAction<Pemasok>((item) => `/pemasok/${item.pemasok_id}/edit`),
-            createDeleteAction<Pemasok>((item) => {
-                router.delete(`/pemasok/${item.pemasok_id}`, {
-                    preserveState: false,
-                    onError: (errors) => {
-                        console.error('Delete failed:', errors);
-                    },
-                });
-            }),
+            createEditAction<Pemasok>(
+                (item) => `/pemasok/${item.pemasok_id}/edit`,
+                (item) => item.status === 'active', // Only show edit for active
+            ),
+            createDeleteAction<Pemasok>(
+                (item) => {
+                    router.delete(`/pemasok/${item.pemasok_id}`, {
+                        preserveState: false,
+                        onError: (errors) => {
+                            console.error('Delete failed:', errors);
+                        },
+                    });
+                },
+                (item) => item.status === 'active', // Only show delete for active
+            ),
+            {
+                label: 'Restore',
+                variant: 'default' as const,
+                onClick: (item: Pemasok) => {
+                    router.post(
+                        `/pemasok/${item.pemasok_id}/restore`,
+                        {},
+                        {
+                            preserveState: false,
+                        },
+                    );
+                },
+                show: (item: Pemasok) => item.status === 'inactive', // Only show restore for inactive
+            },
         ],
         [],
     );

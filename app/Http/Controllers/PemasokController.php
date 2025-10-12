@@ -20,16 +20,16 @@ class PemasokController extends Controller
         $sortDirection = $request->input('sort_direction', 'asc');
         $perPage = $request->input('per_page', 10);
 
-        // Build the query
-        $query = Pemasok::query();
+        // Build the query - include trashed
+        $query = Pemasok::withTrashed();
 
         // Apply search filter if a search term is present
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('nama_pemasok', 'like', '%' . $search . '%')
-                    ->orWhere('kontak_person', 'like', '%' . $search . '%')
+                    ->orWhere('narahubung', 'like', '%' . $search . '%')
                     ->orWhere('email', 'like', '%' . $search . '%')
-                    ->orWhere('telepon', 'like', '%' . $search . '%')
+                    ->orWhere('nomor_telepon', 'like', '%' . $search . '%')
                     ->orWhere('alamat', 'like', '%' . $search . '%');
             });
         }
@@ -37,8 +37,14 @@ class PemasokController extends Controller
         // Apply sorting
         $query->orderBy($sortBy, $sortDirection);
 
-        // Paginate the results
+        // Pagination
         $pemasok = $query->paginate($perPage)->withQueryString();
+
+        // Transform data to add status based on deleted_at
+        $pemasok->getCollection()->transform(function ($item) {
+            $item->status = $item->deleted_at ? 'inactive' : 'active';
+            return $item;
+        });
 
         return Inertia::render('pemasok/index', [
             'pemasok' => $pemasok,
@@ -70,11 +76,10 @@ class PemasokController extends Controller
     {
         $validated = $request->validate([
             'nama_pemasok' => ['required', 'string', 'max:255'],
-            'kontak_person' => ['required', 'string', 'max:255'],
+            'narahubung' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:pemasok,email'],
-            'telepon' => ['required', 'string', 'max:20'],
+            'nomor_telepon' => ['required', 'string', 'max:20'],
             'alamat' => ['required', 'string'],
-            'status' => ['required', Rule::in(['active', 'inactive'])],
             'catatan' => ['nullable', 'string'],
         ]);
 
@@ -118,11 +123,10 @@ class PemasokController extends Controller
     {
         $validated = $request->validate([
             'nama_pemasok' => ['required', 'string', 'max:255'],
-            'kontak_person' => ['required', 'string', 'max:255'],
+            'narahubung' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:pemasok,email,' . $pemasok->pemasok_id . ',pemasok_id'],
-            'telepon' => ['required', 'string', 'max:20'],
+            'nomor_telepon' => ['required', 'string', 'max:20'],
             'alamat' => ['required', 'string'],
-            'status' => ['required', Rule::in(['active', 'inactive'])],
             'catatan' => ['nullable', 'string'],
         ]);
 
@@ -154,5 +158,25 @@ class PemasokController extends Controller
                 ->with('message', 'Failed to delete the pemasok. It might be associated with other data.')
                 ->with('type', 'error');
         }
+    }
+
+    /**
+     * Restore a soft deleted pemasok
+     */
+    public function restore($pemasok_id)
+    {
+        $pemasok = Pemasok::withTrashed()->where('pemasok_id', $pemasok_id)->firstOrFail();
+
+        if ($pemasok->trashed()) {
+            $pemasok->restore();
+
+            return redirect()->route('pemasok.index')
+                ->with('message', "Pemasok '{$pemasok->nama_pemasok}' has been successfully restored.")
+                ->with('type', 'success');
+        }
+
+        return redirect()->route('pemasok.index')
+            ->with('message', 'Pemasok is not deleted.')
+            ->with('type', 'warning');
     }
 }

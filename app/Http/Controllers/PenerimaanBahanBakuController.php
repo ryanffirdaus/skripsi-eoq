@@ -17,7 +17,7 @@ class PenerimaanBahanBakuController extends Controller
 {
     public function index(Request $request)
     {
-        $query = PenerimaanBahanBaku::with(['pembelianDetail.pembelian', 'pembelianDetail.pengadaanDetail']);
+        $query = PenerimaanBahanBaku::with(['pembelianDetail.pembelian.pemasok', 'pembelianDetail.pengadaanDetail']);
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -30,12 +30,25 @@ class PenerimaanBahanBakuController extends Controller
         $penerimaan = $query->orderBy('created_at', 'desc')->paginate(10)->withQueryString();
 
         $penerimaan->getCollection()->transform(function ($item) {
+            $pembelian = $item->pembelianDetail?->pembelian;
+            $pemasok = $pembelian?->pemasok;
+            $pengadaanDetail = $item->pembelianDetail?->pengadaanDetail;
+
             return [
                 'penerimaan_id' => $item->penerimaan_id,
                 'pembelian_detail_id' => $item->pembelian_detail_id,
-                'nomor_po' => $item->pembelianDetail->pembelian->nomor_po ?? 'N/A',
-                'nama_item' => $item->pembelianDetail->pengadaanDetail->nama_item ?? 'N/A',
+                'nomor_penerimaan' => $item->penerimaan_id, // Using ID as nomor for now
+                'nomor_surat_jalan' => 'SJ-' . $item->penerimaan_id, // Generate placeholder
+                'tanggal_penerimaan' => $item->created_at?->format('Y-m-d'),
+                'status' => 'confirmed', // Default status
                 'qty_diterima' => $item->qty_diterima,
+                'nama_item' => $pengadaanDetail?->nama_item ?? '-',
+                'pembelian' => [
+                    'nomor_po' => $pembelian?->nomor_po ?? '-',
+                ],
+                'pemasok' => [
+                    'nama_pemasok' => $pemasok?->nama_pemasok ?? '-',
+                ],
                 'created_at' => $item->created_at?->format('Y-m-d H:i:s'),
             ];
         });

@@ -77,7 +77,7 @@ class TransaksiPembayaranController extends Controller
         // Data untuk filter di frontend
         $pembelians = Pembelian::with('pemasok:pemasok_id,nama_pemasok')
             ->select('pembelian_id', 'nomor_po', 'pemasok_id')
-            ->whereIn('status', ['confirmed', 'partial_received', 'fully_received'])
+            ->whereIn('status', ['confirmed', 'partially_received', 'fully_received'])
             ->orderBy('nomor_po')
             ->get()
             ->map(function ($item) {
@@ -112,7 +112,7 @@ class TransaksiPembayaranController extends Controller
     {
         // Ambil pembelian yang sudah dikonfirmasi (bisa dibayar)
         $pembelians = Pembelian::with('pemasok:pemasok_id,nama_pemasok')
-            ->whereIn('status', ['confirmed', 'partial_received', 'fully_received'])
+            ->whereIn('status', ['confirmed', 'partially_received', 'fully_received'])
             ->select('pembelian_id', 'nomor_po', 'pemasok_id', 'total_biaya', 'tanggal_pembelian', 'metode_pembayaran', 'termin_pembayaran', 'jumlah_dp')
             ->orderBy('tanggal_pembelian', 'desc')
             ->get()
@@ -305,7 +305,7 @@ class TransaksiPembayaranController extends Controller
         $transaksiPembayaran->load('pembelian.pemasok:pemasok_id,nama_pemasok');
 
         $pembelians = Pembelian::with('pemasok:pemasok_id,nama_pemasok')
-            ->whereIn('status', ['confirmed', 'partial_received', 'fully_received'])
+            ->whereIn('status', ['confirmed', 'partially_received', 'fully_received'])
             ->select('pembelian_id', 'nomor_po', 'pemasok_id', 'total_biaya')
             ->orderBy('nomor_po')
             ->get()

@@ -1,4 +1,4 @@
-import { FormField, Select, TextArea, TextInput } from '@/components/form/form-fields';
+import { FormField, TextArea, TextInput } from '@/components/form/form-fields';
 import FormTemplate from '@/components/form/form-template';
 import { type BreadcrumbItem } from '@/types';
 import { useForm } from '@inertiajs/react';
@@ -10,9 +10,8 @@ interface Pemasok {
     nama_pemasok: string;
     narahubung: string | null;
     email: string | null;
-    telepon: string | null;
+    nomor_telepon: string | null;
     alamat: string | null;
-    status: 'active' | 'inactive';
     catatan: string | null;
 }
 
@@ -36,9 +35,8 @@ export default function Edit({ pemasok }: Props) {
         nama_pemasok: pemasok.nama_pemasok || '',
         narahubung: pemasok.narahubung || '',
         email: pemasok.email || '',
-        telepon: pemasok.telepon || '',
+        nomor_telepon: pemasok.nomor_telepon || '',
         alamat: pemasok.alamat || '',
-        status: pemasok.status || 'active',
         catatan: pemasok.catatan || '',
     });
 
@@ -71,12 +69,12 @@ export default function Edit({ pemasok }: Props) {
                         />
                     </FormField>
 
-                    <FormField id="narahubung" label="Kontak Person" error={errors.narahubung} required>
+                    <FormField id="narahubung" label="Narahubung" error={errors.narahubung} required>
                         <TextInput
                             id="narahubung"
                             value={data.narahubung}
                             onChange={(e) => setData('narahubung', e.target.value)}
-                            placeholder="Masukkan nama kontak person"
+                            placeholder="Masukkan nama narahubung"
                             error={errors.narahubung}
                         />
                     </FormField>
@@ -92,13 +90,13 @@ export default function Edit({ pemasok }: Props) {
                         />
                     </FormField>
 
-                    <FormField id="telepon" label="Telepon" error={errors.telepon} required>
+                    <FormField id="nomor_telepon" label="Telepon" error={errors.nomor_telepon} required>
                         <TextInput
-                            id="telepon"
-                            value={data.telepon}
-                            onChange={(e) => setData('telepon', e.target.value)}
+                            id="nomor_telepon"
+                            value={data.nomor_telepon}
+                            onChange={(e) => setData('nomor_telepon', e.target.value)}
                             placeholder="Masukkan nomor telepon"
-                            error={errors.telepon}
+                            error={errors.nomor_telepon}
                         />
                     </FormField>
                 </div>
@@ -122,35 +120,19 @@ export default function Edit({ pemasok }: Props) {
                 </div>
             </div>
 
-            {/* Informasi Tambahan */}
+            {/* Catatan */}
             <div className="space-y-6">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Informasi Tambahan</h3>
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                    <FormField id="status" label="Status" error={errors.status} required>
-                        <Select
-                            id="status"
-                            value={data.status}
-                            onChange={(e) => setData('status', e.target.value as 'active' | 'inactive')}
-                            options={[
-                                { value: 'active', label: 'Aktif' },
-                                { value: 'inactive', label: 'Tidak Aktif' },
-                            ]}
-                            placeholder="Pilih status"
-                            error={errors.status}
-                        />
-                    </FormField>
-
-                    <FormField id="catatan" label="Catatan" error={errors.catatan}>
-                        <TextArea
-                            id="catatan"
-                            value={data.catatan}
-                            onChange={(e) => setData('catatan', e.target.value)}
-                            placeholder="Masukkan catatan tambahan (opsional)"
-                            rows={3}
-                            error={errors.catatan}
-                        />
-                    </FormField>
-                </div>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Catatan</h3>
+                <FormField id="catatan" label="Catatan" error={errors.catatan}>
+                    <TextArea
+                        id="catatan"
+                        value={data.catatan}
+                        onChange={(e) => setData('catatan', e.target.value)}
+                        placeholder="Masukkan catatan tambahan (opsional)"
+                        rows={3}
+                        error={errors.catatan}
+                    />
+                </FormField>
             </div>
         </FormTemplate>
     );

@@ -12,7 +12,7 @@ class TransaksiPembayaran extends Model
     protected $primaryKey = 'transaksi_pembayaran_id';
     public $incrementing = false;
     protected $keyType = 'string';
-
+    protected $table = 'transaksi_pembayaran';
 
     protected $fillable = [
         'transaksi_pembayaran_id',
@@ -28,6 +28,19 @@ class TransaksiPembayaran extends Model
         'tanggal_pembayaran' => 'date',
         'total_pembayaran' => 'decimal:2',
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            if (!$model->transaksi_pembayaran_id) {
+                $latest = static::orderBy('transaksi_pembayaran_id', 'desc')->first();
+                $nextNumber = $latest ? (int)substr($latest->transaksi_pembayaran_id, 3) + 1 : 1;
+                $model->transaksi_pembayaran_id = 'TRP' . str_pad($nextNumber, 8, '0', STR_PAD_LEFT);
+            }
+        });
+    }
 
     public function pembelian()
     {

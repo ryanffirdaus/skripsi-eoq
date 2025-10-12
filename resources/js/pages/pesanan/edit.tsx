@@ -27,6 +27,19 @@ interface PesananProduk {
     harga_satuan: number;
 }
 
+interface PesananDetail {
+    pesanan_detail_id: string;
+    produk_id: string;
+    jumlah_produk: number;
+    harga_satuan: number;
+    subtotal: number;
+    produk: {
+        produk_id: string;
+        nama_produk: string;
+        harga_jual: number;
+    };
+}
+
 interface Pesanan {
     pesanan_id: string;
     pelanggan_id: string;
@@ -35,15 +48,7 @@ interface Pesanan {
     catatan?: string;
     total_harga: number;
     pelanggan?: Pelanggan;
-    produk?: Array<{
-        produk_id: string;
-        nama_produk: string;
-        harga_jual: number;
-        pivot: {
-            jumlah_produk: number;
-            harga_satuan: number;
-        };
-    }>;
+    detail: PesananDetail[];
 }
 
 interface Props {
@@ -65,10 +70,10 @@ export default function Edit({ pesanan, pelanggan, produk }: Props) {
     ];
 
     const [selectedProducts, setSelectedProducts] = useState<PesananProduk[]>(
-        pesanan.produk?.map((p) => ({
-            produk_id: p.produk_id,
-            jumlah_produk: p.pivot.jumlah_produk,
-            harga_satuan: p.pivot.harga_satuan,
+        pesanan.detail?.map((d) => ({
+            produk_id: d.produk_id,
+            jumlah_produk: d.jumlah_produk,
+            harga_satuan: d.harga_satuan,
         })) || [],
     );
 

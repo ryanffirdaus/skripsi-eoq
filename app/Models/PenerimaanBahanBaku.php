@@ -37,12 +37,6 @@ class PenerimaanBahanBaku extends Model
                 $nextNumber = $latest ? (int)substr($latest->penerimaan_id, 3) + 1 : 1;
                 $model->{$model->getKeyName()} = 'RBM' . str_pad($nextNumber, 7, '0', STR_PAD_LEFT);
             }
-            if (!$model->nomor_penerimaan) {
-                $yearMonth = date('Ym');
-                $latestInMonth = static::where('nomor_penerimaan', 'like', "RCV-{$yearMonth}-%")->count();
-                $nextNumberInMonth = $latestInMonth + 1;
-                $model->nomor_penerimaan = "RCV-" . $yearMonth . "-" . str_pad($nextNumberInMonth, 4, '0', STR_PAD_LEFT);
-            }
             if (Auth::check() && !$model->created_by) {
                 $model->created_by = Auth::id();
             }
@@ -61,16 +55,23 @@ class PenerimaanBahanBaku extends Model
         return $this->hasMany(PenerimaanBahanBakuDetail::class, 'penerimaan_id', 'penerimaan_id');
     }
 
-    // Relasi ke pembelian (PO) asal
-    public function pembelian()
+    // Relasi ke pembelian detail (direct relationship)
+    public function pembelianDetail()
     {
-        return $this->belongsTo(Pembelian::class, 'pembelian_id', 'pembelian_id');
+        return $this->belongsTo(PembelianDetail::class, 'pembelian_detail_id', 'pembelian_detail_id');
     }
 
-    // Relasi ke pemasok
-    public function pemasok()
+    // Relasi ke pembelian melalui pembelianDetail
+    public function pembelian()
     {
-        return $this->belongsTo(Pemasok::class, 'pemasok_id', 'pemasok_id');
+        return $this->hasOneThrough(
+            Pembelian::class,
+            PembelianDetail::class,
+            'pembelian_detail_id', // Foreign key on PembelianDetail table
+            'pembelian_id', // Foreign key on Pembelian table
+            'pembelian_detail_id', // Local key on PenerimaanBahanBaku table
+            'pembelian_id' // Local key on PembelianDetail table
+        );
     }
 
     // Relasi ke user yang membuat

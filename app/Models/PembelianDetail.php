@@ -21,10 +21,7 @@ class PembelianDetail extends Model
     ];
 
     protected $casts = [
-        'qty_dipesan' => 'integer',
-        'qty_diterima' => 'integer',
-        'harga_satuan' => 'decimal:2',
-        'total_harga' => 'decimal:2',
+        // Quantities and prices are accessed via pengadaanDetail relationship
     ];
 
     protected static function boot()
@@ -37,20 +34,9 @@ class PembelianDetail extends Model
                 $nextNumber = $latest ? (int)substr($latest->pembelian_detail_id, 4) + 1 : 1;
                 $model->pembelian_detail_id = 'PBLD' . str_pad($nextNumber, 7, '0', STR_PAD_LEFT);
             }
-            // Set default qty_diterima
-            if (is_null($model->qty_diterima)) {
-                $model->qty_diterima = 0;
-            }
         });
 
         static::saved(function ($model) {
-            // Hitung ulang total_harga jika ada perubahan pada qty atau harga
-            if ($model->isDirty('qty_dipesan') || $model->isDirty('harga_satuan')) {
-                $model->total_harga = $model->qty_dipesan * $model->harga_satuan;
-                // Simpan tanpa memicu event lagi untuk menghindari loop
-                $model->saveQuietly();
-            }
-
             // Update total biaya di header pembelian
             $model->pembelian->updateTotalBiaya();
         });
@@ -80,17 +66,31 @@ class PembelianDetail extends Model
     }
 
     // Business Logic Methods
+    public function getQtyDipesanAttribute()
+    {
+        return $this->pengadaanDetail->qty_disetujui ?? $this->pengadaanDetail->qty_diminta;
+    }
+
+    public function getHargaSatuanAttribute()
+    {
+        return $this->pengadaanDetail->harga_satuan;
+    }
+
+    public function getTotalHargaAttribute()
+    {
+        return $this->qty_dipesan * $this->harga_satuan;
+    }
+
     public function isFullyReceived()
     {
         $totalDiterima = $this->penerimaanBahanBaku()->sum('qty_diterima');
-        $qtyDipesan = $this->pengadaanDetail->qty_disetujui ?? $this->pengadaanDetail->qty_diminta;
+        $qtyDipesan = $this->qty_dipesan;
         return $totalDiterima >= $qtyDipesan;
     }
 
     public function getOutstandingQty()
     {
         $totalDiterima = $this->penerimaanBahanBaku()->sum('qty_diterima');
-        $qtyDipesan = $this->pengadaanDetail->qty_disetujui ?? $this->pengadaanDetail->qty_diminta;
-        return $qtyDipesan - $totalDiterima;
+        return $this->qty_dipesan - $totalDiterima;
     }
 }

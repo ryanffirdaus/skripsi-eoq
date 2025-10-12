@@ -104,7 +104,7 @@ class PembelianController extends Controller
         // 1. Ambil data Pengadaan yang sudah disetujui keuangan dan belum diproses menjadi PO.
         $pengadaans = Pengadaan::where('status', 'disetujui_finance')
             ->with(['detail.pemasok:pemasok_id,nama_pemasok'])
-            ->orderBy('tanggal_pengadaan', 'desc')
+            ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($pengadaan) {
                 // Hanya sertakan pengadaan yang memiliki detail item
@@ -113,7 +113,7 @@ class PembelianController extends Controller
                 }
                 return [
                     'pengadaan_id' => $pengadaan->pengadaan_id,
-                    'display_text' => $pengadaan->pengadaan_id . ' (' . $pengadaan->tanggal_pengadaan . ')',
+                    'display_text' => $pengadaan->pengadaan_id . ' (' . date('Y-m-d', strtotime($pengadaan->created_at)) . ')',
                     'detail' => $pengadaan->detail->map(function ($detail) {
                         return [
                             'pengadaan_detail_id' => $detail->pengadaan_detail_id,
@@ -123,8 +123,9 @@ class PembelianController extends Controller
                             'barang_id' => $detail->barang_id,
                             'nama_item' => $detail->nama_item,
                             'satuan' => $detail->satuan,
-                            'qty' => $detail->qty,
+                            'qty_disetujui' => $detail->qty_disetujui ?? $detail->qty_diminta,
                             'harga_satuan' => $detail->harga_satuan,
+                            'total_harga' => $detail->total_harga,
                         ];
                     }),
                 ];
@@ -136,7 +137,7 @@ class PembelianController extends Controller
         // 3. Render komponen Inertia dengan data yang dibutuhkan.
         return Inertia::render('pembelian/create', [
             'pengadaans' => $pengadaans,
-            'pemasok' => $pemasok,
+            'pemasoks' => $pemasok,
         ]);
     }
 
@@ -154,8 +155,8 @@ class PembelianController extends Controller
             'tanggal_kirim_diharapkan' => 'nullable|date|after_or_equal:tanggal_pembelian',
             'catatan' => 'nullable|string',
             'metode_pembayaran' => 'required|in:tunai,transfer,termin',
-            'termin_pembayaran' => 'nullable|string|max:50',
-            'jumlah_dp' => 'required_if:metode_pembayaran,termin|numeric|min:0',
+            'termin_pembayaran' => 'nullable|string',
+            'jumlah_dp' => 'nullable|numeric|min:0',
             'items' => 'required|array|min:1',
             'items.*.pengadaan_detail_id' => 'required|exists:pengadaan_detail,pengadaan_detail_id',
         ]);
@@ -177,7 +178,7 @@ class PembelianController extends Controller
                 'catatan' => $request->catatan,
                 'metode_pembayaran' => $request->metode_pembayaran,
                 'termin_pembayaran' => $request->termin_pembayaran,
-                'jumlah_dp' => $request->metode_pembayaran === 'termin' ? $request->jumlah_dp : 0,
+                'jumlah_dp' => $request->metode_pembayaran === 'termin' ? ($request->jumlah_dp ?: 0) : 0,
                 'status' => 'draft', // Status awal untuk PO baru
             ]);
 
@@ -189,10 +190,10 @@ class PembelianController extends Controller
                 ]);
             }
 
-            // 5. Update status Pengadaan menjadi 'ordered'
+            // 5. Update status Pengadaan menjadi 'diproses'
             $pengadaan = Pengadaan::find($request->pengadaan_id);
-            if ($pengadaan) {
-                $pengadaan->status = 'ordered';
+            if ($pengadaan && $pengadaan->status === 'pending') {
+                $pengadaan->status = 'diproses';
                 $pengadaan->save();
             }
 
@@ -261,7 +262,7 @@ class PembelianController extends Controller
                         'barang_id' => $pengadaanDetail->barang_id,
                         'nama_item' => $pengadaanDetail->nama_item,
                         'satuan' => $pengadaanDetail->satuan,
-                        'qty_dipesan' => $pengadaanDetail->qty,
+                        'qty_dipesan' => $pengadaanDetail->qty_diminta,
                         'qty_diterima' => $detail->penerimaanBahanBaku->sum('qty_diterima'),
                         'harga_satuan' => $pengadaanDetail->harga_satuan,
                         'total_harga' => $pengadaanDetail->total_harga,
@@ -401,6 +402,25 @@ class PembelianController extends Controller
 
         return redirect()->route('pembelian.index')
             ->with('flash', ['message' => 'Purchase Order berhasil dihapus/dibatalkan!', 'type' => 'success']);
+    }
+
+    /**
+     * Update status pembelian
+     */
+    public function updateStatus(Request $request, $pembelian_id)
+    {
+        $pembelian = Pembelian::where('pembelian_id', $pembelian_id)->firstOrFail();
+
+        $validated = $request->validate([
+            'status' => 'required|in:draft,sent,confirmed,partially_received,fully_received,cancelled',
+        ]);
+
+        $pembelian->update(['status' => $validated['status']]);
+
+        return back()->with('flash', [
+            'message' => 'Status pembelian berhasil diperbarui!',
+            'type' => 'success'
+        ]);
     }
 
     /**

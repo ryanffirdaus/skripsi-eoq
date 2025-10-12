@@ -73,13 +73,13 @@ interface Produk {
 }
 
 interface ItemDetail {
-    item_type: 'bahan_baku' | 'produk';
-    item_id: string;
+    jenis_barang: 'bahan_baku' | 'produk'; // SOURCE OF TRUTH FROM MODEL
+    barang_id: string; // SOURCE OF TRUTH FROM MODEL
     pemasok_id?: string;
     nama_item?: string;
     satuan?: string;
     qty_needed?: number;
-    qty_procurement: number;
+    qty_diminta: number; // SOURCE OF TRUTH FROM MODEL
     harga_satuan?: number;
     catatan: string;
 }
@@ -114,7 +114,6 @@ export default function Create({ pemasoks, pesanan, bahanBaku, produk }: Props) 
 
     const { data, setData, post, processing, errors, reset } = useForm({
         pesanan_id: '',
-        tanggal_pengadaan: new Date().toISOString().split('T')[0],
         catatan: '',
         items: items,
     });
@@ -171,10 +170,10 @@ export default function Create({ pemasoks, pesanan, bahanBaku, produk }: Props) 
         const newItems = [
             ...items,
             {
-                item_type: 'bahan_baku' as const,
-                item_id: '',
+                jenis_barang: 'bahan_baku' as const,
+                barang_id: '',
                 pemasok_id: '',
-                qty_procurement: 1,
+                qty_diminta: 1,
                 catatan: '',
             },
         ];
@@ -190,21 +189,21 @@ export default function Create({ pemasoks, pesanan, bahanBaku, produk }: Props) 
         const newItems = [...items];
         newItems[index] = { ...newItems[index], [field]: value };
 
-        // Reset item_id when item_type changes
-        if (field === 'item_type') {
-            newItems[index].item_id = '';
+        // Reset barang_id when jenis_barang changes
+        if (field === 'jenis_barang') {
+            newItems[index].barang_id = '';
             newItems[index].pemasok_id = '';
         }
 
-        // Update item details when item_id changes
-        if (field === 'item_id' && value) {
-            const itemDetails = getItemDetails(newItems[index].item_type, value as string);
+        // Update item details when barang_id changes
+        if (field === 'barang_id' && value) {
+            const itemDetails = getItemDetails(newItems[index].jenis_barang, value as string);
             if (itemDetails) {
                 newItems[index].nama_item = itemDetails.nama;
                 newItems[index].satuan = itemDetails.satuan;
                 newItems[index].harga_satuan = itemDetails.harga;
-                if (!newItems[index].qty_procurement || newItems[index].qty_procurement === 1) {
-                    newItems[index].qty_procurement = itemDetails.eoq;
+                if (!newItems[index].qty_diminta || newItems[index].qty_diminta === 1) {
+                    newItems[index].qty_diminta = itemDetails.eoq;
                 }
             }
         }
@@ -259,7 +258,7 @@ export default function Create({ pemasoks, pesanan, bahanBaku, produk }: Props) 
     const calculateTotal = () => {
         return items.reduce((total, item) => {
             const harga = item.harga_satuan || 0;
-            const qty = item.qty_procurement || 0;
+            const qty = item.qty_diminta || 0;
             return total + harga * qty;
         }, 0);
     };
@@ -339,33 +338,24 @@ export default function Create({ pemasoks, pesanan, bahanBaku, produk }: Props) 
                                     Total: <strong className="text-gray-900">Rp {selectedPesanan.total_harga.toLocaleString('id-ID')}</strong>
                                 </span>
                             </div>
-                            <div className="mt-2">
-                                <strong className="text-xs text-gray-700">Produk yang dipesan:</strong>
-                                <div className="mt-1 space-y-1">
-                                    {selectedPesanan.produk.map((produk) => (
-                                        <div key={produk.produk_id} className="flex justify-between text-xs">
-                                            <span>{produk.nama_produk}</span>
-                                            <span className="font-medium">
-                                                {produk.jumlah_produk} {produk.satuan_produk}
-                                                <span className="ml-2 text-gray-500">(Stok: {produk.stok_produk})</span>
-                                            </span>
-                                        </div>
-                                    ))}
+                            {selectedPesanan.produk && selectedPesanan.produk.length > 0 && (
+                                <div className="mt-2">
+                                    <strong className="text-xs text-gray-700">Produk yang dipesan:</strong>
+                                    <div className="mt-1 space-y-1">
+                                        {selectedPesanan.produk.map((produk) => (
+                                            <div key={produk.produk_id} className="flex justify-between text-xs">
+                                                <span>{produk.nama_produk}</span>
+                                                <span className="font-medium">
+                                                    {produk.jumlah_produk} {produk.satuan_produk}
+                                                    <span className="ml-2 text-gray-500">(Stok: {produk.stok_produk})</span>
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
+                            )}
                         </div>
                     )}
-                </div>
-                <div>
-                    <Label htmlFor="tanggal_pengadaan">Tanggal Pengadaan *</Label>
-                    <Input
-                        id="tanggal_pengadaan"
-                        type="date"
-                        value={data.tanggal_pengadaan}
-                        onChange={(e) => setData('tanggal_pengadaan', e.target.value)}
-                        className={cn('mt-1', errors.tanggal_pengadaan && 'border-red-500')}
-                    />
-                    {errors.tanggal_pengadaan && <p className="mt-1 text-sm text-red-600">{errors.tanggal_pengadaan}</p>}
                 </div>
             </div>
 
@@ -421,7 +411,7 @@ export default function Create({ pemasoks, pesanan, bahanBaku, produk }: Props) 
 
                 <div className="space-y-4">
                     {items.map((item, index) => {
-                        const itemDetails = getItemDetails(item.item_type, item.item_id); // Selalu ambil dari sumber utama
+                        const itemDetails = getItemDetails(item.jenis_barang, item.barang_id); // Selalu ambil dari sumber utama
                         const isCritical = itemDetails ? itemDetails.stok <= itemDetails.rop : false; // Cek stok dari sini
                         const isCalculatedItem = !!item.nama_item;
 
@@ -439,8 +429,8 @@ export default function Create({ pemasoks, pesanan, bahanBaku, produk }: Props) 
                                     <div>
                                         <Label>Tipe Item</Label>
                                         <Select
-                                            value={item.item_type}
-                                            onValueChange={(value: 'bahan_baku' | 'produk') => updateItem(index, 'item_type', value)}
+                                            value={item.jenis_barang}
+                                            onValueChange={(value: 'bahan_baku' | 'produk') => updateItem(index, 'jenis_barang', value)}
                                             disabled={isCalculatedItem}
                                         >
                                             <SelectTrigger className="mt-1">
@@ -460,12 +450,12 @@ export default function Create({ pemasoks, pesanan, bahanBaku, produk }: Props) 
                                                 {item.nama_item} ({item.satuan})
                                             </div>
                                         ) : (
-                                            <Select value={item.item_id} onValueChange={(value) => updateItem(index, 'item_id', value)}>
+                                            <Select value={item.barang_id} onValueChange={(value) => updateItem(index, 'barang_id', value)}>
                                                 <SelectTrigger className="mt-1">
                                                     <SelectValue placeholder="Pilih Item" />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {getItemOptions(item.item_type).map((option) => (
+                                                    {getItemOptions(item.jenis_barang).map((option) => (
                                                         <SelectItem key={option.value} value={option.value}>
                                                             {option.label}
                                                         </SelectItem>
@@ -477,7 +467,7 @@ export default function Create({ pemasoks, pesanan, bahanBaku, produk }: Props) 
 
                                     <div className="md:col-span-2">
                                         <Label>Pemasok *</Label>
-                                        {item.item_type === 'bahan_baku' ? (
+                                        {item.jenis_barang === 'bahan_baku' ? (
                                             <>
                                                 <Select
                                                     value={item.pemasok_id || ''}
@@ -511,8 +501,8 @@ export default function Create({ pemasoks, pesanan, bahanBaku, produk }: Props) 
                                             <Label>Qty</Label>
                                             <Input
                                                 type="number"
-                                                value={item.qty_procurement}
-                                                onChange={(e) => updateItem(index, 'qty_procurement', parseInt(e.target.value) || 0)}
+                                                value={item.qty_diminta}
+                                                onChange={(e) => updateItem(index, 'qty_diminta', parseInt(e.target.value) || 0)}
                                                 className="mt-1"
                                                 min="1"
                                             />
@@ -543,13 +533,13 @@ export default function Create({ pemasoks, pesanan, bahanBaku, produk }: Props) 
                                         <div>
                                             <Label className="text-xs text-gray-600">Qty</Label>
                                             <div className="text-sm font-medium text-blue-600">
-                                                {item.qty_procurement} {itemDetails.satuan}
+                                                {item.qty_diminta} {itemDetails.satuan}
                                             </div>
                                         </div>
                                         <div>
                                             <Label className="text-xs text-gray-600">Total Harga</Label>
                                             <div className="text-sm font-bold text-green-600">
-                                                Rp {(item.qty_procurement * itemDetails.harga).toLocaleString('id-ID')}
+                                                Rp {(item.qty_diminta * itemDetails.harga).toLocaleString('id-ID')}
                                             </div>
                                         </div>
                                     </div>

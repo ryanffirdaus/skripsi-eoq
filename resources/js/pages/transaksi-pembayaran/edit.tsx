@@ -1,6 +1,7 @@
 import { FormField, TextArea, TextInput } from '@/components/form/form-fields';
 import FormTemplate from '@/components/form/form-template';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { colors } from '@/lib/colors';
 import { formatCurrency } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
@@ -23,8 +24,10 @@ interface Transaksi {
     pembelian_id: string;
     nomor_po: string;
     pemasok_nama: string;
+    jenis_pembayaran: string;
     tanggal_pembayaran: string;
-    total_pembayaran: number;
+    jumlah_pembayaran: number;
+    metode_pembayaran: string;
     bukti_pembayaran?: string;
     deskripsi?: string;
 }
@@ -42,8 +45,10 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function Edit({ transaksi }: Props) {
     const { data, setData, put, processing, errors } = useForm({
+        jenis_pembayaran: transaksi.jenis_pembayaran,
         tanggal_pembayaran: transaksi.tanggal_pembayaran,
-        total_pembayaran: transaksi.total_pembayaran.toString(),
+        jumlah_pembayaran: transaksi.jumlah_pembayaran.toString(),
+        metode_pembayaran: transaksi.metode_pembayaran,
         bukti_pembayaran: null as File | null,
         deskripsi: transaksi.deskripsi || '',
     });
@@ -93,6 +98,19 @@ export default function Edit({ transaksi }: Props) {
                     </div>
                 </div>
 
+                <FormField id="jenis_pembayaran" label="Jenis Pembayaran" error={errors.jenis_pembayaran} required>
+                    <Select value={data.jenis_pembayaran} onValueChange={(value) => setData('jenis_pembayaran', value)}>
+                        <SelectTrigger className={cn(errors.jenis_pembayaran && 'border-red-500')}>
+                            <SelectValue placeholder="Pilih Jenis Pembayaran" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="dp">Down Payment (DP)</SelectItem>
+                            <SelectItem value="termin">Termin</SelectItem>
+                            <SelectItem value="pelunasan">Pelunasan</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </FormField>
+
                 <FormField id="tanggal_pembayaran" label="Tanggal Pembayaran" error={errors.tanggal_pembayaran} required>
                     <TextInput
                         id="tanggal_pembayaran"
@@ -103,20 +121,32 @@ export default function Edit({ transaksi }: Props) {
                     />
                 </FormField>
 
-                <FormField id="total_pembayaran" label="Total Pembayaran" error={errors.total_pembayaran} required>
+                <FormField id="jumlah_pembayaran" label="Jumlah Pembayaran" error={errors.jumlah_pembayaran} required>
                     <TextInput
-                        id="total_pembayaran"
+                        id="jumlah_pembayaran"
                         type="number"
-                        value={data.total_pembayaran}
-                        onChange={(e) => setData('total_pembayaran', e.target.value)}
+                        value={data.jumlah_pembayaran}
+                        onChange={(e) => setData('jumlah_pembayaran', e.target.value)}
                         placeholder="0"
                         step="0.01"
                         min="0"
-                        error={errors.total_pembayaran}
+                        error={errors.jumlah_pembayaran}
                     />
-                    {data.total_pembayaran && parseFloat(data.total_pembayaran) > 0 && (
-                        <p className="mt-1 text-sm text-gray-600">= {formatCurrency(parseFloat(data.total_pembayaran))}</p>
+                    {data.jumlah_pembayaran && parseFloat(data.jumlah_pembayaran) > 0 && (
+                        <p className="mt-1 text-sm text-gray-600">= {formatCurrency(parseFloat(data.jumlah_pembayaran))}</p>
                     )}
+                </FormField>
+
+                <FormField id="metode_pembayaran" label="Metode Pembayaran" error={errors.metode_pembayaran} required>
+                    <Select value={data.metode_pembayaran} onValueChange={(value) => setData('metode_pembayaran', value)}>
+                        <SelectTrigger className={cn(errors.metode_pembayaran && 'border-red-500')}>
+                            <SelectValue placeholder="Pilih Metode Pembayaran" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="tunai">Tunai</SelectItem>
+                            <SelectItem value="transfer">Transfer</SelectItem>
+                        </SelectContent>
+                    </Select>
                 </FormField>
 
                 <div className="md:col-span-2">

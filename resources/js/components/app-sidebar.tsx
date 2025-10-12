@@ -4,7 +4,20 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
 // Ikon yang diimpor diperbarui
-import { Box, Building2, Component, Contact2, LayoutGrid, Package, PackageCheck, ShoppingBag, ShoppingCart, Truck, Users } from 'lucide-react';
+import {
+    Box,
+    Building2,
+    Component,
+    Contact2,
+    CreditCard,
+    LayoutGrid,
+    Package,
+    PackageCheck,
+    ShoppingBag,
+    ShoppingCart,
+    Truck,
+    Users,
+} from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
@@ -62,6 +75,11 @@ const mainNavItems: NavItem[] = [
         title: 'Penerimaan Bahan Baku',
         href: '/penerimaan-bahan-baku',
         icon: PackageCheck,
+    },
+    {
+        title: 'Transaksi Pembayaran',
+        href: '/transaksi-pembayaran',
+        icon: CreditCard,
     },
 ];
 

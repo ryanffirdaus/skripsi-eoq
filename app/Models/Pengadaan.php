@@ -27,11 +27,7 @@ class Pengadaan extends Model
         'deleted_by'
     ];
 
-    protected $casts = [
-        'tanggal_pengadaan' => 'date',
-        'tanggal_delivery' => 'date',
-        'total_biaya' => 'decimal:2',
-    ];
+    protected $appends = ['total_biaya'];
 
     protected static function boot()
     {
@@ -100,6 +96,14 @@ class Pengadaan extends Model
         return $this->belongsTo(User::class, 'deleted_by', 'user_id');
     }
 
+    // Accessors
+    public function getTotalBiayaAttribute()
+    {
+        return $this->detail->sum(function ($detail) {
+            return $detail->total_harga;
+        });
+    }
+
     // Status methods
     public function isDraft()
     {
@@ -144,8 +148,9 @@ class Pengadaan extends Model
 
     public function updateTotalBiaya()
     {
-        $this->total_biaya = $this->detail()->sum('total_harga');
-        $this->save();
+        // Total biaya is now calculated as an accessor from detail->total_harga
+        // This method is kept for backward compatibility but does nothing
+        return $this->total_biaya;
     }
 
     // Scope methods

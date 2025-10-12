@@ -40,6 +40,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Pemasok CRUD routes
     Route::resource('pemasok', PemasokController::class);
+    Route::post('pemasok/{pemasok_id}/restore', [PemasokController::class, 'restore'])->name('pemasok.restore');
 
     // Pesanan CRUD routes
     Route::resource('pesanan', PesananController::class);

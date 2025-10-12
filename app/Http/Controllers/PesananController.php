@@ -34,7 +34,7 @@ class PesananController extends Controller
         }
 
         // Query awal
-        $query = Pesanan::with(['pelanggan', 'produk']);
+        $query = Pesanan::with(['pelanggan', 'detail.produk']);
 
         // Filter search (misalnya cari nama pelanggan / id pesanan)
         if ($search) {
@@ -56,6 +56,21 @@ class PesananController extends Controller
 
         // Pagination
         $pesanan = $query->paginate($perPage)->withQueryString();
+
+        // Transform data untuk frontend
+        $pesanan->getCollection()->transform(function ($item) {
+            return [
+                'pesanan_id' => $item->pesanan_id,
+                'pelanggan_id' => $item->pelanggan_id,
+                'nama_pelanggan' => $item->pelanggan->nama_pelanggan ?? 'N/A',
+                'tanggal_pemesanan' => $item->tanggal_pemesanan,
+                'status' => $item->status,
+                'total_harga' => $item->total_harga,
+                'jumlah_produk' => $item->detail->sum('jumlah_produk'),
+                'created_at' => $item->created_at,
+                'updated_at' => $item->updated_at,
+            ];
+        });
 
         return Inertia::render('pesanan/index', [
             'pesanan' => $pesanan,

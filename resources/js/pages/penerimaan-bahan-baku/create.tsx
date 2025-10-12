@@ -26,7 +26,6 @@ interface ItemPenerimaan {
     qty_diterima_sebelumnya: number;
     qty_sisa: number;
     qty_diterima: number;
-    qty_diretur: number; // Ditambahkan
 }
 
 interface Props {
@@ -66,12 +65,11 @@ export default function Create({ pembelians = [] }: Props) {
         try {
             const response = await fetch(`/penerimaan/pembelian/${pembelianId}/details`);
             if (!response.ok) throw new Error('Gagal memuat detail pembelian.');
-            const fetchedItems: Omit<ItemPenerimaan, 'qty_diterima' | 'qty_diretur'>[] = await response.json();
+            const fetchedItems: Omit<ItemPenerimaan, 'qty_diterima'>[] = await response.json();
 
             const itemsWithQty = fetchedItems.map((item) => ({
                 ...item,
                 qty_diterima: 0,
-                qty_diretur: 0,
             }));
             setItems(itemsWithQty);
         } catch (error) {
@@ -83,29 +81,23 @@ export default function Create({ pembelians = [] }: Props) {
         }
     };
 
-    const updateItemQty = (index: number, field: 'qty_diterima' | 'qty_diretur', value: number) => {
+    const updateItemQty = (index: number, value: number) => {
         const newItems = [...items];
         const item = newItems[index];
-        const otherValue = field === 'qty_diterima' ? item.qty_diretur : item.qty_diterima;
 
-        // Pastikan total tidak melebihi sisa
-        const newValue = Math.max(0, value);
-        if (newValue + otherValue > item.qty_sisa) {
-            // Jika melebihi, sesuaikan nilai saat ini agar total = sisa
-            newItems[index] = { ...item, [field]: item.qty_sisa - otherValue };
-        } else {
-            newItems[index] = { ...item, [field]: newValue };
-        }
+        // Pastikan tidak melebihi sisa dan tidak negatif
+        const newValue = Math.max(0, Math.min(value, item.qty_sisa));
+        newItems[index] = { ...item, qty_diterima: newValue };
 
         setItems(newItems);
     };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        const itemsToSubmit = items.filter((item) => item.qty_diterima > 0 || item.qty_diretur > 0);
+        const itemsToSubmit = items.filter((item) => item.qty_diterima > 0);
 
         if (itemsToSubmit.length === 0) {
-            alert('Harap masukkan kuantitas diterima atau diretur minimal untuk satu item.');
+            alert('Harap masukkan kuantitas diterima minimal untuk satu item.');
             return;
         }
 
@@ -121,7 +113,7 @@ export default function Create({ pembelians = [] }: Props) {
 
     return (
         <FormTemplate
-            title="Catat Penerimaan & Retur Bahan Baku"
+            title="Catat Penerimaan Bahan Baku"
             backUrl="/penerimaan-bahan-baku"
             onSubmit={handleSubmit}
             processing={processing}
@@ -129,21 +121,20 @@ export default function Create({ pembelians = [] }: Props) {
             breadcrumbs={breadcrumbs}
             processingText="Menyimpan..."
         >
-            <Head title="Catat Penerimaan & Retur" />
+            <Head title="Catat Penerimaan Bahan Baku" />
 
-            {/* Info Box, Header Form ... sama seperti sebelumnya ... */}
             <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4">
                 <div className="flex items-start">
                     <div className="flex-shrink-0">
                         <InformationCircleIcon className="h-5 w-5 text-blue-400" />
                     </div>
                     <div className="ml-3">
-                        <h3 className="text-sm font-medium text-blue-800">Alur Pencatatan Penerimaan & Retur</h3>
+                        <h3 className="text-sm font-medium text-blue-800">Alur Pencatatan Penerimaan Bahan Baku</h3>
                         <div className="mt-2 text-sm text-blue-700">
                             <p>1. Pilih Purchase Order (PO) yang barangnya telah tiba.</p>
-                            <p>2. Masukkan kuantitas yang **diterima** (kondisi baik) dan yang **diretur** (ditolak).</p>
-                            <p>3. Total diterima + diretur tidak dapat melebihi sisa kuantitas pada PO.</p>
-                            <p>4. Setelah disimpan, stok hanya akan bertambah sesuai kuantitas yang diterima.</p>
+                            <p>2. Masukkan kuantitas yang diterima (kondisi baik).</p>
+                            <p>3. Kuantitas diterima tidak dapat melebihi sisa kuantitas pada PO.</p>
+                            <p>4. Setelah disimpan, stok akan bertambah sesuai kuantitas yang diterima.</p>
                         </div>
                     </div>
                 </div>
@@ -157,11 +148,13 @@ export default function Create({ pembelians = [] }: Props) {
                             <SelectValue placeholder="Pilih No. PO..." />
                         </SelectTrigger>
                         <SelectContent>
-                            {pembelians.map((p) => (
-                                <SelectItem key={p.pembelian_id} value={p.pembelian_id}>
-                                    {p.display_text}
-                                </SelectItem>
-                            ))}
+                            {pembelians &&
+                                Array.isArray(pembelians) &&
+                                pembelians.map((p) => (
+                                    <SelectItem key={p.pembelian_id} value={p.pembelian_id}>
+                                        {p.display_text}
+                                    </SelectItem>
+                                ))}
                         </SelectContent>
                     </Select>
                     {errors.pembelian_id && <p className="mt-1 text-sm text-red-600">{errors.pembelian_id}</p>}
@@ -170,7 +163,7 @@ export default function Create({ pembelians = [] }: Props) {
                     <Label htmlFor="nomor_surat_jalan">Nomor Surat Jalan (Pemasok) *</Label>
                     <Input
                         id="nomor_surat_jalan"
-                        value={data.nomor_surat_jalan}
+                        value={data.nomor_surat_jalan || ''}
                         onChange={(e) => setData('nomor_surat_jalan', e.target.value)}
                         className={cn('mt-1', errors.nomor_surat_jalan && 'border-red-500')}
                         placeholder="Contoh: SJ-2024-123"
@@ -182,7 +175,7 @@ export default function Create({ pembelians = [] }: Props) {
                     <Input
                         id="tanggal_penerimaan"
                         type="date"
-                        value={data.tanggal_penerimaan}
+                        value={data.tanggal_penerimaan || ''}
                         onChange={(e) => setData('tanggal_penerimaan', e.target.value)}
                         className={cn('mt-1', errors.tanggal_penerimaan && 'border-red-500')}
                     />
@@ -192,7 +185,7 @@ export default function Create({ pembelians = [] }: Props) {
                     <Label htmlFor="catatan">Catatan</Label>
                     <Textarea
                         id="catatan"
-                        value={data.catatan}
+                        value={data.catatan || ''}
                         onChange={(e) => setData('catatan', e.target.value)}
                         className="mt-1"
                         rows={3}
@@ -215,7 +208,7 @@ export default function Create({ pembelians = [] }: Props) {
                     <div className="mt-4 space-y-4">
                         {items.map((item, index) => (
                             <div key={item.pembelian_detail_id} className="rounded-lg border bg-white p-4">
-                                <div className="grid grid-cols-2 items-end gap-x-4 gap-y-2 md:grid-cols-12">
+                                <div className="grid grid-cols-2 items-end gap-x-4 gap-y-2 md:grid-cols-9">
                                     <div className="col-span-2 md:col-span-4">
                                         <Label>Nama Item</Label>
                                         <p className="font-medium">{item.nama_item}</p>
@@ -224,26 +217,16 @@ export default function Create({ pembelians = [] }: Props) {
                                         <Label>Sisa di PO</Label>
                                         <p className="font-semibold text-blue-600">{`${item.qty_sisa} ${item.satuan}`}</p>
                                     </div>
-                                    <div className="md:col-span-3">
+                                    <div className="col-span-2 md:col-span-3">
                                         <Label htmlFor={`qty-diterima-${index}`}>Qty Diterima *</Label>
                                         <Input
                                             id={`qty-diterima-${index}`}
                                             type="number"
                                             value={item.qty_diterima}
-                                            onChange={(e) => updateItemQty(index, 'qty_diterima', parseInt(e.target.value, 10) || 0)}
+                                            onChange={(e) => updateItemQty(index, parseInt(e.target.value, 10) || 0)}
                                             min="0"
+                                            max={item.qty_sisa}
                                             className={cn('mt-1 font-semibold', errors[`items.${index}.qty_diterima`] && 'border-red-500')}
-                                        />
-                                    </div>
-                                    <div className="md:col-span-3">
-                                        <Label htmlFor={`qty-diretur-${index}`}>Qty Diretur *</Label>
-                                        <Input
-                                            id={`qty-diretur-${index}`}
-                                            type="number"
-                                            value={item.qty_diretur}
-                                            onChange={(e) => updateItemQty(index, 'qty_diretur', parseInt(e.target.value, 10) || 0)}
-                                            min="0"
-                                            className={cn('mt-1 font-semibold', errors[`items.${index}.qty_diretur`] && 'border-red-500')}
                                         />
                                     </div>
                                 </div>

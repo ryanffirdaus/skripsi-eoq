@@ -222,7 +222,7 @@ export default function Edit({ penerimaan, flash }: EditProps) {
                                     <Input
                                         id="nomor_dokumen"
                                         type="text"
-                                        value={data.nomor_dokumen}
+                                        value={data.nomor_dokumen || ''}
                                         onChange={(e) => setData('nomor_dokumen', e.target.value)}
                                         className={errors.nomor_dokumen ? 'border-red-500' : ''}
                                         placeholder="Masukkan nomor dokumen..."
@@ -237,7 +237,7 @@ export default function Edit({ penerimaan, flash }: EditProps) {
                                     <Input
                                         id="tanggal_penerimaan"
                                         type="date"
-                                        value={data.tanggal_penerimaan}
+                                        value={data.tanggal_penerimaan || ''}
                                         onChange={(e) => setData('tanggal_penerimaan', e.target.value)}
                                         className={errors.tanggal_penerimaan ? 'border-red-500' : ''}
                                     />

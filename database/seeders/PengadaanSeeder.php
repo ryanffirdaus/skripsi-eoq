@@ -39,87 +39,129 @@ class PengadaanSeeder extends Seeder
 
         // --- DATA SEEDER KOMPREHENSIF ---
         $pengadaanData = [
-            // 1. Status: Draft, Jenis: Pesanan (Bahan Baku & Produk)
-            [
-                'jenis_pengadaan' => 'pesanan',
-                'pesanan_id' => $pesanans->random()->pesanan_id,
-                'status' => 'pending',
-                'created_by' => 'US001',
-                'details' => [
-                    ['type' => 'bahan_baku', 'qty' => 75],
-                    ['type' => 'produk', 'qty' => 10],
-                ]
-            ],
-            // 2. Status: Pending, Jenis: ROP (Hanya Bahan Baku)
+            // 1. Pengadaan ROP - Bahan Baku (Pending)
             [
                 'jenis_pengadaan' => 'rop',
+                'pesanan_id' => null,
                 'status' => 'pending',
+                'catatan' => 'Pengadaan otomatis berdasarkan ROP bahan baku',
                 'created_by' => 'US001',
                 'details' => [
-                    ['type' => 'bahan_baku', 'qty' => 120],
-                    ['type' => 'bahan_baku', 'qty' => 80],
-                ]
+                    ['type' => 'bahan_baku', 'qty' => 100, 'qty_disetujui' => null],
+                    ['type' => 'bahan_baku', 'qty' => 150, 'qty_disetujui' => null],
+                ],
             ],
-            // 3. Status: Procurement Approved
+
+            // 2. Pengadaan ROP - Produk (Approved by Procurement)
             [
                 'jenis_pengadaan' => 'rop',
+                'pesanan_id' => null,
                 'status' => 'disetujui_procurement',
+                'catatan' => 'Pengadaan otomatis berdasarkan ROP produk',
                 'created_by' => 'US001',
                 'details' => [
-                    ['type' => 'bahan_baku', 'qty' => 100],
-                    ['type' => 'bahan_baku', 'qty' => 50],
-                ]
+                    ['type' => 'produk', 'qty' => 50, 'qty_disetujui' => 48],
+                    ['type' => 'produk', 'qty' => 30, 'qty_disetujui' => 30],
+                ],
             ],
-            // 4. Status: Finance Approved -> Siap untuk dibuat PO oleh PembelianSeeder
+
+            // 3. Pengadaan dari Pesanan - Mixed (Approved by Procurement)
             [
                 'jenis_pengadaan' => 'pesanan',
-                'pesanan_id' => $pesanans->random()->pesanan_id,
+                'pesanan_id' => $pesanans->first()->pesanan_id,
+                'status' => 'disetujui_procurement',
+                'catatan' => 'Pengadaan dari pesanan pelanggan - bahan baku dan produk',
+                'created_by' => 'US001',
+                'details' => [
+                    ['type' => 'bahan_baku', 'qty' => 200, 'qty_disetujui' => 180],
+                    ['type' => 'produk', 'qty' => 75, 'qty_disetujui' => 75],
+                    ['type' => 'bahan_baku', 'qty' => 120, 'qty_disetujui' => 120],
+                ],
+            ],
+
+            // 4. Pengadaan dari Pesanan - Bahan Baku Only (Finance Approved - Ready for PO)
+            [
+                'jenis_pengadaan' => 'pesanan',
+                'pesanan_id' => $pesanans->skip(1)->first()->pesanan_id ?? $pesanans->first()->pesanan_id,
                 'status' => 'disetujui_finance',
+                'catatan' => 'Pengadaan bahan baku untuk pesanan - siap dibuat PO',
                 'created_by' => 'US001',
                 'details' => [
-                    ['type' => 'bahan_baku', 'qty' => 200],
-                ]
+                    ['type' => 'bahan_baku', 'qty' => 150, 'qty_disetujui' => 150],
+                    ['type' => 'bahan_baku', 'qty' => 100, 'qty_disetujui' => 100],
+                    ['type' => 'bahan_baku', 'qty' => 80, 'qty_disetujui' => 80],
+                ],
             ],
-            // 5. Status: Ordered -> Sudah diproses oleh PembelianSeeder
-            [
-                'jenis_pengadaan' => 'pesanan',
-                'pesanan_id' => $pesanans->random()->pesanan_id,
-                'status' => 'diproses',
-                'created_by' => 'US001',
-                'details' => [
-                    ['type' => 'produk', 'qty' => 25],
-                ]
-            ],
-            // 6. Status: Partial Received
+
+            // 5. Pengadaan ROP - Produk Only (Finance Approved - Ready for PO)
             [
                 'jenis_pengadaan' => 'rop',
-                'status' => 'diproses',
+                'pesanan_id' => null,
+                'status' => 'disetujui_finance',
+                'catatan' => 'Pengadaan produk jadi berdasarkan ROP - siap dibuat PO',
                 'created_by' => 'US001',
                 'details' => [
-                    ['type' => 'bahan_baku', 'qty' => 150],
-                ]
+                    ['type' => 'produk', 'qty' => 40, 'qty_disetujui' => 40],
+                    ['type' => 'produk', 'qty' => 60, 'qty_disetujui' => 60],
+                ],
             ],
-            // 7. Status: Received (Lengkap)
+
+            // 6. Pengadaan Mixed - Bahan & Produk (Finance Approved)
             [
                 'jenis_pengadaan' => 'rop',
-                'status' => 'diterima',
+                'pesanan_id' => null,
+                'status' => 'disetujui_finance',
+                'catatan' => 'Pengadaan campuran bahan baku dan produk - siap dibuat PO',
                 'created_by' => 'US001',
                 'details' => [
-                    ['type' => 'bahan_baku', 'qty' => 50],
-                ]
+                    ['type' => 'bahan_baku', 'qty' => 90, 'qty_disetujui' => 90],
+                    ['type' => 'produk', 'qty' => 25, 'qty_disetujui' => 25],
+                    ['type' => 'bahan_baku', 'qty' => 110, 'qty_disetujui' => 110],
+                    ['type' => 'produk', 'qty' => 35, 'qty_disetujui' => 35],
+                ],
             ],
-            // 8. Status: Cancelled
+
+            // 7. Pengadaan Rejected
             [
                 'jenis_pengadaan' => 'pesanan',
-                'pesanan_id' => $pesanans->random()->pesanan_id,
+                'pesanan_id' => $pesanans->skip(2)->first()->pesanan_id ?? $pesanans->first()->pesanan_id,
                 'status' => 'dibatalkan',
+                'catatan' => 'Pengadaan dibatalkan - jumlah terlalu besar',
                 'created_by' => 'US001',
                 'details' => [
-                    ['type' => 'produk', 'qty' => 5],
-                ]
+                    ['type' => 'bahan_baku', 'qty' => 500, 'qty_disetujui' => null],
+                    ['type' => 'produk', 'qty' => 200, 'qty_disetujui' => null],
+                ],
+            ],
+
+            // 8. Pengadaan Diproses (PO sudah dibuat, menunggu penerimaan)
+            [
+                'jenis_pengadaan' => 'rop',
+                'pesanan_id' => null,
+                'status' => 'diproses',
+                'catatan' => 'Pengadaan sedang diproses - PO sudah dikirim ke pemasok',
+                'created_by' => 'US001',
+                'details' => [
+                    ['type' => 'bahan_baku', 'qty' => 120, 'qty_disetujui' => 120],
+                    ['type' => 'bahan_baku', 'qty' => 80, 'qty_disetujui' => 80],
+                ],
+            ],
+
+            // 9. Pengadaan Diterima (Barang sudah diterima lengkap)
+            [
+                'jenis_pengadaan' => 'rop',
+                'pesanan_id' => null,
+                'status' => 'diterima',
+                'catatan' => 'Pengadaan selesai - barang sudah diterima lengkap',
+                'created_by' => 'US001',
+                'details' => [
+                    ['type' => 'produk', 'qty' => 50, 'qty_disetujui' => 50],
+                    ['type' => 'produk', 'qty' => 30, 'qty_disetujui' => 30],
+                ],
             ],
         ];
 
+        // Process each pengadaan
         foreach ($pengadaanData as $data) {
             $detailItems = $data['details'];
             unset($data['details']);
@@ -152,8 +194,8 @@ class PengadaanSeeder extends Seeder
                     'jenis_barang' => $item['type'],
                     'barang_id' => $detailData['item_id'],
                     'qty_diminta' => $item['qty'],
-                    'qty_disetujui' => $item['qty_disetujui'] ?? $item['qty'],
-                    'qty_diterima' => $item['qty_diterima'] ?? 0,
+                    'qty_disetujui' => $item['qty_disetujui'] ?? null,
+                    'qty_diterima' => 0,
                     'harga_satuan' => $detailData['harga_satuan'],
                     'catatan' => 'Catatan seeder ' . $item['type'],
                 ]);

@@ -503,7 +503,7 @@ export default function Show({ pembelian, flash }: Props) {
                                 )}
                                 {pembelian.pemasok.narahubung && (
                                     <div>
-                                        <p className="text-sm font-medium text-gray-500">Kontak Person</p>
+                                        <p className="text-sm font-medium text-gray-500">Narahubung</p>
                                         <p className="text-sm">{pembelian.pemasok.narahubung}</p>
                                     </div>
                                 )}

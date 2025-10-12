@@ -77,26 +77,19 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function Index({ pengadaan, filters, flash }: Props) {
     const getStatusBadge = (status: string) => {
-        const statusColors = {
-            pending: 'secondary',
-            disetujui_procurement: 'default',
-            disetujui_finance: 'default',
-            diproses: 'default',
-            diterima: 'default',
-            dibatalkan: 'destructive',
-        } as const;
+        const statusConfig = {
+            pending: { variant: 'secondary' as const, label: 'Menunggu' },
+            disetujui_procurement: { variant: 'default' as const, label: 'Disetujui (Pengadaan)' },
+            disetujui_finance: { variant: 'default' as const, label: 'Disetujui (Keuangan)' },
+            diproses: { variant: 'default' as const, label: 'Dipesan' },
+            partial_diterima: { variant: 'default' as const, label: 'Sebagian' },
+            diterima: { variant: 'default' as const, label: 'Diterima' },
+            dibatalkan: { variant: 'destructive' as const, label: 'Dibatalkan' },
+        };
 
-        return (
-            <Badge variant={statusColors[status as keyof typeof statusColors] || 'outline'}>
-                {status === 'pending' && 'Menunggu'}
-                {status === 'disetujui_procurement' && 'Disetujui (Pengadaan)'}
-                {status === 'disetujui_finance' && 'Disetujui (Keuangan)'}
-                {status === 'diproses' && 'Dipesan'}
-                {status === 'partial_diterima' && 'Sebagian'}
-                {status === 'diterima' && 'Diterima'}
-                {status === 'dibatalkan' && 'Dibatalkan'}
-            </Badge>
-        );
+        const config = statusConfig[status as keyof typeof statusConfig] || { variant: 'outline' as const, label: status };
+
+        return <Badge variant={config.variant}>{config.label}</Badge>;
     };
 
     const getJenisBadge = (jenis: string) => {

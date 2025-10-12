@@ -94,12 +94,12 @@ class Pemasok extends Model
     // Scope methods
     public function scopeActive($query)
     {
-        return $query->where('status', 'active');
+        return $query->whereNull('deleted_at');
     }
 
     public function scopeInactive($query)
     {
-        return $query->where('status', 'inactive');
+        return $query->onlyTrashed();
     }
 
     public function penerimaanBahanBaku()

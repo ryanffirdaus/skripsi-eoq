@@ -35,6 +35,9 @@ interface Pembelian {
     total_biaya: number;
     status: string;
     catatan?: string;
+    metode_pembayaran: string;
+    termin_pembayaran?: string;
+    jumlah_dp?: number;
     can_be_edited: boolean;
     detail: PembelianDetail[];
 }
@@ -56,6 +59,9 @@ export default function Edit({ pembelian, pemasoks }: Props) {
         tanggal_pembelian: pembelian.tanggal_pembelian,
         tanggal_kirim_diharapkan: pembelian.tanggal_kirim_diharapkan || '',
         catatan: pembelian.catatan || '',
+        metode_pembayaran: pembelian.metode_pembayaran,
+        termin_pembayaran: pembelian.termin_pembayaran || '',
+        jumlah_dp: pembelian.jumlah_dp || 0,
         items: pembelian.detail,
     });
 
@@ -118,11 +124,13 @@ export default function Edit({ pembelian, pemasoks }: Props) {
                             <SelectValue placeholder="Pilih Pemasok" />
                         </SelectTrigger>
                         <SelectContent>
-                            {pemasoks.map((s) => (
-                                <SelectItem key={s.pemasok_id} value={s.pemasok_id}>
-                                    {s.nama_pemasok}
-                                </SelectItem>
-                            ))}
+                            {pemasoks &&
+                                Array.isArray(pemasoks) &&
+                                pemasoks.map((s) => (
+                                    <SelectItem key={s.pemasok_id} value={s.pemasok_id}>
+                                        {s.nama_pemasok}
+                                    </SelectItem>
+                                ))}
                         </SelectContent>
                     </Select>
                     {errors.pemasok_id && <p className="mt-1 text-sm text-red-600">{errors.pemasok_id}</p>}
@@ -151,6 +159,53 @@ export default function Edit({ pembelian, pemasoks }: Props) {
                     />
                     {errors.tanggal_kirim_diharapkan && <p className="mt-1 text-sm text-red-600">{errors.tanggal_kirim_diharapkan}</p>}
                 </div>
+                <div>
+                    <Label htmlFor="metode_pembayaran">Metode Pembayaran *</Label>
+                    <Select
+                        value={data.metode_pembayaran}
+                        onValueChange={(value) => setData('metode_pembayaran', value)}
+                        disabled={!pembelian.can_be_edited}
+                    >
+                        <SelectTrigger className={cn('mt-1', errors.metode_pembayaran && 'border-red-500')}>
+                            <SelectValue placeholder="Pilih Metode Pembayaran" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="tunai">Tunai</SelectItem>
+                            <SelectItem value="transfer">Transfer</SelectItem>
+                            <SelectItem value="termin">Termin</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    {errors.metode_pembayaran && <p className="mt-1 text-sm text-red-600">{errors.metode_pembayaran}</p>}
+                </div>
+                {data.metode_pembayaran === 'termin' && (
+                    <>
+                        <div>
+                            <Label htmlFor="termin_pembayaran">Termin Pembayaran</Label>
+                            <Input
+                                id="termin_pembayaran"
+                                type="text"
+                                value={data.termin_pembayaran}
+                                onChange={(e) => setData('termin_pembayaran', e.target.value)}
+                                className="mt-1"
+                                placeholder="e.g., 30/70"
+                                disabled={!pembelian.can_be_edited}
+                            />
+                        </div>
+                        <div>
+                            <Label htmlFor="jumlah_dp">Jumlah DP *</Label>
+                            <Input
+                                id="jumlah_dp"
+                                type="number"
+                                value={data.jumlah_dp}
+                                onChange={(e) => setData('jumlah_dp', parseFloat(e.target.value) || 0)}
+                                className={cn('mt-1', errors.jumlah_dp && 'border-red-500')}
+                                min="0"
+                                disabled={!pembelian.can_be_edited}
+                            />
+                            {errors.jumlah_dp && <p className="mt-1 text-sm text-red-600">{errors.jumlah_dp}</p>}
+                        </div>
+                    </>
+                )}
                 <div className="md:col-span-2">
                     <Label htmlFor="catatan">Catatan</Label>
                     <Textarea

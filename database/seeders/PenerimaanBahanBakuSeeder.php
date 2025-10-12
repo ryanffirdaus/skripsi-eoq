@@ -20,8 +20,14 @@ class PenerimaanBahanBakuSeeder extends Seeder
         PenerimaanBahanBakuDetail::truncate();
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
-        // Cari PO yang sudah dikirim (ordered) atau diterima sebagian (partially_received)
-        $eligiblePembelian = Pembelian::whereIn('status', ['ordered', 'partially_received'])->get();
+        // Get Pembelian that need receipts based on their status
+        // - sent: waiting to be received
+        // - confirmed: confirmed, waiting/receiving goods
+        // - partially_received: some items received, need more
+        // - fully_received: all items received
+        $eligiblePembelian = Pembelian::whereIn('status', ['sent', 'confirmed', 'partially_received', 'fully_received'])
+            ->with('detail.pengadaanDetail')
+            ->get();
 
         if ($eligiblePembelian->isEmpty()) {
             $this->command->warn('Tidak ditemukan Pembelian yang siap untuk diterima barangnya. Seeding dilewati.');
@@ -29,37 +35,67 @@ class PenerimaanBahanBakuSeeder extends Seeder
         }
 
         foreach ($eligiblePembelian as $pembelian) {
-            // Buat 1-2 penerimaan per PO
-            for ($i = 0; $i < rand(1, 2); $i++) {
-                // Pastikan masih ada item yang belum diterima sepenuhnya
-                $outstandingItems = $pembelian->detail()->whereRaw('qty_diterima < qty_dipesan')->get();
-                if ($outstandingItems->isEmpty()) {
-                    continue; // Lanjut ke PO berikutnya jika semua sudah diterima
+            // Determine receipt pattern based on status
+            $receiptPattern = match ($pembelian->status) {
+                'sent' => null, // No receipt yet
+                'confirmed' => 'partial', // Start receiving
+                'partially_received' => 'partial', // Continue receiving
+                'fully_received' => 'full', // Complete receipt
+                default => null,
+            };
+
+            if ($receiptPattern === null) {
+                continue; // Skip if no receipt needed
+            }
+
+            // For each pembelian detail, create penerimaan records
+            foreach ($pembelian->detail as $pembelianDetail) {
+                $pengadaanDetail = $pembelianDetail->pengadaanDetail;
+
+                if (!$pengadaanDetail) {
+                    continue;
                 }
 
-                $penerimaan = PenerimaanBahanBaku::factory()->create([
-                    'pembelian_id' => $pembelian->pembelian_id,
-                    'pemasok_id' => $pembelian->pemasok_id,
-                ]);
+                $qtyDipesan = $pengadaanDetail->qty_disetujui ?? $pengadaanDetail->qty_diminta;
 
-                // Ambil beberapa item yang belum lunas untuk penerimaan ini
-                foreach ($outstandingItems->random(rand(1, $outstandingItems->count())) as $itemDetail) {
-                    $qtySisa = $itemDetail->getOutstandingQty();
-                    if ($qtySisa <= 0) continue;
+                if ($receiptPattern === 'full') {
+                    // Fully received: create receipts that total 100%
+                    $numReceipts = rand(1, 2);
+                    $totalReceived = 0;
 
-                    // Terima sebagian atau semua sisa
-                    $qtyDiterima = rand(1, $qtySisa);
+                    for ($i = 0; $i < $numReceipts; $i++) {
+                        $qtyRemaining = $qtyDipesan - $totalReceived;
 
-                    PenerimaanBahanBakuDetail::create([
-                        'penerimaan_id' => $penerimaan->penerimaan_id,
-                        'pembelian_detail_id' => $itemDetail->pembelian_detail_id,
-                        'item_id' => $itemDetail->item_id,
-                        'nama_item' => $itemDetail->nama_item,
-                        'satuan' => $itemDetail->satuan,
-                        'qty_dipesan' => $itemDetail->qty_dipesan,
+                        if ($qtyRemaining <= 0) {
+                            break;
+                        }
+
+                        // Last receipt gets all remaining
+                        if ($i === $numReceipts - 1) {
+                            $qtyDiterima = $qtyRemaining;
+                        } else {
+                            $qtyDiterima = rand(ceil($qtyRemaining * 0.5), ceil($qtyRemaining * 0.8));
+                        }
+
+                        PenerimaanBahanBaku::create([
+                            'pembelian_detail_id' => $pembelianDetail->pembelian_detail_id,
+                            'qty_diterima' => $qtyDiterima,
+                        ]);
+
+                        $totalReceived += $qtyDiterima;
+                    }
+
+                    $this->command->line("  > Penerimaan LENGKAP untuk PO {$pembelian->nomor_po} item {$pembelianDetail->pembelian_detail_id} berhasil dibuat ({$totalReceived}/{$qtyDipesan}).");
+                } else {
+                    // Partial receipt: 30-70% of ordered quantity
+                    $qtyDiterima = rand(ceil($qtyDipesan * 0.3), ceil($qtyDipesan * 0.7));
+
+                    PenerimaanBahanBaku::create([
+                        'pembelian_detail_id' => $pembelianDetail->pembelian_detail_id,
                         'qty_diterima' => $qtyDiterima,
-                        'qty_sisa_sebelumnya' => $qtySisa,
                     ]);
+
+                    $this->command->line("  > Penerimaan SEBAGIAN untuk PO {$pembelian->nomor_po} item {$pembelianDetail->pembelian_detail_id} berhasil dibuat ({$qtyDiterima}/{$qtyDipesan}).");
                 }
             }
         }
