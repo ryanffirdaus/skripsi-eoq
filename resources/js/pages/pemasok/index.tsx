@@ -1,14 +1,14 @@
-import { TableTemplate, type TableColumn } from '@/components/table/table-template';
-import { createDeleteAction, createEditAction, type ActionItem } from '@/components/table/table-utils';
+import { createDeleteAction, createEditAction } from '@/components/table/table-actions';
+import TableTemplate from '@/components/table/table-template';
 import { Badge } from '@/components/ui/badge';
 import { type BreadcrumbItem } from '@/types';
 import { router } from '@inertiajs/react';
+import { useMemo } from 'react';
 
-// Interface disesuaikan untuk Pemasok
 interface Pemasok extends Record<string, unknown> {
     pemasok_id: string;
     nama_pemasok: string;
-    narahubung: string | null;
+    kontak_person: string | null;
     email: string | null;
     telepon: string | null;
     alamat: string | null;
@@ -18,15 +18,12 @@ interface Pemasok extends Record<string, unknown> {
     updated_at: string;
 }
 
-// Filters interface
-interface Filters {
-    search?: string;
-    sort_by?: string;
-    sort_direction?: 'asc' | 'desc';
-    per_page?: number;
+interface PaginationLink {
+    url: string | null;
+    label: string;
+    active: boolean;
 }
 
-// Interface paginasi disesuaikan untuk Pemasok
 interface PaginatedPemasok {
     data: Pemasok[];
     current_page: number;
@@ -35,22 +32,26 @@ interface PaginatedPemasok {
     total: number;
     from: number;
     to: number;
+    links: PaginationLink[];
 }
 
-// Flash message interface
-interface FlashMessage {
-    message: string | null;
-    type: 'success' | 'error' | 'warning' | 'info';
+interface Filters {
+    search?: string;
+    sort_by: string;
+    sort_direction: 'asc' | 'desc';
+    per_page: number;
+    status?: string;
+    [key: string]: string | number | undefined;
 }
 
-// Props interface
 interface Props {
-    pemasok: PaginatedPemasok; // Menggunakan data pemasok
+    pemasok: PaginatedPemasok;
     filters: Filters;
-    flash: FlashMessage;
+    flash?: {
+        message?: string;
+    };
 }
 
-// Breadcrumbs diperbarui untuk Pemasok
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Pemasok',
@@ -59,91 +60,116 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function Index({ pemasok, filters, flash }: Props) {
-    console.log('Pemasok Index render', { pemasok, filters, flash });
-
-    // Define columns for the table
-    const columns: TableColumn<Pemasok>[] = [
-        {
-            key: 'pemasok_id',
-            label: 'ID Pemasok',
-            sortable: true,
-            searchable: false,
-        },
+    const columns = [
         {
             key: 'nama_pemasok',
             label: 'Nama Pemasok',
             sortable: true,
-            searchable: true,
+            hideable: true,
+            defaultVisible: true,
         },
         {
-            key: 'narahubung',
+            key: 'kontak_person',
             label: 'Kontak Person',
             sortable: true,
-            searchable: false,
+            hideable: true,
+            defaultVisible: true,
         },
         {
             key: 'email',
             label: 'Email',
             sortable: true,
-            searchable: false,
+            hideable: true,
+            defaultVisible: true,
         },
         {
             key: 'telepon',
             label: 'Telepon',
             sortable: true,
-            searchable: false,
+            hideable: true,
+            defaultVisible: true,
         },
         {
             key: 'alamat',
             label: 'Alamat',
             sortable: false,
-            searchable: false,
+            hideable: true,
+            defaultVisible: true,
         },
         {
             key: 'status',
             label: 'Status',
             sortable: true,
-            searchable: false,
-            render: (item: Pemasok) => (
-                <Badge variant={item.status === 'active' ? 'default' : 'destructive'}>{item.status === 'active' ? 'Aktif' : 'Tidak Aktif'}</Badge>
+            hideable: true,
+            defaultVisible: true,
+            render: (pemasok: Pemasok) => (
+                <Badge variant={pemasok.status === 'active' ? 'default' : 'secondary'}>{pemasok.status === 'active' ? 'Aktif' : 'Tidak Aktif'}</Badge>
             ),
+        },
+        {
+            key: 'pemasok_id',
+            label: 'ID Pemasok',
+            sortable: true,
+            hideable: true,
+            defaultVisible: false,
         },
         {
             key: 'created_at',
             label: 'Dibuat Pada',
             sortable: true,
-            searchable: false,
-            render: (item: Pemasok) => <span>{new Date(item.created_at).toLocaleDateString('id-ID')}</span>,
+            hideable: true,
+            defaultVisible: false,
+            render: (pemasok: Pemasok) => new Date(pemasok.created_at).toLocaleDateString('id-ID'),
         },
     ];
 
-    // Actions disesuaikan untuk Pemasok
-    const actions: ActionItem<Pemasok>[] = [
-        // Edit action
-        createEditAction<Pemasok>((item) => `/pemasok/${item.pemasok_id}/edit`),
-        // Delete action
-        createDeleteAction<Pemasok>((item) => {
-            router.delete(`/pemasok/${item.pemasok_id}`, {
-                preserveScroll: true,
-            });
-        }),
+    const filterOptions = [
+        {
+            key: 'status',
+            label: 'Status',
+            type: 'select' as const,
+            placeholder: 'Semua Status',
+            options: [
+                { value: 'active', label: 'Aktif' },
+                { value: 'inactive', label: 'Tidak Aktif' },
+            ],
+        },
     ];
+
+    const actions = useMemo(
+        () => [
+            createEditAction<Pemasok>((item) => `/pemasok/${item.pemasok_id}/edit`),
+            createDeleteAction<Pemasok>((item) => {
+                router.delete(`/pemasok/${item.pemasok_id}`, {
+                    preserveState: false,
+                    onError: (errors) => {
+                        console.error('Delete failed:', errors);
+                    },
+                });
+            }),
+        ],
+        [],
+    );
 
     return (
         <TableTemplate<Pemasok>
             title="Manajemen Pemasok"
-            description="Kelola data pemasok bahan baku"
+            breadcrumbs={breadcrumbs}
             data={pemasok}
             columns={columns}
             createUrl="/pemasok/create"
             createButtonText="Tambah Pemasok"
-            actions={actions}
+            searchPlaceholder="Cari berdasarkan nama atau email..."
             filters={filters}
+            filterOptions={filterOptions}
+            actions={actions}
             baseUrl="/pemasok"
-            breadcrumbs={breadcrumbs}
+            flash={flash}
             deleteDialogTitle="Hapus Pemasok"
-            deleteDialogMessage={(item) => `Apakah Anda yakin ingin menghapus pemasok "${item.nama_pemasok}"? Tindakan ini tidak dapat dibatalkan.`}
-            getItemName={(item) => item.nama_pemasok}
+            deleteDialogMessage={(pemasok) =>
+                `Apakah Anda yakin ingin menghapus pemasok "${pemasok.nama_pemasok}"? Tindakan ini tidak dapat dibatalkan.`
+            }
+            getItemName={(pemasok) => pemasok.nama_pemasok}
         />
     );
 }

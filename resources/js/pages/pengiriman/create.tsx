@@ -1,13 +1,8 @@
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import AppLayout from '@/layouts/app-layout';
-import { cn } from '@/lib/utils';
-import { Head, Link, useForm } from '@inertiajs/react';
-import { ChangeEvent, FormEvent } from 'react';
+import { FormField, Select, TextArea, TextInput } from '@/components/form/form-fields';
+import FormTemplate from '@/components/form/form-template';
+import { type BreadcrumbItem } from '@/types';
+import { useForm } from '@inertiajs/react';
+import React from 'react';
 
 interface Pesanan {
     pesanan_id: string;
@@ -25,15 +20,6 @@ interface Props {
     pesanan: Pesanan[];
 }
 
-interface FormData {
-    pesanan_id: string;
-    nomor_resi: string;
-    kurir: string;
-    biaya_pengiriman: string;
-    estimasi_hari: string;
-    catatan: string;
-}
-
 const kurirOptions = [
     { value: 'JNE', label: 'JNE' },
     { value: 'J&T', label: 'J&T' },
@@ -44,8 +30,19 @@ const kurirOptions = [
     { value: 'Gojek', label: 'Gojek' },
 ];
 
+const breadcrumbs: BreadcrumbItem[] = [
+    {
+        title: 'Pengiriman',
+        href: '/pengiriman',
+    },
+    {
+        title: 'Buat Pengiriman',
+        href: '#',
+    },
+];
+
 export default function Create({ pesanan }: Props) {
-    const { data, setData, post, processing, errors } = useForm<FormData>({
+    const { data, setData, post, processing, errors } = useForm({
         pesanan_id: '',
         nomor_resi: '',
         kurir: '',
@@ -54,181 +51,121 @@ export default function Create({ pesanan }: Props) {
         catatan: '',
     });
 
-    const handleSubmit = (e: FormEvent) => {
+    function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
         post('/pengiriman');
-    };
+    }
 
-    const handleKurirChange = (value: string) => {
-        setData({
-            ...data,
-            kurir: value,
-        });
-    };
+    const pesananOptions = pesanan.map((p) => ({
+        value: p.pesanan_id,
+        label: `${p.pesanan_id} - ${p.pelanggan.nama_pelanggan} (Rp ${p.total_harga.toLocaleString()})`,
+    }));
 
     const selectedPesanan = pesanan.find((p) => p.pesanan_id === data.pesanan_id);
 
     return (
-        <AppLayout
-            breadcrumbs={[
-                { title: 'Pengiriman', href: '/pengiriman' },
-                { title: 'Buat Pengiriman', href: '/pengiriman/create' },
-            ]}
+        <FormTemplate
+            title="Buat Pengiriman Baru"
+            breadcrumbs={breadcrumbs}
+            backUrl="/pengiriman"
+            onSubmit={handleSubmit}
+            processing={processing}
+            submitText="Buat Pengiriman"
+            processingText="Membuat..."
         >
-            <Head title="Buat Pengiriman" />
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <div className="sm:col-span-2">
+                    <FormField id="pesanan_id" label="Pesanan" error={errors.pesanan_id} required>
+                        <Select
+                            id="pesanan_id"
+                            value={data.pesanan_id}
+                            onChange={(e) => setData('pesanan_id', e.target.value)}
+                            options={pesananOptions}
+                            placeholder="Pilih pesanan"
+                            error={errors.pesanan_id}
+                        />
+                    </FormField>
 
-            <div className="space-y-6">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Buat Pengiriman</h1>
-                    <p className="text-muted-foreground">Buat pengiriman baru untuk pesanan yang sudah dikonfirmasi</p>
+                    {selectedPesanan && (
+                        <div className="mt-4 rounded-lg border bg-muted/50 p-4">
+                            <h4 className="mb-2 font-medium">Detail Pesanan</h4>
+                            <div className="space-y-1 text-sm">
+                                <p>
+                                    <span className="font-medium">Pelanggan:</span> {selectedPesanan.pelanggan.nama_pelanggan}
+                                </p>
+                                <p>
+                                    <span className="font-medium">Total:</span> Rp {selectedPesanan.total_harga.toLocaleString()}
+                                </p>
+                                <p>
+                                    <span className="font-medium">Alamat:</span> {selectedPesanan.pelanggan.alamat_pelanggan},{' '}
+                                    {selectedPesanan.pelanggan.kota_pelanggan}
+                                </p>
+                                <p>
+                                    <span className="font-medium">Telepon:</span> {selectedPesanan.pelanggan.telepon_pelanggan}
+                                </p>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="grid gap-6 lg:grid-cols-2">
-                        {/* Informasi Pesanan */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Informasi Pesanan</CardTitle>
-                                <CardDescription>Pilih pesanan yang akan dikirim</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="pesanan_id">Pesanan</Label>
-                                    <Select value={data.pesanan_id} onValueChange={(value) => setData('pesanan_id', value)}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Pilih pesanan" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {pesanan.map((pesanan) => (
-                                                <SelectItem key={pesanan.pesanan_id} value={pesanan.pesanan_id}>
-                                                    <div className="flex flex-col">
-                                                        <span>{pesanan.pesanan_id}</span>
-                                                        <span className="text-sm text-muted-foreground">
-                                                            {pesanan.pelanggan.nama_pelanggan} - Rp {pesanan.total_harga.toLocaleString()}
-                                                        </span>
-                                                    </div>
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    {errors.pesanan_id && <p className="text-sm text-destructive">{errors.pesanan_id}</p>}
-                                </div>
+                <FormField id="kurir" label="Kurir" error={errors.kurir} required>
+                    <Select
+                        id="kurir"
+                        value={data.kurir}
+                        onChange={(e) => setData('kurir', e.target.value)}
+                        options={kurirOptions}
+                        placeholder="Pilih kurir"
+                        error={errors.kurir}
+                    />
+                </FormField>
 
-                                {selectedPesanan && (
-                                    <div className="rounded-lg border bg-muted/50 p-3">
-                                        <h4 className="mb-2 font-medium">Detail Pesanan</h4>
-                                        <div className="space-y-1 text-sm">
-                                            <p>
-                                                <span className="font-medium">Pelanggan:</span> {selectedPesanan.pelanggan.nama_pelanggan}
-                                            </p>
-                                            <p>
-                                                <span className="font-medium">Total:</span> Rp {selectedPesanan.total_harga.toLocaleString()}
-                                            </p>
-                                            <p>
-                                                <span className="font-medium">Alamat:</span> {selectedPesanan.pelanggan.alamat_pelanggan},{' '}
-                                                {selectedPesanan.pelanggan.kota_pelanggan}
-                                            </p>
-                                            <p>
-                                                <span className="font-medium">Telepon:</span> {selectedPesanan.pelanggan.telepon_pelanggan}
-                                            </p>
-                                        </div>
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
+                <FormField id="nomor_resi" label="Nomor Resi" error={errors.nomor_resi}>
+                    <TextInput
+                        id="nomor_resi"
+                        type="text"
+                        value={data.nomor_resi}
+                        onChange={(e) => setData('nomor_resi', e.target.value)}
+                        placeholder="Masukkan nomor resi (opsional)"
+                        error={errors.nomor_resi}
+                    />
+                </FormField>
 
-                        {/* Informasi Kurir */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Informasi Pengiriman</CardTitle>
-                                <CardDescription>Pilih kurir dan layanan pengiriman</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="kurir">Kurir</Label>
-                                    <Select value={data.kurir} onValueChange={handleKurirChange}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Pilih kurir" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {kurirOptions.map((kurir) => (
-                                                <SelectItem key={kurir.value} value={kurir.value}>
-                                                    {kurir.label}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    {errors.kurir && <p className="text-sm text-destructive">{errors.kurir}</p>}
-                                </div>
+                <FormField id="biaya_pengiriman" label="Biaya Pengiriman" error={errors.biaya_pengiriman} required>
+                    <TextInput
+                        id="biaya_pengiriman"
+                        type="number"
+                        value={data.biaya_pengiriman}
+                        onChange={(e) => setData('biaya_pengiriman', e.target.value)}
+                        placeholder="0"
+                        error={errors.biaya_pengiriman}
+                    />
+                </FormField>
 
-                                <div className="space-y-2">
-                                    <Label htmlFor="nomor_resi">Nomor Resi (Opsional)</Label>
-                                    <Input
-                                        id="nomor_resi"
-                                        value={data.nomor_resi}
-                                        onChange={(e) => setData('nomor_resi', e.target.value)}
-                                        placeholder="Masukkan nomor resi"
-                                        className={cn(errors.nomor_resi && 'border-destructive')}
-                                    />
-                                    {errors.nomor_resi && <p className="text-sm text-destructive">{errors.nomor_resi}</p>}
-                                </div>
+                <FormField id="estimasi_hari" label="Estimasi (Hari)" error={errors.estimasi_hari} required>
+                    <TextInput
+                        id="estimasi_hari"
+                        type="number"
+                        value={data.estimasi_hari}
+                        onChange={(e) => setData('estimasi_hari', e.target.value)}
+                        placeholder="1"
+                        min="1"
+                        error={errors.estimasi_hari}
+                    />
+                </FormField>
 
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="biaya_pengiriman">Biaya Pengiriman</Label>
-                                        <Input
-                                            id="biaya_pengiriman"
-                                            type="number"
-                                            value={data.biaya_pengiriman}
-                                            onChange={(e) => setData('biaya_pengiriman', e.target.value)}
-                                            placeholder="0"
-                                            className={cn(errors.biaya_pengiriman && 'border-destructive')}
-                                        />
-                                        {errors.biaya_pengiriman && <p className="text-sm text-destructive">{errors.biaya_pengiriman}</p>}
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label htmlFor="estimasi_hari">Estimasi (Hari)</Label>
-                                        <Input
-                                            id="estimasi_hari"
-                                            type="number"
-                                            value={data.estimasi_hari}
-                                            onChange={(e) => setData('estimasi_hari', e.target.value)}
-                                            placeholder="1"
-                                            min="1"
-                                            className={cn(errors.estimasi_hari && 'border-destructive')}
-                                        />
-                                        {errors.estimasi_hari && <p className="text-sm text-destructive">{errors.estimasi_hari}</p>}
-                                    </div>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="catatan">Catatan (Opsional)</Label>
-                                    <Textarea
-                                        id="catatan"
-                                        value={data.catatan}
-                                        onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setData('catatan', e.target.value)}
-                                        placeholder="Catatan khusus untuk pengiriman"
-                                        rows={3}
-                                        className={cn(errors.catatan && 'border-destructive')}
-                                    />
-                                    {errors.catatan && <p className="text-sm text-destructive">{errors.catatan}</p>}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="flex items-center justify-end space-x-4">
-                        <Button type="button" variant="outline" asChild>
-                            <Link href="/pengiriman">Batal</Link>
-                        </Button>
-                        <Button type="submit" disabled={processing}>
-                            {processing ? 'Menyimpan...' : 'Simpan Pengiriman'}
-                        </Button>
-                    </div>
-                </form>
+                <div className="sm:col-span-2">
+                    <FormField id="catatan" label="Catatan" error={errors.catatan}>
+                        <TextArea
+                            id="catatan"
+                            value={data.catatan}
+                            onChange={(e) => setData('catatan', e.target.value)}
+                            placeholder="Catatan khusus untuk pengiriman (opsional)"
+                            rows={3}
+                            error={errors.catatan}
+                        />
+                    </FormField>
+                </div>
             </div>
-        </AppLayout>
+        </FormTemplate>
     );
 }

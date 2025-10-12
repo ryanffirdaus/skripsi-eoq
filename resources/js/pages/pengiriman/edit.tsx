@@ -1,13 +1,8 @@
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import AppLayout from '@/layouts/app-layout';
-import { Head, router } from '@inertiajs/react';
-import { ArrowLeft, Save } from 'lucide-react';
-import { useState } from 'react';
+import { FormField, Select, TextArea, TextInput } from '@/components/form/form-fields';
+import FormTemplate from '@/components/form/form-template';
+import { type BreadcrumbItem } from '@/types';
+import { useForm } from '@inertiajs/react';
+import React from 'react';
 
 interface Pengiriman {
     pengiriman_id: string;
@@ -26,182 +21,147 @@ interface Props {
     pengiriman: Pengiriman;
 }
 
+const statusOptions = [
+    { value: 'pending', label: 'Menunggu Dikirim' },
+    { value: 'dikirim', label: 'Dikirim' },
+    { value: 'selesai', label: 'Selesai' },
+    { value: 'dibatalkan', label: 'Dibatalkan' },
+];
+
+const breadcrumbs: BreadcrumbItem[] = [
+    {
+        title: 'Pengiriman',
+        href: '/pengiriman',
+    },
+    {
+        title: 'Edit Pengiriman',
+        href: '#',
+    },
+];
+
 export default function Edit({ pengiriman }: Props) {
-    const [formData, setFormData] = useState({
+    const { data, setData, put, processing, errors } = useForm({
         nomor_resi: pengiriman.nomor_resi || '',
         kurir: pengiriman.kurir,
         biaya_pengiriman: pengiriman.biaya_pengiriman.toString(),
         estimasi_hari: pengiriman.estimasi_hari.toString(),
         status: pengiriman.status,
-        tanggal_kirim: pengiriman.tanggal_kirim ?? '',
-        tanggal_diterima: pengiriman.tanggal_diterima ?? '',
+        tanggal_kirim: pengiriman.tanggal_kirim || '',
+        tanggal_diterima: pengiriman.tanggal_diterima || '',
         catatan: pengiriman.catatan || '',
     });
 
-    const [loading, setLoading] = useState(false);
-
-    const handleSubmit = (e: React.FormEvent) => {
+    function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
-        setLoading(true);
-
-        router.put(
-            `/pengiriman/${pengiriman.pengiriman_id}`,
-            {
-                ...formData,
-                biaya_pengiriman: parseFloat(formData.biaya_pengiriman),
-                estimasi_hari: parseInt(formData.estimasi_hari),
-                tanggal_kirim: formData.tanggal_kirim || null,
-                tanggal_diterima: formData.tanggal_diterima || null,
-            },
-            {
-                onFinish: () => setLoading(false),
-            },
-        );
-    };
-
-    const handleInputChange = (field: string, value: string) => {
-        setFormData((prev) => ({
-            ...prev,
-            [field]: value,
-        }));
-    };
+        put(`/pengiriman/${pengiriman.pengiriman_id}`);
+    }
 
     return (
-        <AppLayout>
-            <Head title="Edit Pengiriman" />
+        <FormTemplate
+            title={`Edit Pengiriman: ${pengiriman.pengiriman_id}`}
+            breadcrumbs={breadcrumbs}
+            backUrl="/pengiriman"
+            onSubmit={handleSubmit}
+            processing={processing}
+            submitText="Perbarui Pengiriman"
+            processingText="Memperbarui..."
+        >
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <FormField id="kurir" label="Kurir" error={errors.kurir} required>
+                    <TextInput
+                        id="kurir"
+                        type="text"
+                        value={data.kurir}
+                        onChange={(e) => setData('kurir', e.target.value)}
+                        placeholder="Contoh: JNE, TIKI, POS Indonesia"
+                        error={errors.kurir}
+                    />
+                </FormField>
 
-            <div className="container mx-auto py-6">
-                <div className="mb-6 flex items-center gap-4">
-                    <Button variant="outline" size="sm" onClick={() => router.visit('/pengiriman')}>
-                        <ArrowLeft className="mr-2 h-4 w-4" />
-                        Kembali
-                    </Button>
-                    <div>
-                        <h1 className="text-2xl font-bold">Edit Pengiriman</h1>
-                        <p className="text-muted-foreground">ID: {pengiriman.pengiriman_id}</p>
-                    </div>
+                <FormField id="nomor_resi" label="Nomor Resi" error={errors.nomor_resi}>
+                    <TextInput
+                        id="nomor_resi"
+                        type="text"
+                        value={data.nomor_resi}
+                        onChange={(e) => setData('nomor_resi', e.target.value)}
+                        placeholder="Masukkan nomor resi (opsional)"
+                        error={errors.nomor_resi}
+                    />
+                </FormField>
+
+                <FormField id="biaya_pengiriman" label="Biaya Pengiriman" error={errors.biaya_pengiriman} required>
+                    <TextInput
+                        id="biaya_pengiriman"
+                        type="number"
+                        value={data.biaya_pengiriman}
+                        onChange={(e) => setData('biaya_pengiriman', e.target.value)}
+                        placeholder="0"
+                        step="0.01"
+                        min="0"
+                        error={errors.biaya_pengiriman}
+                    />
+                </FormField>
+
+                <FormField id="estimasi_hari" label="Estimasi (Hari)" error={errors.estimasi_hari} required>
+                    <TextInput
+                        id="estimasi_hari"
+                        type="number"
+                        value={data.estimasi_hari}
+                        onChange={(e) => setData('estimasi_hari', e.target.value)}
+                        placeholder="1"
+                        min="1"
+                        error={errors.estimasi_hari}
+                    />
+                </FormField>
+
+                <FormField id="status" label="Status" error={errors.status} required>
+                    <Select
+                        id="status"
+                        value={data.status}
+                        onChange={(e) => setData('status', e.target.value)}
+                        options={statusOptions}
+                        placeholder="Pilih status"
+                        error={errors.status}
+                    />
+                </FormField>
+
+                {data.status === 'dikirim' && (
+                    <FormField id="tanggal_kirim" label="Tanggal Kirim" error={errors.tanggal_kirim}>
+                        <TextInput
+                            id="tanggal_kirim"
+                            type="date"
+                            value={data.tanggal_kirim}
+                            onChange={(e) => setData('tanggal_kirim', e.target.value)}
+                            error={errors.tanggal_kirim}
+                        />
+                    </FormField>
+                )}
+
+                {data.status === 'selesai' && (
+                    <FormField id="tanggal_diterima" label="Tanggal Diterima" error={errors.tanggal_diterima}>
+                        <TextInput
+                            id="tanggal_diterima"
+                            type="date"
+                            value={data.tanggal_diterima}
+                            onChange={(e) => setData('tanggal_diterima', e.target.value)}
+                            error={errors.tanggal_diterima}
+                        />
+                    </FormField>
+                )}
+
+                <div className="sm:col-span-2">
+                    <FormField id="catatan" label="Catatan" error={errors.catatan}>
+                        <TextArea
+                            id="catatan"
+                            value={data.catatan}
+                            onChange={(e) => setData('catatan', e.target.value)}
+                            placeholder="Catatan tambahan tentang pengiriman"
+                            rows={4}
+                            error={errors.catatan}
+                        />
+                    </FormField>
                 </div>
-
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Form Edit Pengiriman</CardTitle>
-                        <CardDescription>Perbarui data pengiriman pesanan</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <form onSubmit={handleSubmit} className="space-y-6">
-                            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                                <div className="space-y-2">
-                                    <Label htmlFor="kurir">Kurir *</Label>
-                                    <Input
-                                        id="kurir"
-                                        value={formData.kurir}
-                                        onChange={(e) => handleInputChange('kurir', e.target.value)}
-                                        placeholder="Contoh: JNE, TIKI, POS Indonesia"
-                                        required
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="biaya_pengiriman">Biaya Pengiriman *</Label>
-                                    <Input
-                                        id="biaya_pengiriman"
-                                        type="number"
-                                        step="0.01"
-                                        min="0"
-                                        value={formData.biaya_pengiriman}
-                                        onChange={(e) => handleInputChange('biaya_pengiriman', e.target.value)}
-                                        placeholder="0"
-                                        required
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="estimasi_hari">Estimasi Hari *</Label>
-                                    <Input
-                                        id="estimasi_hari"
-                                        type="number"
-                                        min="1"
-                                        value={formData.estimasi_hari}
-                                        onChange={(e) => handleInputChange('estimasi_hari', e.target.value)}
-                                        placeholder="1"
-                                        required
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="nomor_resi">Nomor Resi</Label>
-                                    <Input
-                                        id="nomor_resi"
-                                        value={formData.nomor_resi}
-                                        onChange={(e) => handleInputChange('nomor_resi', e.target.value)}
-                                        placeholder="Masukkan nomor resi jika ada"
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="status">Status *</Label>
-                                    <Select value={formData.status} onValueChange={(value) => handleInputChange('status', value)}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Pilih status" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="pending">Menunggu Dikirim</SelectItem>
-                                            <SelectItem value="dikirim">Dikirim</SelectItem>
-                                            <SelectItem value="selesai">Selesai</SelectItem>
-                                            <SelectItem value="dibatalkan">Dibatalkan</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-
-                                {formData.status === 'dikirim' && (
-                                    <div className="space-y-2">
-                                        <Label htmlFor="tanggal_kirim">Tanggal Kirim</Label>
-                                        <Input
-                                            id="tanggal_kirim"
-                                            type="date"
-                                            value={formData.tanggal_kirim ?? ''}
-                                            onChange={(e) => handleInputChange('tanggal_kirim', e.target.value)}
-                                        />
-                                    </div>
-                                )}
-
-                                {formData.status === 'selesai' && (
-                                    <div className="space-y-2">
-                                        <Label htmlFor="tanggal_diterima">Tanggal Diterima</Label>
-                                        <Input
-                                            id="tanggal_diterima"
-                                            type="date"
-                                            value={formData.tanggal_diterima ?? ''}
-                                            onChange={(e) => handleInputChange('tanggal_diterima', e.target.value)}
-                                        />
-                                    </div>
-                                )}
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label htmlFor="catatan">Catatan</Label>
-                                <Textarea
-                                    id="catatan"
-                                    value={formData.catatan}
-                                    onChange={(e) => handleInputChange('catatan', e.target.value)}
-                                    placeholder="Catatan tambahan tentang pengiriman"
-                                    className="min-h-[100px]"
-                                />
-                            </div>
-
-                            <div className="flex gap-2">
-                                <Button type="submit" disabled={loading} className="flex items-center gap-2">
-                                    <Save className="h-4 w-4" />
-                                    {loading ? 'Menyimpan...' : 'Simpan Perubahan'}
-                                </Button>
-                                <Button type="button" variant="outline" onClick={() => router.visit('/pengiriman')} disabled={loading}>
-                                    Batal
-                                </Button>
-                            </div>
-                        </form>
-                    </CardContent>
-                </Card>
             </div>
-        </AppLayout>
+        </FormTemplate>
     );
 }
