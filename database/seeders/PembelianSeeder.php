@@ -33,28 +33,28 @@ class PembelianSeeder extends Seeder
         }
 
         foreach ($pengadaanSiapProses as $pengadaan) {
-            // Kelompokkan item detail berdasarkan supplier
-            $itemsBySupplier = $pengadaan->detail
+            // Kelompokkan item detail berdasarkan pemasok
+            $itemsByPemasok = $pengadaan->detail
                 ->where('qty_disetujui', '>', 0)
-                ->whereNotNull('supplier_id')
-                ->groupBy('supplier_id');
+                ->whereNotNull('pemasok_id')
+                ->groupBy('pemasok_id');
 
-            if ($itemsBySupplier->isEmpty()) {
-                $this->command->line("  > Pengadaan {$pengadaan->pengadaan_id} tidak memiliki item yang disetujui dengan supplier. Dilewati.");
+            if ($itemsByPemasok->isEmpty()) {
+                $this->command->line("  > Pengadaan {$pengadaan->pengadaan_id} tidak memiliki item yang disetujui dengan pemasok. Dilewati.");
                 continue; // Lanjut ke pengadaan berikutnya jika tidak ada item yang siap
             }
 
-            // Buat satu PO untuk setiap supplier
-            foreach ($itemsBySupplier as $supplierId => $detailItems) {
+            // Buat satu PO untuk setiap pemasok
+            foreach ($itemsByPemasok as $pemasokId => $detailItems) {
 
                 // 1. Buat Header Pembelian (PO)
                 $pembelian = Pembelian::factory()->create([
                     'pengadaan_id' => $pengadaan->pengadaan_id,
-                    'supplier_id' => $supplierId,
+                    'pemasok_id' => $pemasokId,
                     'status' => 'sent', // Set status awal yang logis
                 ]);
 
-                // 2. Buat Detail Pembelian untuk setiap item dari supplier ini
+                // 2. Buat Detail Pembelian untuk setiap item dari pemasok ini
                 foreach ($detailItems as $item) {
                     PembelianDetail::factory()->create([
                         'pembelian_id' => $pembelian->pembelian_id,
@@ -71,7 +71,7 @@ class PembelianSeeder extends Seeder
 
                 // 3. Update total biaya di header PO
                 $pembelian->updateTotalBiaya();
-                $this->command->line("  > PO {$pembelian->nomor_po} untuk Supplier ID {$supplierId} berhasil dibuat dari Pengadaan {$pengadaan->pengadaan_id}.");
+                $this->command->line("  > PO {$pembelian->nomor_po} untuk Pemasok ID {$pemasokId} berhasil dibuat dari Pengadaan {$pengadaan->pengadaan_id}.");
             }
 
             // 4. Update status pengadaan menjadi 'ordered'

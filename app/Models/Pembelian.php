@@ -19,7 +19,7 @@ class Pembelian extends Model
     protected $fillable = [
         'pembelian_id',
         'pengadaan_id',
-        'supplier_id',
+        'pemasok_id',
         'nomor_po',
         'tanggal_pembelian',
         'tanggal_kirim_diharapkan',
@@ -81,9 +81,9 @@ class Pembelian extends Model
         return $this->belongsTo(Pengadaan::class, 'pengadaan_id', 'pengadaan_id');
     }
 
-    public function supplier()
+    public function pemasok()
     {
-        return $this->belongsTo(Supplier::class, 'supplier_id', 'supplier_id');
+        return $this->belongsTo(Pemasok::class, 'pemasok_id', 'pemasok_id');
     }
 
     public function detail()
@@ -129,8 +129,8 @@ class Pembelian extends Model
         return $query->where('status', $status);
     }
 
-    public function scopeBySupplier($query, $supplierId)
+    public function scopeByPemasok($query, $pemasokId)
     {
-        return $query->where('supplier_id', $supplierId);
+        return $query->where('pemasok_id', $pemasokId);
     }
 }

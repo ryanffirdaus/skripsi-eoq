@@ -9,13 +9,13 @@ import { BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import { Building2, Calendar, CheckCircle, CreditCard, Edit, Eye, FileText, Package, Truck, XCircle } from 'lucide-react';
 
-interface Supplier {
-    supplier_id: string;
-    nama_supplier: string;
+interface Pemasok {
+    pemasok_id: string;
+    nama_pemasok: string;
     alamat?: string;
     telepon?: string;
     email?: string;
-    kontak_person?: string;
+    narahubung?: string;
 }
 
 interface Pengadaan {
@@ -40,7 +40,7 @@ interface Pembelian extends Record<string, unknown> {
     pembelian_id: string;
     pengadaan?: Pengadaan;
     nomor_po: string;
-    supplier: Supplier;
+    pemasok: Pemasok;
     tanggal_pembelian: string;
     tanggal_jatuh_tempo?: string;
     total_biaya: number;
@@ -341,48 +341,48 @@ export default function Show({ pembelian, flash }: Props) {
                         </Card>
                     </div>
 
-                    {/* Supplier Information */}
+                    {/* Pemasok Information */}
                     <div className="space-y-6">
                         <Card>
                             <CardHeader>
                                 <CardTitle className="flex items-center">
                                     <Building2 className="mr-2 h-5 w-5" />
-                                    Informasi Supplier
+                                    Informasi Pemasok
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-3">
                                 <div>
-                                    <p className="text-sm font-medium text-gray-500">Nama Supplier</p>
-                                    <p className="font-semibold">{pembelian.supplier.nama_supplier}</p>
+                                    <p className="text-sm font-medium text-gray-500">Nama Pemasok</p>
+                                    <p className="font-semibold">{pembelian.pemasok.nama_pemasok}</p>
                                 </div>
-                                {pembelian.supplier.alamat && (
+                                {pembelian.pemasok.alamat && (
                                     <div>
                                         <p className="text-sm font-medium text-gray-500">Alamat</p>
-                                        <p className="text-sm">{pembelian.supplier.alamat}</p>
+                                        <p className="text-sm">{pembelian.pemasok.alamat}</p>
                                     </div>
                                 )}
-                                {pembelian.supplier.telepon && (
+                                {pembelian.pemasok.telepon && (
                                     <div>
                                         <p className="text-sm font-medium text-gray-500">Telepon</p>
-                                        <p className="text-sm">{pembelian.supplier.telepon}</p>
+                                        <p className="text-sm">{pembelian.pemasok.telepon}</p>
                                     </div>
                                 )}
-                                {pembelian.supplier.email && (
+                                {pembelian.pemasok.email && (
                                     <div>
                                         <p className="text-sm font-medium text-gray-500">Email</p>
-                                        <p className="text-sm">{pembelian.supplier.email}</p>
+                                        <p className="text-sm">{pembelian.pemasok.email}</p>
                                     </div>
                                 )}
-                                {pembelian.supplier.kontak_person && (
+                                {pembelian.pemasok.narahubung && (
                                     <div>
                                         <p className="text-sm font-medium text-gray-500">Kontak Person</p>
-                                        <p className="text-sm">{pembelian.supplier.kontak_person}</p>
+                                        <p className="text-sm">{pembelian.pemasok.narahubung}</p>
                                     </div>
                                 )}
                                 <div className="border-t pt-3">
-                                    <Button variant="outline" size="sm" onClick={() => router.visit(`/supplier/${pembelian.supplier.supplier_id}`)}>
+                                    <Button variant="outline" size="sm" onClick={() => router.visit(`/pemasok/${pembelian.pemasok.pemasok_id}`)}>
                                         <Eye className="mr-2 h-4 w-4" />
-                                        Lihat Detail Supplier
+                                        Lihat Detail Pemasok
                                     </Button>
                                 </div>
                             </CardContent>

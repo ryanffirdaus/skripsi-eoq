@@ -18,8 +18,8 @@ return new class extends Migration
             $table->date('tanggal_pengadaan');
             $table->date('tanggal_delivery')->nullable();
             $table->decimal('total_biaya', 15, 2)->default(0);
-            $table->enum('status', ['draft', 'pending', 'procurement_approved', 'finance_approved', 'ordered', 'partial_received', 'received', 'cancelled'])
-                ->default('draft');
+            $table->enum('status', ['pending', 'disetujui_procurement', 'disetujui_finance', 'diproses', 'diterima', 'dibatalkan'])
+                ->default('pending');
             $table->text('catatan')->nullable();
             $table->string('nomor_po')->nullable(); // Purchase Order number
             $table->string('created_by')->nullable();

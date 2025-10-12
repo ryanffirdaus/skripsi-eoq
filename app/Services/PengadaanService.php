@@ -34,7 +34,7 @@ class PengadaanService
     /**
      * Generate automatic procurement based on ROP
      */
-    public function generateROPProcurement($supplierId = null)
+    public function generateROPProcurement($pemasokId = null)
     {
         $itemsBelowROP = $this->detectBelowROP();
 
@@ -43,7 +43,7 @@ class PengadaanService
         }
 
         $pengadaan = Pengadaan::create([
-            'supplier_id' => $supplierId ?? 'SUP0000001', // Default supplier
+            'pemasok_id' => $pemasokId ?? 'PMS0000001', // Default pemasok
             'jenis_pengadaan' => 'rop',
             'tanggal_pengadaan' => now(),
             'tanggal_dibutuhkan' => now()->addDays(7), // 1 week lead time
@@ -94,7 +94,7 @@ class PengadaanService
     /**
      * Generate procurement based on pesanan
      */
-    public function generatePesananProcurement($pesananId, $supplierId)
+    public function generatePesananProcurement($pesananId, $pemasokId)
     {
         $pesanan = Pesanan::with('produk.bahanProduksi.bahanBaku')->findOrFail($pesananId);
 
@@ -131,7 +131,7 @@ class PengadaanService
         }
 
         $pengadaan = Pengadaan::create([
-            'supplier_id' => $supplierId,
+            'pemasok_id' => $pemasokId,
             'jenis_pengadaan' => 'pesanan',
             'pesanan_id' => $pesananId,
             'tanggal_pengadaan' => now(),

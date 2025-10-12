@@ -6,7 +6,7 @@ use App\Models\Pembelian;
 use App\Models\PembelianDetail;
 use App\Models\Pengadaan;
 use App\Models\PengadaanDetail;
-use App\Models\Supplier;
+use App\Models\Pemasok;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -21,7 +21,7 @@ class PembelianController extends Controller
     public function index(Request $request)
     {
         $query = Pembelian::with([
-            'supplier:supplier_id,nama_supplier',
+            'pemasok:pemasok_id,nama_pemasok',
             'pengadaan:pengadaan_id,jenis_pengadaan',
             'createdBy:user_id,nama_lengkap',
         ]);
@@ -32,8 +32,8 @@ class PembelianController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('pembelian_id', 'like', "%{$search}%")
                     ->orWhere('nomor_po', 'like', "%{$search}%")
-                    ->orWhereHas('supplier', function ($subq) use ($search) {
-                        $subq->where('nama_supplier', 'like', "%{$search}%");
+                    ->orWhereHas('pemasok', function ($subq) use ($search) {
+                        $subq->where('nama_pemasok', 'like', "%{$search}%");
                     });
             });
         }
@@ -43,9 +43,9 @@ class PembelianController extends Controller
             $query->where('status', $request->status);
         }
 
-        // Terapkan filter supplier
-        if ($request->filled('supplier_id')) {
-            $query->where('supplier_id', $request->supplier_id);
+        // Terapkan filter pemasok
+        if ($request->filled('pemasok_id')) {
+            $query->where('pemasok_id', $request->pemasok_id);
         }
 
         // Terapkan sorting
@@ -63,7 +63,7 @@ class PembelianController extends Controller
                 'pembelian_id'      => $item->pembelian_id,
                 'nomor_po'          => $item->nomor_po,
                 'pengadaan_id'      => $item->pengadaan_id,
-                'supplier_nama'     => $item->supplier->nama_supplier ?? 'N/A',
+                'pemasok_nama'      => $item->pemasok->nama_pemasok ?? 'N/A',
                 'tanggal_pembelian' => $item->tanggal_pembelian?->format('d M Y'),
                 'tanggal_kirim'     => $item->tanggal_kirim?->format('d M Y'),
                 'total_biaya'       => (float) $item->total_biaya,
@@ -77,12 +77,12 @@ class PembelianController extends Controller
         });
 
         // Data untuk filter di frontend
-        $suppliers = Supplier::select('supplier_id', 'nama_supplier')->orderBy('nama_supplier')->get();
+        $pemasok = Pemasok::select('pemasok_id', 'nama_pemasok')->orderBy('nama_pemasok')->get();
 
         $filters = [
             'search'         => $request->search,
             'status'         => $request->status,
-            'supplier_id'    => $request->supplier_id,
+            'pemasok_id'     => $request->pemasok_id,
             'sort_by'        => $sortBy,
             'sort_direction' => $sortDirection,
             'per_page'       => (int) $perPage,
@@ -91,7 +91,7 @@ class PembelianController extends Controller
         return Inertia::render('pembelian/index', [
             'pembelian' => $pembelian,
             'filters'   => $filters,
-            'suppliers' => $suppliers,
+            'pemasok'   => $pemasok,
         ]);
     }
 
@@ -102,8 +102,8 @@ class PembelianController extends Controller
     public function create()
     {
         // 1. Ambil data Pengadaan yang sudah disetujui keuangan dan belum diproses menjadi PO.
-        $pengadaans = Pengadaan::where('status', 'finance_approved')
-            ->with(['detail.supplier:supplier_id,nama_supplier'])
+        $pengadaans = Pengadaan::where('status', 'disetujui_finance')
+            ->with(['detail.pemasok:pemasok_id,nama_pemasok'])
             ->orderBy('tanggal_pengadaan', 'desc')
             ->get()
             ->map(function ($pengadaan) {
@@ -117,8 +117,8 @@ class PembelianController extends Controller
                     'detail' => $pengadaan->detail->map(function ($detail) {
                         return [
                             'pengadaan_detail_id' => $detail->pengadaan_detail_id,
-                            'supplier_id' => $detail->supplier_id,
-                            'supplier_nama' => $detail->supplier->nama_supplier ?? 'N/A',
+                            'pemasok_id' => $detail->pemasok_id,
+                            'pemasok_nama' => $detail->pemasok->nama_pemasok ?? 'N/A',
                             'item_type' => $detail->item_type,
                             'item_id' => $detail->item_id,
                             'nama_item' => $detail->nama_item,
@@ -130,13 +130,13 @@ class PembelianController extends Controller
                 ];
             })->filter()->values(); // Hapus null dari koleksi dan re-index
 
-        // 2. Ambil semua supplier untuk data dropdown.
-        $suppliers = Supplier::select(['supplier_id', 'nama_supplier'])->orderBy('nama_supplier')->get();
+        // 2. Ambil semua pemasok untuk data dropdown.
+        $pemasok = Pemasok::select(['pemasok_id', 'nama_pemasok'])->orderBy('nama_pemasok')->get();
 
         // 3. Render komponen Inertia dengan data yang dibutuhkan.
         return Inertia::render('pembelian/create', [
             'pengadaans' => $pengadaans,
-            'suppliers' => $suppliers,
+            'pemasok' => $pemasok,
         ]);
     }
 
@@ -148,7 +148,7 @@ class PembelianController extends Controller
         // 1. Validasi input dari form
         $validator = Validator::make($request->all(), [
             'pengadaan_id' => 'required|exists:pengadaan,pengadaan_id',
-            'supplier_id' => 'required|exists:supplier,supplier_id',
+            'pemasok_id' => 'required|exists:pemasok,pemasok_id',
             'tanggal_pembelian' => 'required|date',
             'nomor_po' => 'nullable|string|max:50|unique:pembelian,nomor_po',
             'tanggal_kirim_diharapkan' => 'nullable|date|after_or_equal:tanggal_pembelian',
@@ -168,7 +168,7 @@ class PembelianController extends Controller
             // 3. Buat header data Pembelian (Purchase Order)
             $pembelian = Pembelian::create([
                 'pengadaan_id' => $request->pengadaan_id,
-                'supplier_id' => $request->supplier_id,
+                'pemasok_id' => $request->pemasok_id,
                 'nomor_po' => $request->nomor_po, // Model akan generate otomatis jika kosong
                 'tanggal_pembelian' => $request->tanggal_pembelian,
                 'tanggal_kirim_diharapkan' => $request->tanggal_kirim_diharapkan,
@@ -220,7 +220,7 @@ class PembelianController extends Controller
     public function show(Pembelian $pembelian)
     {
         $pembelian->load([
-            'supplier',
+            'pemasok',
             'pengadaan:pengadaan_id,pesanan_id',
             'detail.pengadaanDetail',
             'createdBy:user_id,nama_lengkap',
@@ -232,7 +232,7 @@ class PembelianController extends Controller
                 'pembelian_id' => $pembelian->pembelian_id,
                 'nomor_po' => $pembelian->nomor_po,
                 'pengadaan_id' => $pembelian->pengadaan_id,
-                'supplier' => $pembelian->supplier,
+                'pemasok' => $pembelian->pemasok,
                 'tanggal_pembelian' => $pembelian->tanggal_pembelian?->format('Y-m-d'),
                 'tanggal_kirim_diharapkan' => $pembelian->tanggal_kirim_diharapkan?->format('Y-m-d'),
                 'total_biaya' => $pembelian->total_biaya,
@@ -271,17 +271,17 @@ class PembelianController extends Controller
     public function edit(Pembelian $pembelian)
     {
         // 1. Eager load relasi yang dibutuhkan
-        $pembelian->load(['supplier', 'detail']);
+        $pembelian->load(['pemasok', 'detail']);
 
-        // 2. Ambil semua supplier untuk dropdown
-        $suppliers = Supplier::select('supplier_id', 'nama_supplier')->orderBy('nama_supplier')->get();
+        // 2. Ambil semua pemasok untuk dropdown
+        $pemasok = Pemasok::select('pemasok_id', 'nama_pemasok')->orderBy('nama_pemasok')->get();
 
         // 3. Format data untuk dikirim ke frontend
         $pembelianData = [
             'pembelian_id' => $pembelian->pembelian_id,
             'pengadaan_id' => $pembelian->pengadaan_id,
             'nomor_po' => $pembelian->nomor_po,
-            'supplier_id' => $pembelian->supplier_id,
+            'pemasok_id' => $pembelian->pemasok_id,
             'tanggal_pembelian' => $pembelian->tanggal_pembelian->format('Y-m-d'),
             'tanggal_kirim_diharapkan' => $pembelian->tanggal_kirim_diharapkan?->format('Y-m-d'),
             'total_biaya' => $pembelian->total_biaya,
@@ -301,7 +301,7 @@ class PembelianController extends Controller
 
         return Inertia::render('pembelian/edit', [
             'pembelian' => $pembelianData,
-            'suppliers' => $suppliers,
+            'pemasok' => $pemasok,
         ]);
     }
 
@@ -318,7 +318,7 @@ class PembelianController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'supplier_id' => 'required|exists:supplier,supplier_id',
+            'pemasok_id' => 'required|exists:pemasok,pemasok_id',
             'tanggal_pembelian' => 'required|date',
             'tanggal_kirim_diharapkan' => 'nullable|date|after_or_equal:tanggal_pembelian',
             'catatan' => 'nullable|string',
@@ -336,7 +336,7 @@ class PembelianController extends Controller
         try {
             // Update header pembelian
             $pembelian->update($request->only([
-                'supplier_id',
+                'pemasok_id',
                 'tanggal_pembelian',
                 'tanggal_kirim_diharapkan',
                 'catatan',
@@ -395,8 +395,8 @@ class PembelianController extends Controller
     {
         return match ($status) {
             'draft' => 'Draft',
-            'sent' => 'Terkirim ke Supplier',
-            'confirmed' => 'Dikonfirmasi Supplier',
+            'sent' => 'Terkirim ke Pemasok',
+            'confirmed' => 'Dikonfirmasi Pemasok',
             'partially_received' => 'Diterima Sebagian',
             'fully_received' => 'Diterima Lengkap',
             'cancelled' => 'Dibatalkan',

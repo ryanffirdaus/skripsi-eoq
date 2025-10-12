@@ -167,7 +167,7 @@ export default function Create({ pembelians = [] }: Props) {
                     {errors.pembelian_id && <p className="mt-1 text-sm text-red-600">{errors.pembelian_id}</p>}
                 </div>
                 <div>
-                    <Label htmlFor="nomor_surat_jalan">Nomor Surat Jalan (Supplier) *</Label>
+                    <Label htmlFor="nomor_surat_jalan">Nomor Surat Jalan (Pemasok) *</Label>
                     <Input
                         id="nomor_surat_jalan"
                         value={data.nomor_surat_jalan}

@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Pengadaan;
 use App\Models\PengadaanDetail;
-use App\Models\Supplier;
+use App\Models\Pemasok;
 use App\Models\BahanBaku;
 use App\Models\Pesanan;
 use App\Models\Produk;
@@ -100,9 +100,9 @@ class PengadaanController extends Controller
      */
     public function create()
     {
-        $suppliers = Supplier::active()
-            ->select('supplier_id', 'nama_supplier', 'kontak_person', 'telepon')
-            ->orderBy('nama_supplier')
+        $pemasok = Pemasok::active()
+            ->select('pemasok_id', 'nama_pemasok', 'narahubung', 'telepon')
+            ->orderBy('nama_pemasok')
             ->get();
 
         // Add pesanan dropdown - get orders that might need procurement
@@ -167,7 +167,7 @@ class PengadaanController extends Controller
             });
 
         return Inertia::render('pengadaan/create', [
-            'suppliers' => $suppliers,
+            'pemasok' => $pemasok,
             'pesanan' => $pesanan,
             'bahanBaku' => $bahanBaku,
             'produk' => $produk,
@@ -178,67 +178,69 @@ class PengadaanController extends Controller
     public function calculateProcurement(Request $request)
     {
         $pesananId = $request->input('pesanan_id');
-
         $pesanan = Pesanan::with(['produk.bahanBaku'])->findOrFail($pesananId);
 
         $procurementItems = [];
         $bahanBakuNeeded = [];
 
-        // Calculate product procurement needs
+        // 1. Hitung kebutuhan produk
         foreach ($pesanan->produk as $produk) {
             $jumlahDipesan = $produk->pivot->jumlah_produk;
             $stokSaatIni = $produk->stok_produk;
             $eoq = $produk->eoq_produk;
 
-            // Check if product stock is insufficient
             if ($stokSaatIni < $jumlahDipesan) {
+                $kekuranganProduk = $jumlahDipesan - $stokSaatIni;
                 $procurementItems[] = [
-                    'item_type' => 'produk',
-                    'item_id' => $produk->produk_id,
-                    'nama_item' => $produk->nama_produk,
-                    'satuan' => $produk->satuan_produk,
-                    'qty_needed' => $jumlahDipesan - $stokSaatIni,
-                    'qty_procurement' => $eoq + ($jumlahDipesan - $stokSaatIni),
-                    'harga_satuan' => $produk->hpp_produk,
-                    'catatan' => "Produk dipesan: {$jumlahDipesan}, Stok: {$stokSaatIni}, Kekurangan: " . ($jumlahDipesan - $stokSaatIni)
+                    'item_type'       => 'produk',
+                    'item_id'         => $produk->produk_id,
+                    'nama_item'       => $produk->nama_produk,
+                    'satuan'          => $produk->satuan_produk,
+                    'qty_needed'      => $kekuranganProduk,
+                    'qty_procurement' => $eoq + $kekuranganProduk,
+                    'harga_satuan'    => $produk->hpp_produk,
+                    'catatan'         => "Produk dipesan: {$jumlahDipesan}, Stok: {$stokSaatIni}, Kekurangan: {$kekuranganProduk}"
                 ];
             }
 
-            // Calculate raw materials needed for production
-            $totalProduksiDiperlukan = max($jumlahDipesan - $stokSaatIni, 0);
+            // 2. Agregasi kebutuhan bahan baku dari semua produk dalam pesanan
+            $totalProduksiDiperlukan = max(0, $jumlahDipesan - $stokSaatIni);
 
-            foreach ($produk->bahanBaku as $bahanBaku) {
-                $jumlahBahanPerProduk = $bahanBaku->pivot->jumlah_bahan_baku;
-                $totalBahanDiperlukan = $totalProduksiDiperlukan * $jumlahBahanPerProduk;
+            if ($totalProduksiDiperlukan > 0) {
+                foreach ($produk->bahanBaku as $bahanBaku) {
+                    $jumlahBahanPerProduk = $bahanBaku->pivot->jumlah_bahan_baku;
+                    $totalBahanDiperlukan = $totalProduksiDiperlukan * $jumlahBahanPerProduk;
+                    $bahanBakuId = $bahanBaku->bahan_baku_id;
 
-                $bahanBakuId = $bahanBaku->bahan_baku_id;
+                    if (!isset($bahanBakuNeeded[$bahanBakuId])) {
+                        $bahanBakuNeeded[$bahanBakuId] = [
+                            'item_type'        => 'bahan_baku',
+                            'item_id'          => $bahanBaku->bahan_baku_id,
+                            'nama_item'        => $bahanBaku->nama_bahan,
+                            // PERBAIKAN: Gunakan nama properti yang benar
+                            'satuan'           => $bahanBaku->satuan,
+                            'stok_saat_ini'    => $bahanBaku->stok_saat_ini,
+                            'harga_satuan'     => $bahanBaku->harga_per_unit,
+                            'eoq'              => $bahanBaku->eoq,
+                            'rop'              => $bahanBaku->reorder_point,
+                            // Akhir Perbaikan
+                            'total_needed'     => 0,
+                            'detail_kebutuhan' => []
+                        ];
+                    }
 
-                if (!isset($bahanBakuNeeded[$bahanBakuId])) {
-                    $bahanBakuNeeded[$bahanBakuId] = [
-                        'item_type' => 'bahan_baku',
-                        'item_id' => $bahanBaku->bahan_baku_id,
-                        'nama_item' => $bahanBaku->nama_bahan,
-                        'satuan' => $bahanBaku->satuan_bahan,
-                        'stok_saat_ini' => $bahanBaku->stok_bahan,
-                        'total_needed' => 0,
-                        'harga_satuan' => $bahanBaku->harga_bahan,
-                        'eoq' => $bahanBaku->eoq_bahan,
-                        'rop' => $bahanBaku->rop_bahan,
-                        'detail_kebutuhan' => []
+                    $bahanBakuNeeded[$bahanBakuId]['total_needed'] += $totalBahanDiperlukan;
+                    $bahanBakuNeeded[$bahanBakuId]['detail_kebutuhan'][] = [
+                        'produk'                    => $produk->nama_produk,
+                        'jumlah_produksi'           => $totalProduksiDiperlukan,
+                        'jumlah_bahan_per_produk'   => $jumlahBahanPerProduk,
+                        'total_bahan'               => $totalBahanDiperlukan
                     ];
                 }
-
-                $bahanBakuNeeded[$bahanBakuId]['total_needed'] += $totalBahanDiperlukan;
-                $bahanBakuNeeded[$bahanBakuId]['detail_kebutuhan'][] = [
-                    'produk' => $produk->nama_produk,
-                    'jumlah_produksi' => $totalProduksiDiperlukan,
-                    'jumlah_bahan_per_produk' => $jumlahBahanPerProduk,
-                    'total_bahan' => $totalBahanDiperlukan
-                ];
             }
         }
 
-        // Process raw materials procurement
+        // 3. Proses kebutuhan bahan baku yang sudah diagregasi
         foreach ($bahanBakuNeeded as $bahan) {
             $stokSaatIni = $bahan['stok_saat_ini'];
             $totalDiperlukan = $bahan['total_needed'];
@@ -250,28 +252,31 @@ class PengadaanController extends Controller
 
                 $detailCatatan = "Total diperlukan: {$totalDiperlukan}, Stok: {$stokSaatIni}, Kekurangan: {$kekurangan}\n";
                 foreach ($bahan['detail_kebutuhan'] as $detail) {
-                    $detailCatatan .= "- {$detail['produk']}: {$detail['jumlah_produksi']} x {$detail['jumlah_bahan_per_produk']} = {$detail['total_bahan']}\n";
+                    if ($detail['total_bahan'] > 0) {
+                        $detailCatatan .= "- Utk '{$detail['produk']}': {$detail['jumlah_produksi']} x {$detail['jumlah_bahan_per_produk']} = {$detail['total_bahan']}\n";
+                    }
                 }
 
                 $procurementItems[] = [
-                    'item_type' => 'bahan_baku',
-                    'item_id' => $bahan['item_id'],
-                    'nama_item' => $bahan['nama_item'],
-                    'satuan' => $bahan['satuan'],
-                    'qty_needed' => $kekurangan,
+                    'item_type'       => 'bahan_baku',
+                    'item_id'         => $bahan['item_id'],
+                    'nama_item'       => $bahan['nama_item'],
+                    'satuan'          => $bahan['satuan'],
+                    'qty_needed'      => $kekurangan,
                     'qty_procurement' => $qtyProcurement,
-                    'harga_satuan' => $bahan['harga_satuan'],
-                    'catatan' => trim($detailCatatan)
+                    'harga_satuan'    => $bahan['harga_satuan'],
+                    'catatan'         => trim($detailCatatan)
                 ];
             }
         }
 
+        // 4. Kembalikan response
         return response()->json([
             'success' => true,
-            'items' => $procurementItems,
+            'items'   => $procurementItems,
             'summary' => [
                 'total_items' => count($procurementItems),
-                'total_cost' => array_sum(array_map(function ($item) {
+                'total_cost'  => array_sum(array_map(function ($item) {
                     return $item['qty_procurement'] * $item['harga_satuan'];
                 }, $procurementItems))
             ]
@@ -289,7 +294,7 @@ class PengadaanController extends Controller
             'items.*.item_id'   => 'required|string',
             'items.*.qty_procurement' => 'required|numeric|min:1',
             'items.*.catatan'   => 'nullable|string',
-            'items.*.supplier_id' => 'nullable|exists:supplier,supplier_id',
+            'items.*.pemasok_id' => 'nullable|exists:pemasok,pemasok_id',
         ]);
 
 
@@ -300,7 +305,7 @@ class PengadaanController extends Controller
         }
 
         // --- MODIFIED PENGADAAN CREATION ---
-        // Removed 'supplier_id' from the main procurement record.
+        // Removed 'pemasok_id' from the main procurement record.
         $pengadaan = Pengadaan::create([
             'pesanan_id'        => $request->pesanan_id,
             'tanggal_pengadaan' => $request->tanggal_pengadaan,
@@ -332,11 +337,11 @@ class PengadaanController extends Controller
                 }
             }
 
-            // 1. Added 'supplier_id' to PengadaanDetail.
-            // 2. Set supplier_id only if item_type is 'bahan_baku', otherwise it's null.
+            // 1. Added 'pemasok_id' to PengadaanDetail.
+            // 2. Set pemasok_id only if item_type is 'bahan_baku', otherwise it's null.
             PengadaanDetail::create([
                 'pengadaan_id'  => $pengadaan->pengadaan_id,
-                'supplier_id'   => $item['supplier_id'] ?? null,
+                'pemasok_id'   => $item['pemasok_id'] ?? null,
                 'item_type'     => $item['item_type'],
                 'item_id'       => $item['item_id'],
                 'nama_item'     => $namaItem,
@@ -363,10 +368,10 @@ class PengadaanController extends Controller
     public function show(Pengadaan $pengadaan)
     {
         // --- MODIFIED DATA LOADING ---
-        // Changed load('supplier') to load('detail.supplier') to get the supplier for each detail item.
+        // Changed load('pemasok') to load('detail.pemasok') to get the pemasok for each detail item.
         $pengadaan->load([
             'pesanan.pelanggan',
-            'detail.supplier', // Eager load supplier on each detail
+            'detail.pemasok', // Eager load pemasok on each detail
             'createdBy:user_id,nama_lengkap',
             'updatedBy:user_id,nama_lengkap'
         ]);
@@ -383,7 +388,7 @@ class PengadaanController extends Controller
                 'status_label'      => $this->getStatusLabel($pengadaan->status),
                 'nomor_po'          => $pengadaan->nomor_po,
                 'catatan'           => $pengadaan->catatan,
-                // Main 'supplier' object is removed from here
+                // Main 'pemasok' object is removed from here
                 'pesanan'           => $pengadaan->pesanan ? [
                     'pesanan_id'        => $pengadaan->pesanan->pesanan_id,
                     'tanggal_pemesanan' => $pengadaan->pesanan->tanggal_pemesanan,
@@ -393,13 +398,13 @@ class PengadaanController extends Controller
                     ] : null,
                 ] : null,
                 // --- MODIFIED DETAIL MAPPING ---
-                // Added supplier details to each item in the detail array.
+                // Added pemasok details to each item in the detail array.
                 'detail'            => $pengadaan->detail->map(function ($detail) {
                     return [
                         'pengadaan_detail_id' => $detail->pengadaan_detail_id,
-                        'supplier'            => $detail->supplier ? [ // Include supplier info if it exists
-                            'supplier_id'   => $detail->supplier->supplier_id,
-                            'nama_supplier' => $detail->supplier->nama_supplier,
+                        'pemasok'             => $detail->pemasok ? [ // Include pemasok info if it exists
+                            'pemasok_id'    => $detail->pemasok->pemasok_id,
+                            'nama_pemasok'  => $detail->pemasok->nama_pemasok,
                         ] : null,
                         'item_type'           => $detail->item_type,
                         'item_id'             => $detail->item_id,
@@ -436,16 +441,16 @@ class PengadaanController extends Controller
                 ]);
         }
 
-        // FIX: Menggunakan nested eager loading untuk memuat supplier di dalam setiap detail.
-        $pengadaan->load('detail.supplier');
+        // FIX: Menggunakan nested eager loading untuk memuat pemasok di dalam setiap detail.
+        $pengadaan->load('detail.pemasok');
 
-        $suppliers = Supplier::active()
-            ->select('supplier_id', 'nama_supplier') // Hanya pilih kolom yang dibutuhkan frontend
-            ->orderBy('nama_supplier')
+        $pemasok = Pemasok::active()
+            ->select('pemasok_id', 'nama_pemasok') // Hanya pilih kolom yang dibutuhkan frontend
+            ->orderBy('nama_pemasok')
             ->get();
 
         // Strukturnya sudah benar, tidak perlu diubah karena Laravel akan
-        // secara otomatis menyertakan objek 'supplier' di dalam setiap 'detail'.
+        // secara otomatis menyertakan objek 'pemasok' di dalam setiap 'detail'.
         return Inertia::render('pengadaan/edit', [
             'pengadaan' => [
                 'pengadaan_id'      => $pengadaan->pengadaan_id,
@@ -455,7 +460,7 @@ class PengadaanController extends Controller
                 'catatan'           => $pengadaan->catatan,
                 'detail'            => $pengadaan->detail,
             ],
-            'suppliers' => $suppliers,
+            'pemasok' => $pemasok,
         ]);
     }
 
@@ -473,7 +478,7 @@ class PengadaanController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'supplier_id' => 'required|exists:supplier,supplier_id',
+            'pemasok_id' => 'required|exists:pemasok,pemasok_id',
             'tanggal_pengadaan' => 'required|date',
             'catatan' => 'nullable|string',
         ]);
@@ -485,7 +490,7 @@ class PengadaanController extends Controller
         }
 
         $pengadaan->update($request->only([
-            'supplier_id',
+            'pemasok_id',
             'tanggal_pengadaan',
             'catatan'
         ]));
@@ -525,7 +530,7 @@ class PengadaanController extends Controller
     public function updateStatus(Request $request, Pengadaan $pengadaan)
     {
         $validator = Validator::make($request->all(), [
-            'status' => 'required|in:draft,pending,approved,ordered,partial_received,received,cancelled',
+            'status' => 'required|in:pending,disetujui_procurement,disetujui_finance,diproses,diterima,dibatalkan',
             'nomor_po' => 'nullable|string|max:255',
             'tanggal_delivery' => 'nullable|date',
         ]);
@@ -560,7 +565,7 @@ class PengadaanController extends Controller
         ];
 
         $urgentPengadaan = Pengadaan::needingAttention()
-            ->with('supplier:supplier_id,nama_supplier')
+            ->with('pemasok:pemasok_id,nama_pemasok')
             ->limit(5)
             ->get()
             ->map(function ($item) {
@@ -605,9 +610,9 @@ class PengadaanController extends Controller
      */
     public function autoGenerateROP(Request $request)
     {
-        $supplierId = $request->supplier_id ?? 'SUP0000001';
+        $pemasokId = $request->pemasok_id ?? 'SUP0000001';
 
-        $pengadaan = $this->pengadaanService->generateROPProcurement($supplierId);
+        $pengadaan = $this->pengadaanService->generateROPProcurement($pemasokId);
 
         if (!$pengadaan) {
             return redirect()->back()

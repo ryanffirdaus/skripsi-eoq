@@ -4,21 +4,21 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use App\Models\Supplier;
+use App\Models\Pemasok;
 
-class SupplierSeeder extends Seeder
+class PemasokSeeder extends Seeder
 {
     /**
      * Run the database seeds.
      */
     public function run(): void
     {
-        // Create main suppliers
-        $suppliers = [
+        // Create main pemasoks
+        $pemasoks = [
             [
-                'supplier_id' => 'SUP0000001',
-                'nama_supplier' => 'PT Bahan Baku Utama',
-                'kontak_person' => 'Andi Setiawan',
+                'pemasok_id' => 'PMS0000001',
+                'nama_pemasok' => 'PT Bahan Baku Utama',
+                'narahubung' => 'Andi Setiawan',
                 'email' => 'andi@bahan-utama.com',
                 'telepon' => '021-1234567',
                 'alamat' => 'Jl. Industri Raya No. 123',
@@ -26,13 +26,13 @@ class SupplierSeeder extends Seeder
                 'provinsi' => 'DKI Jakarta',
                 'kode_pos' => '12345',
                 'status' => 'active',
-                'catatan' => 'Supplier utama untuk bahan baku kimia',
+                'catatan' => 'pemasok utama untuk bahan baku kimia',
                 'created_by' => 'US001',
             ],
             [
-                'supplier_id' => 'SUP0000002',
-                'nama_supplier' => 'CV Sumber Plastik',
-                'kontak_person' => 'Budi Raharja',
+                'pemasok_id' => 'PMS0000002',
+                'nama_pemasok' => 'CV Sumber Plastik',
+                'narahubung' => 'Budi Raharja',
                 'email' => 'budi@sumber-plastik.com',
                 'telepon' => '031-2345678',
                 'alamat' => 'Jl. Raya Surabaya No. 456',
@@ -44,9 +44,9 @@ class SupplierSeeder extends Seeder
                 'created_by' => 'US001',
             ],
             [
-                'supplier_id' => 'SUP0000003',
-                'nama_supplier' => 'PT Logam Berkualitas',
-                'kontak_person' => 'Sari Wijaya',
+                'pemasok_id' => 'PMS0000003',
+                'nama_pemasok' => 'PT Logam Berkualitas',
+                'narahubung' => 'Sari Wijaya',
                 'email' => 'sari@logam-berkualitas.com',
                 'telepon' => '022-3456789',
                 'alamat' => 'Jl. Logam Mulia No. 789',
@@ -54,13 +54,13 @@ class SupplierSeeder extends Seeder
                 'provinsi' => 'Jawa Barat',
                 'kode_pos' => '40123',
                 'status' => 'active',
-                'catatan' => 'Supplier bahan logam dan komponen',
+                'catatan' => 'pemasok bahan logam dan komponen',
                 'created_by' => 'US001',
             ],
             [
-                'supplier_id' => 'SUP0000004',
-                'nama_supplier' => 'UD Elektronik Jaya',
-                'kontak_person' => 'Dedi Kurniawan',
+                'pemasok_id' => 'PMS0000004',
+                'nama_pemasok' => 'UD Elektronik Jaya',
+                'narahubung' => 'Dedi Kurniawan',
                 'email' => 'dedi@elektronik-jaya.com',
                 'telepon' => '024-4567890',
                 'alamat' => 'Jl. Elektronik No. 101',
@@ -72,9 +72,9 @@ class SupplierSeeder extends Seeder
                 'created_by' => 'US001',
             ],
             [
-                'supplier_id' => 'SUP0000005',
-                'nama_supplier' => 'PT Kemasan Modern',
-                'kontak_person' => 'Lisa Handayani',
+                'pemasok_id' => 'PMS0000005',
+                'nama_pemasok' => 'PT Kemasan Modern',
+                'narahubung' => 'Lisa Handayani',
                 'email' => 'lisa@kemasan-modern.com',
                 'telepon' => '061-5678901',
                 'alamat' => 'Jl. Kemasan Indah No. 202',
@@ -87,16 +87,16 @@ class SupplierSeeder extends Seeder
             ]
         ];
 
-        foreach ($suppliers as $supplier) {
-            Supplier::create($supplier);
+        foreach ($pemasoks as $pemasok) {
+            pemasok::create($pemasok);
         }
 
-        // Create additional random suppliers
-        Supplier::factory()
+        // Create additional random pemasoks
+        pemasok::factory()
             ->count(10)
             ->active()
             ->create();
 
-        echo "Supplier seeder completed successfully!\n";
+        echo "pemasok seeder completed successfully!\n";
     }
 }

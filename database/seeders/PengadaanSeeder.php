@@ -6,7 +6,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use App\Models\Pengadaan;
 use App\Models\PengadaanDetail;
-use App\Models\Supplier;
+use App\Models\Pemasok;
 use App\Models\BahanBaku;
 use App\Models\Produk;
 use App\Models\Pesanan;
@@ -27,13 +27,13 @@ class PengadaanSeeder extends Seeder
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
         // Mengambil data master yang diperlukan
-        $suppliers = Supplier::all();
+        $pemasoks = Pemasok::all();
         $bahanBakus = BahanBaku::all();
         $produks = Produk::all();
         $pesanans = Pesanan::all();
 
-        if ($suppliers->isEmpty() || $bahanBakus->isEmpty() || $produks->isEmpty() || $pesanans->isEmpty()) {
-            $this->command->error('Data master (Supplier, Bahan Baku, Produk, atau Pesanan) tidak ditemukan. Pastikan seeder lain sudah dijalankan.');
+        if ($pemasoks->isEmpty() || $bahanBakus->isEmpty() || $produks->isEmpty() || $pesanans->isEmpty()) {
+            $this->command->error('Data master (Pemasok, Bahan Baku, Produk, atau Pesanan) tidak ditemukan. Pastikan seeder lain sudah dijalankan.');
             return;
         }
 
@@ -44,7 +44,7 @@ class PengadaanSeeder extends Seeder
                 'jenis_pengadaan' => 'pesanan',
                 'pesanan_id' => $pesanans->random()->pesanan_id,
                 'tanggal_pengadaan' => now()->subDays(2),
-                'status' => 'draft',
+                'status' => 'pending',
                 'created_by' => 'US001',
                 'details' => [
                     ['type' => 'bahan_baku', 'qty' => 75],
@@ -66,7 +66,7 @@ class PengadaanSeeder extends Seeder
             [
                 'jenis_pengadaan' => 'rop',
                 'tanggal_pengadaan' => now()->subDays(10),
-                'status' => 'procurement_approved',
+                'status' => 'disetujui_procurement',
                 'created_by' => 'US001',
                 'details' => [
                     ['type' => 'bahan_baku', 'qty' => 100, 'qty_disetujui' => 100],
@@ -78,7 +78,7 @@ class PengadaanSeeder extends Seeder
                 'jenis_pengadaan' => 'pesanan',
                 'pesanan_id' => $pesanans->random()->pesanan_id,
                 'tanggal_pengadaan' => now()->subDays(5),
-                'status' => 'finance_approved',
+                'status' => 'disetujui_finance',
                 'created_by' => 'US001',
                 'details' => [
                     ['type' => 'bahan_baku', 'qty' => 200, 'qty_disetujui' => 200],
@@ -89,7 +89,7 @@ class PengadaanSeeder extends Seeder
                 'jenis_pengadaan' => 'pesanan',
                 'pesanan_id' => $pesanans->random()->pesanan_id,
                 'tanggal_pengadaan' => now()->subDays(20),
-                'status' => 'ordered',
+                'status' => 'diproses',
                 'nomor_po' => 'PO-' . now()->subDays(20)->format('Ymd') . '-001',
                 'created_by' => 'US001',
                 'details' => [
@@ -101,7 +101,7 @@ class PengadaanSeeder extends Seeder
                 'jenis_pengadaan' => 'rop',
                 'tanggal_pengadaan' => now()->subDays(25),
                 'tanggal_delivery' => now()->subDays(5),
-                'status' => 'partial_received',
+                'status' => 'diproses',
                 'nomor_po' => 'PO-' . now()->subDays(25)->format('Ymd') . '-002',
                 'created_by' => 'US001',
                 'details' => [
@@ -113,7 +113,7 @@ class PengadaanSeeder extends Seeder
                 'jenis_pengadaan' => 'rop',
                 'tanggal_pengadaan' => now()->subDays(30),
                 'tanggal_delivery' => now()->subDays(10),
-                'status' => 'received',
+                'status' => 'diterima',
                 'nomor_po' => 'PO-' . now()->subDays(30)->format('Ymd') . '-003',
                 'created_by' => 'US001',
                 'details' => [
@@ -125,7 +125,7 @@ class PengadaanSeeder extends Seeder
                 'jenis_pengadaan' => 'pesanan',
                 'pesanan_id' => $pesanans->random()->pesanan_id,
                 'tanggal_pengadaan' => now()->subDays(4),
-                'status' => 'cancelled',
+                'status' => 'dibatalkan',
                 'created_by' => 'US001',
                 'details' => [
                     ['type' => 'produk', 'qty' => 5],
@@ -161,7 +161,7 @@ class PengadaanSeeder extends Seeder
 
                 PengadaanDetail::create([
                     'pengadaan_id' => $pengadaan->pengadaan_id,
-                    'supplier_id' => $suppliers->random()->supplier_id,
+                    'pemasok_id' => $pemasoks->random()->pemasok_id,
                     'item_type' => $item['type'],
                     'item_id' => $detailData['item_id'],
                     'nama_item' => $detailData['nama_item'],

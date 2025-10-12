@@ -20,7 +20,7 @@ interface Pembelian extends Record<string, unknown> {
     pembelian_id: string;
     nomor_po: string;
     pengadaan_id: string;
-    supplier_nama: string;
+    pemasok_nama: string;
     tanggal_pembelian: string;
     tanggal_kirim?: string;
     total_biaya: number;
@@ -32,9 +32,9 @@ interface Pembelian extends Record<string, unknown> {
     created_at: string;
 }
 
-interface Supplier {
-    supplier_id: string;
-    nama_supplier: string;
+interface Pemasok {
+    pemasok_id: string;
+    nama_pemasok: string;
 }
 
 interface PaginationLink {
@@ -57,7 +57,7 @@ interface PaginatedPembelian {
 interface Filters {
     search?: string;
     status?: string;
-    supplier_id?: string;
+    pemasok_id?: string;
     sort_by: string;
     sort_direction: 'asc' | 'desc';
     per_page: number;
@@ -67,7 +67,7 @@ interface Filters {
 interface Props {
     pembelian: PaginatedPembelian;
     filters: Filters;
-    suppliers: Supplier[]; // Menambahkan suppliers untuk filter
+    pemasoks: Pemasok[]; // Menambahkan pemasoks untuk filter
     flash?: {
         message?: string;
         type?: 'success' | 'error' | 'warning' | 'info';
@@ -81,7 +81,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function Index({ pembelian, filters, suppliers, flash }: Props) {
+export default function Index({ pembelian, filters, pemasoks, flash }: Props) {
     // 2. Badge disesuaikan untuk status Pembelian
     const getStatusBadge = (status: string) => {
         const statusColors = {
@@ -151,7 +151,7 @@ export default function Index({ pembelian, filters, suppliers, flash }: Props) {
                         )}
                         {item.status === 'sent' && (
                             <DropdownMenuItem onClick={() => handleStatusUpdate(item.pembelian_id, 'confirmed')}>
-                                Konfirmasi oleh Supplier
+                                Konfirmasi oleh Pemasok
                             </DropdownMenuItem>
                         )}
                         {item.status === 'confirmed' && (
@@ -194,8 +194,8 @@ export default function Index({ pembelian, filters, suppliers, flash }: Props) {
                 defaultVisible: true,
             },
             {
-                key: 'supplier_nama',
-                label: 'Supplier',
+                key: 'pemasok_nama',
+                label: 'Pemasok',
                 sortable: false,
                 defaultVisible: true,
             },
@@ -239,7 +239,7 @@ export default function Index({ pembelian, filters, suppliers, flash }: Props) {
         [renderStatusActions],
     );
 
-    // 6. Opsi filter untuk status dan supplier
+    // 6. Opsi filter untuk status dan pemasok
     const filterOptions = useMemo(
         () => [
             {
@@ -257,13 +257,13 @@ export default function Index({ pembelian, filters, suppliers, flash }: Props) {
                 ],
             },
             {
-                key: 'supplier_id',
-                label: 'Supplier',
+                key: 'pemasok_id',
+                label: 'Pemasok',
                 type: 'select' as const,
-                options: [{ value: '', label: 'Semua Supplier' }, ...suppliers.map((s) => ({ value: s.supplier_id, label: s.nama_supplier }))],
+                options: [{ value: '', label: 'Semua Pemasok' }, ...pemasoks.map((s) => ({ value: s.pemasok_id, label: s.nama_pemasok }))],
             },
         ],
-        [suppliers],
+        [pemasoks],
     );
 
     // 7. Aksi untuk setiap baris (view, edit, delete)
@@ -292,7 +292,7 @@ export default function Index({ pembelian, filters, suppliers, flash }: Props) {
             columns={columns}
             createUrl="/pembelian/create"
             createButtonText="Buat Pembelian Baru"
-            searchPlaceholder="Cari No. PO, supplier..."
+            searchPlaceholder="Cari No. PO, pemasok..."
             filters={filters}
             filterOptions={filterOptions}
             baseUrl="/pembelian"

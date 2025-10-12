@@ -17,7 +17,7 @@ class PenerimaanBahanBakuFactory extends Factory
 
         return [
             'pembelian_id' => $pembelian->pembelian_id,
-            'supplier_id' => $pembelian->supplier_id,
+            'pemasok_id' => $pembelian->pemasok_id,
             'nomor_surat_jalan' => 'SJ-' . $this->faker->unique()->numberBetween(1000, 9999),
             'tanggal_penerimaan' => $this->faker->dateTimeBetween($pembelian->tanggal_pembelian, '+2 weeks'),
             'status' => 'confirmed',

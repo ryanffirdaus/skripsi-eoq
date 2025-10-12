@@ -21,12 +21,10 @@ class PenerimaanBahanBakuDetail extends Model
         'pembelian_detail_id',
         'bahan_baku_id',
         'qty_diterima',
-        'qty_diretur',
     ];
 
     protected $casts = [
         'qty_diterima' => 'integer',
-        'qty_diretur' => 'integer',
     ];
 
     protected static function boot()
@@ -57,13 +55,5 @@ class PenerimaanBahanBakuDetail extends Model
     public function bahanBaku()
     {
         return $this->belongsTo(BahanBaku::class, 'bahan_baku_id', 'bahan_baku_id');
-    }
-
-    /**
-     * Relasi untuk mengecek apakah detail penerimaan ini sudah memiliki detail retur.
-     */
-    public function returDetail()
-    {
-        return $this->hasOne(ReturBahanBakuDetail::class, 'penerimaan_detail_id', 'penerimaan_detail_id');
     }
 }

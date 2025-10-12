@@ -11,10 +11,10 @@ import { CalculatorIcon, InformationCircleIcon, PlusIcon, TrashIcon } from '@her
 import { Head, useForm } from '@inertiajs/react';
 import React, { useEffect, useState } from 'react';
 
-interface Supplier {
-    supplier_id: string;
-    nama_supplier: string;
-    kontak_person: string;
+interface Pemasok {
+    pemasok_id: string;
+    nama_pemasok: string;
+    narahubung: string;
     email: string;
     telepon: string;
 }
@@ -75,7 +75,7 @@ interface Produk {
 interface ItemDetail {
     item_type: 'bahan_baku' | 'produk';
     item_id: string;
-    supplier_id?: string;
+    pemasok_id?: string;
     nama_item?: string;
     satuan?: string;
     qty_needed?: number;
@@ -94,7 +94,7 @@ interface ProcurementCalculation {
 }
 
 interface Props {
-    suppliers: Supplier[];
+    pemasoks: Pemasok[];
     pesanan: Pesanan[];
     bahanBaku: BahanBaku[];
     produk: Produk[];
@@ -106,7 +106,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Tambah Pengadaan', href: '#' },
 ];
 
-export default function Create({ suppliers, pesanan, bahanBaku, produk }: Props) {
+export default function Create({ pemasoks, pesanan, bahanBaku, produk }: Props) {
     const [items, setItems] = useState<ItemDetail[]>([]);
     const [isCalculating, setIsCalculating] = useState(false);
     const [calculationResult, setCalculationResult] = useState<ProcurementCalculation | null>(null);
@@ -173,7 +173,7 @@ export default function Create({ suppliers, pesanan, bahanBaku, produk }: Props)
             {
                 item_type: 'bahan_baku' as const,
                 item_id: '',
-                supplier_id: '',
+                pemasok_id: '',
                 qty_procurement: 1,
                 catatan: '',
             },
@@ -193,7 +193,7 @@ export default function Create({ suppliers, pesanan, bahanBaku, produk }: Props)
         // Reset item_id when item_type changes
         if (field === 'item_type') {
             newItems[index].item_id = '';
-            newItems[index].supplier_id = '';
+            newItems[index].pemasok_id = '';
         }
 
         // Update item details when item_id changes
@@ -262,12 +262,6 @@ export default function Create({ suppliers, pesanan, bahanBaku, produk }: Props)
             const qty = item.qty_procurement || 0;
             return total + harga * qty;
         }, 0);
-    };
-
-    const isStockCritical = (itemType: 'bahan_baku' | 'produk', itemId: string) => {
-        const details = getItemDetails(itemType, itemId);
-        if (!details) return false;
-        return details.stok <= details.rop;
     };
 
     const getSelectedPesananDetails = () => {
@@ -427,19 +421,9 @@ export default function Create({ suppliers, pesanan, bahanBaku, produk }: Props)
 
                 <div className="space-y-4">
                     {items.map((item, index) => {
-                        const itemDetails = item.harga_satuan
-                            ? {
-                                  satuan: item.satuan || '',
-                                  stok: 0, // We'll get this from original data if needed
-                                  rop: 0,
-                                  eoq: item.qty_procurement,
-                                  harga: item.harga_satuan,
-                                  nama: item.nama_item || '',
-                              }
-                            : getItemDetails(item.item_type, item.item_id);
-
-                        const isCritical = isStockCritical(item.item_type, item.item_id);
-                        const isCalculatedItem = !!item.nama_item; // Items from calculation have nama_item
+                        const itemDetails = getItemDetails(item.item_type, item.item_id); // Selalu ambil dari sumber utama
+                        const isCritical = itemDetails ? itemDetails.stok <= itemDetails.rop : false; // Cek stok dari sini
+                        const isCalculatedItem = !!item.nama_item;
 
                         return (
                             <div
@@ -492,26 +476,26 @@ export default function Create({ suppliers, pesanan, bahanBaku, produk }: Props)
                                     </div>
 
                                     <div className="md:col-span-2">
-                                        <Label>Supplier *</Label>
+                                        <Label>Pemasok *</Label>
                                         {item.item_type === 'bahan_baku' ? (
                                             <>
                                                 <Select
-                                                    value={item.supplier_id || ''}
-                                                    onValueChange={(value) => updateItem(index, 'supplier_id', value)}
+                                                    value={item.pemasok_id || ''}
+                                                    onValueChange={(value) => updateItem(index, 'pemasok_id', value)}
                                                 >
-                                                    <SelectTrigger className={cn('mt-1', errors[`items.${index}.supplier_id`] && 'border-red-500')}>
-                                                        <SelectValue placeholder="Pilih Supplier" />
+                                                    <SelectTrigger className={cn('mt-1', errors[`items.${index}.pemasok_id`] && 'border-red-500')}>
+                                                        <SelectValue placeholder="Pilih Pemasok" />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {suppliers.map((supplier) => (
-                                                            <SelectItem key={supplier.supplier_id} value={supplier.supplier_id}>
-                                                                {supplier.nama_supplier}
+                                                        {pemasoks.map((pemasok) => (
+                                                            <SelectItem key={pemasok.pemasok_id} value={pemasok.pemasok_id}>
+                                                                {pemasok.nama_pemasok}
                                                             </SelectItem>
                                                         ))}
                                                     </SelectContent>
                                                 </Select>
-                                                {errors[`items.${index}.supplier_id`] && (
-                                                    <p className="mt-1 text-sm text-red-600">{errors[`items.${index}.supplier_id`]}</p>
+                                                {errors[`items.${index}.pemasok_id`] && (
+                                                    <p className="mt-1 text-sm text-red-600">{errors[`items.${index}.pemasok_id`]}</p>
                                                 )}
                                             </>
                                         ) : (

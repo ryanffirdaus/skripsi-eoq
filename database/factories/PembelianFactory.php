@@ -4,7 +4,7 @@ namespace Database\Factories;
 
 use App\Models\Pembelian;
 use App\Models\Pengadaan;
-use App\Models\Supplier;
+use App\Models\Pemasok;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -24,16 +24,16 @@ class PembelianFactory extends Factory
      */
     public function definition(): array
     {
-        // Ambil pengadaan dan supplier yang sudah ada untuk referensi
-        // Pastikan Anda sudah menjalankan seeder untuk Pengadaan, Supplier, dan User sebelumnya
+        // Ambil pengadaan dan pemasok yang sudah ada untuk referensi
+        // Pastikan Anda sudah menjalankan seeder untuk Pengadaan, pemasok, dan User sebelumnya
         $pengadaan = Pengadaan::inRandomOrder()->first();
-        $supplier = Supplier::inRandomOrder()->first();
+        $pemasok = Pemasok::inRandomOrder()->first();
         $user = User::inRandomOrder()->first();
 
         return [
             // pembelian_id dan nomor_po akan di-generate oleh boot method di model
             'pengadaan_id' => $pengadaan ? $pengadaan->pengadaan_id : null,
-            'supplier_id' => $supplier ? $supplier->supplier_id : null,
+            'pemasok_id' => $pemasok ? $pemasok->pemasok_id : null,
             'tanggal_pembelian' => $this->faker->dateTimeBetween('-1 month', 'now'),
             'tanggal_kirim_diharapkan' => $this->faker->dateTimeBetween('now', '+1 month'),
             'total_biaya' => 0, // Akan dihitung ulang oleh seeder

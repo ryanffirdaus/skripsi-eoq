@@ -11,10 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('supplier', function (Blueprint $table) {
-            $table->string('supplier_id')->primary();
-            $table->string('nama_supplier');
-            $table->string('kontak_person')->nullable();
+        Schema::create('pemasok', function (Blueprint $table) {
+            $table->string('pemasok_id')->primary();
+            $table->string('nama_pemasok');
+            $table->string('narahubung')->nullable();
             $table->string('email')->nullable();
             $table->string('telepon')->nullable();
             $table->text('alamat')->nullable();
@@ -40,6 +40,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('supplier');
+        Schema::dropIfExists('pemasok');
     }
 };

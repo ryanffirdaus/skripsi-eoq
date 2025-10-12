@@ -18,7 +18,7 @@ class PenerimaanBahanBaku extends Model
     protected $fillable = [
         'penerimaan_id',
         'pembelian_id',
-        'supplier_id',
+        'pemasok_id',
         'nomor_penerimaan',
         'nomor_surat_jalan',
         'tanggal_penerimaan',
@@ -72,10 +72,10 @@ class PenerimaanBahanBaku extends Model
         return $this->belongsTo(Pembelian::class, 'pembelian_id', 'pembelian_id');
     }
 
-    // Relasi ke supplier
-    public function supplier()
+    // Relasi ke pemasok
+    public function pemasok()
     {
-        return $this->belongsTo(Supplier::class, 'supplier_id', 'supplier_id');
+        return $this->belongsTo(Pemasok::class, 'pemasok_id', 'pemasok_id');
     }
 
     // Relasi ke user yang membuat

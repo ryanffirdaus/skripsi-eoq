@@ -26,8 +26,8 @@ interface PembelianDetail {
 interface Pembelian extends Record<string, unknown> {
     pembelian_id: string;
     nomor_po: string;
-    supplier: {
-        nama_supplier: string;
+    pemasok: {
+        nama_pemasok: string;
     };
     tanggal_pembelian: string;
     total_biaya: number;
@@ -124,7 +124,7 @@ export default function Receive({ pembelian, flash }: Props) {
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">Penerimaan Barang</h1>
                         <p className="text-gray-600">
-                            {pembelian.nomor_po} - {pembelian.supplier.nama_supplier}
+                            {pembelian.nomor_po} - {pembelian.pemasok.nama_pemasok}
                         </p>
                     </div>
                 </div>
@@ -186,8 +186,8 @@ export default function Receive({ pembelian, flash }: Props) {
                                     <p className="font-semibold">{pembelian.nomor_po}</p>
                                 </div>
                                 <div>
-                                    <p className="text-sm font-medium text-gray-500">Supplier</p>
-                                    <p>{pembelian.supplier.nama_supplier}</p>
+                                    <p className="text-sm font-medium text-gray-500">Pemasok</p>
+                                    <p>{pembelian.pemasok.nama_pemasok}</p>
                                 </div>
                                 <div>
                                     <p className="text-sm font-medium text-gray-500">Tanggal PO</p>

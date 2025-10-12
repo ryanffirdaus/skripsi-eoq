@@ -5,9 +5,9 @@ namespace Database\Factories;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Supplier>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Pemasok>
  */
-class SupplierFactory extends Factory
+class PemasokFactory extends Factory
 {
     /**
      * Define the model's default state.
@@ -17,8 +17,8 @@ class SupplierFactory extends Factory
     public function definition(): array
     {
         return [
-            'nama_supplier' => 'PT ' . $this->faker->company(),
-            'kontak_person' => $this->faker->name(),
+            'nama_pemasok' => 'PT ' . $this->faker->company(),
+            'narahubung' => $this->faker->name(),
             'email' => $this->faker->unique()->safeEmail(),
             'telepon' => $this->faker->phoneNumber(),
             'alamat' => $this->faker->address(),
@@ -32,7 +32,7 @@ class SupplierFactory extends Factory
     }
 
     /**
-     * Indicate that the supplier is active.
+     * Indicate that the pemasok is active.
      */
     public function active(): static
     {
@@ -42,7 +42,7 @@ class SupplierFactory extends Factory
     }
 
     /**
-     * Indicate that the supplier is inactive.
+     * Indicate that the pemasok is inactive.
      */
     public function inactive(): static
     {

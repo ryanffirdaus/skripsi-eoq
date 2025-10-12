@@ -5,7 +5,7 @@ namespace App\Jobs;
 use App\Models\BahanBaku;
 use App\Models\Pengadaan;
 use App\Models\PengadaanDetail;
-use App\Models\Supplier;
+use App\Models\Pemasok;
 use App\Models\Produk;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -113,16 +113,16 @@ class CreateAutomaticPengadaan implements ShouldQueue
      */
     private function createPengadaanForBahanBaku(BahanBaku $bahanBaku)
     {
-        // Ambil supplier default atau yang paling sering digunakan untuk bahan baku ini
-        $supplier = $this->getDefaultSupplier();
+        // Ambil pemasok default atau yang paling sering digunakan untuk bahan baku ini
+        $pemasok = $this->getDefaultPemasok();
 
-        if (!$supplier) {
-            Log::warning("No supplier available for automatic pengadaan of bahan baku: {$bahanBaku->nama_bahan}");
+        if (!$pemasok) {
+            Log::warning("No pemasok available for automatic pengadaan of bahan baku: {$bahanBaku->nama_bahan}");
             return;
         }
 
         $pengadaan = Pengadaan::create([
-            'supplier_id' => $supplier->supplier_id,
+            'pemasok_id' => $pemasok->pemasok_id,
             'jenis_pengadaan' => 'rop',
             'tanggal_pengadaan' => Carbon::today(),
             'status' => 'pending', // Langsung pending untuk review
@@ -151,16 +151,16 @@ class CreateAutomaticPengadaan implements ShouldQueue
      */
     private function createPengadaanForProduk(Produk $produk)
     {
-        // Ambil supplier default atau yang paling sering digunakan untuk produk ini
-        $supplier = $this->getDefaultSupplier();
+        // Ambil pemasok default atau yang paling sering digunakan untuk produk ini
+        $pemasok = $this->getDefaultPemasok();
 
-        if (!$supplier) {
-            Log::warning("No supplier available for automatic pengadaan of produk: {$produk->nama_produk}");
+        if (!$pemasok) {
+            Log::warning("No pemasok available for automatic pengadaan of produk: {$produk->nama_produk}");
             return;
         }
 
         $pengadaan = Pengadaan::create([
-            'supplier_id' => $supplier->supplier_id,
+            'pemasok_id' => $pemasok->pemasok_id,
             'jenis_pengadaan' => 'rop',
             'tanggal_pengadaan' => Carbon::today(),
             'status' => 'pending', // Langsung pending untuk review
@@ -185,16 +185,16 @@ class CreateAutomaticPengadaan implements ShouldQueue
     }
 
     /**
-     * Dapatkan supplier default untuk pengadaan otomatis
+     * Dapatkan pemasok default untuk pengadaan otomatis
      */
-    private function getDefaultSupplier()
+    private function getDefaultPemasok()
     {
-        // Ambil supplier aktif yang paling sering digunakan, atau yang pertama jika belum ada
-        return Supplier::active()
-            ->withCount(['pengadaan' => function ($query) {
-                $query->whereIn('status', ['received', 'partial_received']);
+        // Ambil pemasok aktif yang paling sering digunakan, atau yang pertama jika belum ada
+        return Pemasok::active()
+            ->withCount(['pengadaanDetail' => function ($query) {
+                $query->whereHas('pengadaan', fn($q) => $q->whereIn('status', ['received', 'partial_received']));
             }])
-            ->orderByDesc('pengadaan_count')
+            ->orderByDesc('pengadaan_detail_count')
             ->first();
     }
 }

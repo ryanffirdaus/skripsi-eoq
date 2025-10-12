@@ -12,9 +12,9 @@ import { AlertTriangleIcon } from 'lucide-react';
 import React from 'react';
 
 // --- INTERFACES ---
-interface Supplier {
-    supplier_id: string;
-    nama_supplier: string;
+interface Pemasok {
+    pemasok_id: string;
+    nama_pemasok: string;
 }
 
 interface PembelianDetail {
@@ -29,7 +29,7 @@ interface Pembelian {
     pembelian_id: string;
     pengadaan_id?: string;
     nomor_po: string;
-    supplier_id: string;
+    pemasok_id: string;
     tanggal_pembelian: string;
     tanggal_kirim_diharapkan?: string;
     total_biaya: number;
@@ -41,7 +41,7 @@ interface Pembelian {
 
 interface Props {
     pembelian: Pembelian;
-    suppliers: Supplier[];
+    pemasoks: Pemasok[];
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -50,9 +50,9 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Edit Purchase Order', href: '#' },
 ];
 
-export default function Edit({ pembelian, suppliers }: Props) {
+export default function Edit({ pembelian, pemasoks }: Props) {
     const { data, setData, put, processing, errors } = useForm({
-        supplier_id: pembelian.supplier_id,
+        pemasok_id: pembelian.pemasok_id,
         tanggal_pembelian: pembelian.tanggal_pembelian,
         tanggal_kirim_diharapkan: pembelian.tanggal_kirim_diharapkan || '',
         catatan: pembelian.catatan || '',
@@ -112,20 +112,20 @@ export default function Edit({ pembelian, suppliers }: Props) {
                     <Input value={pembelian.pengadaan_id || '-'} disabled className="mt-1 bg-gray-100" />
                 </div>
                 <div>
-                    <Label htmlFor="supplier_id">Supplier *</Label>
-                    <Select value={data.supplier_id} onValueChange={(value) => setData('supplier_id', value)} disabled={!pembelian.can_be_edited}>
-                        <SelectTrigger className={cn('mt-1', errors.supplier_id && 'border-red-500')}>
-                            <SelectValue placeholder="Pilih Supplier" />
+                    <Label htmlFor="pemasok_id">Pemasok *</Label>
+                    <Select value={data.pemasok_id} onValueChange={(value) => setData('pemasok_id', value)} disabled={!pembelian.can_be_edited}>
+                        <SelectTrigger className={cn('mt-1', errors.pemasok_id && 'border-red-500')}>
+                            <SelectValue placeholder="Pilih Pemasok" />
                         </SelectTrigger>
                         <SelectContent>
-                            {suppliers.map((s) => (
-                                <SelectItem key={s.supplier_id} value={s.supplier_id}>
-                                    {s.nama_supplier}
+                            {pemasoks.map((s) => (
+                                <SelectItem key={s.pemasok_id} value={s.pemasok_id}>
+                                    {s.nama_pemasok}
                                 </SelectItem>
                             ))}
                         </SelectContent>
                     </Select>
-                    {errors.supplier_id && <p className="mt-1 text-sm text-red-600">{errors.supplier_id}</p>}
+                    {errors.pemasok_id && <p className="mt-1 text-sm text-red-600">{errors.pemasok_id}</p>}
                 </div>
                 <div>
                     <Label htmlFor="tanggal_pembelian">Tanggal Pembelian *</Label>
@@ -159,7 +159,7 @@ export default function Edit({ pembelian, suppliers }: Props) {
                         onChange={(e) => setData('catatan', e.target.value)}
                         className="mt-1"
                         rows={3}
-                        placeholder="Catatan tambahan untuk supplier..."
+                        placeholder="Catatan tambahan untuk pemasok..."
                         disabled={!pembelian.can_be_edited}
                     />
                 </div>

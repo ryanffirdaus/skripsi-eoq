@@ -12,8 +12,10 @@ use App\Http\Controllers\PengirimanController;
 use App\Http\Controllers\PengadaanController;
 use App\Http\Controllers\PembelianController;
 use App\Http\Controllers\PenerimaanBahanBakuController;
-use App\Http\Controllers\ReturBahanBakuController;
-use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\PenugasanProduksiController;
+use App\Http\Controllers\QualityControlController;
+use App\Http\Controllers\PemasokController;
+use App\Http\Controllers\TransaksiPembayaranController;
 
 Route::get('/', function () {
     return Inertia::render('welcome');
@@ -36,8 +38,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Pelanggan CRUD routes
     Route::resource('pelanggan', PelangganController::class);
 
-    // Supplier CRUD routes
-    Route::resource('supplier', SupplierController::class);
+    // Pemasok CRUD routes
+    Route::resource('pemasok', PemasokController::class);
 
     // Pesanan CRUD routes
     Route::resource('pesanan', PesananController::class);
@@ -67,11 +69,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('penerimaan-bahan-baku', PenerimaanBahanBakuController::class);
     Route::get('penerimaan/pembelian/{pembelian}/details', [PenerimaanBahanBakuController::class, 'getPembelianDetails'])->name('penerimaan.pembelian-details');
 
-    // Retur Bahan Baku CRUD routes
-    Route::resource('retur-bahan-baku', ReturBahanBakuController::class);
-    Route::patch('retur-bahan-baku/{retur}/approve', [ReturBahanBakuController::class, 'approve'])->name('retur-bahan-baku.approve');
-    Route::patch('retur-bahan-baku/{retur}/reject', [ReturBahanBakuController::class, 'reject'])->name('retur-bahan-baku.reject');
-    Route::get('retur-bahan-baku/penerimaan-detail/{penerimaanDetail}', [ReturBahanBakuController::class, 'getPenerimaanDetail'])->name('retur-bahan-baku.penerimaan-detail');
+    // Transaksi Pembayaran CRUD routes
+    Route::resource('transaksi-pembayaran', TransaksiPembayaranController::class);
+
+    // Penugasan Produksi CRUD routes
+    Route::resource('penugasan-produksi', PenugasanProduksiController::class)->except(['edit', 'update', 'destroy']);
+
+    // Quality Control routes
+    Route::get('/quality-control', [QualityControlController::class, 'index'])->name('qc.index');
+    Route::put('/quality-control/{id}', [QualityControlController::class, 'update'])->name('qc.update');
 });
 
 require __DIR__ . '/settings.php';

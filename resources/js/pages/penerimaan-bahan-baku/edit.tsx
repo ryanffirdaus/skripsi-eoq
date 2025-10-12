@@ -17,15 +17,15 @@ interface BahanBaku {
     satuan: string;
 }
 
-interface Supplier {
-    supplier_id: string;
-    nama_supplier: string;
+interface Pemasok {
+    pemasok_id: string;
+    nama_pemasok: string;
 }
 
 interface Pembelian {
     pembelian_id: string;
     nomor_po: string;
-    supplier: Supplier;
+    pemasok: Pemasok;
 }
 
 interface PenerimaanDetail {
@@ -45,8 +45,8 @@ interface PenerimaanBahanBaku {
     nomor_dokumen: string;
     pembelian_id?: string;
     pembelian?: Pembelian;
-    supplier_id: string;
-    supplier?: Supplier;
+    pemasok_id: string;
+    pemasok?: Pemasok;
     tanggal_penerimaan: string;
     status: 'pending' | 'partial' | 'complete' | 'returned';
     total_item: number;
@@ -257,21 +257,19 @@ export default function Edit({ penerimaan, flash }: EditProps) {
                             </CardContent>
                         </Card>
 
-                        {/* Supplier Information */}
+                        {/* Pemasok Information */}
                         <Card>
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
                                     <Building className="h-5 w-5" />
-                                    Informasi Supplier
+                                    Informasi Pemasok
                                 </CardTitle>
-                                <CardDescription>Detail supplier pembelian</CardDescription>
+                                <CardDescription>Detailpemasok pembelian</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div>
-                                    <Label>Nama Supplier</Label>
-                                    <p className="font-medium">
-                                        {penerimaan.supplier?.nama_supplier || penerimaan.pembelian?.supplier?.nama_supplier}
-                                    </p>
+                                    <Label>Nama Pemasok</Label>
+                                    <p className="font-medium">{penerimaan.pemasok?.nama_pemasok || penerimaan.pembelian?.pemasok?.nama_pemasok}</p>
                                 </div>
                                 {penerimaan.pembelian && (
                                     <div>

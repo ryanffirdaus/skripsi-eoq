@@ -39,7 +39,7 @@ class PenerimaanBahanBakuSeeder extends Seeder
 
                 $penerimaan = PenerimaanBahanBaku::factory()->create([
                     'pembelian_id' => $pembelian->pembelian_id,
-                    'supplier_id' => $pembelian->supplier_id,
+                    'pemasok_id' => $pembelian->pemasok_id,
                 ]);
 
                 // Ambil beberapa item yang belum lunas untuk penerimaan ini

@@ -6,9 +6,9 @@ import AppLayout from '@/layouts/app-layout';
 import { Head, router } from '@inertiajs/react';
 import { AlertTriangle, Building, Calendar, Edit, FileText, Package, User } from 'lucide-react';
 
-interface Supplier {
-    supplier_id: string;
-    nama_supplier: string;
+interface Pemasok {
+    pemasok_id: string;
+    nama_pemasok: string;
     alamat?: string;
     telepon?: string;
 }
@@ -22,7 +22,7 @@ interface BahanBaku {
 interface Pembelian {
     pembelian_id: string;
     nomor_po: string;
-    supplier: Supplier;
+    pemasok: Pemasok;
 }
 
 interface User {
@@ -55,8 +55,8 @@ interface PenerimaanBahanBaku {
     nomor_dokumen: string;
     pembelian_id?: string;
     pembelian?: Pembelian;
-    supplier_id: string;
-    supplier?: Supplier;
+    pemasok_id: string;
+    pemasok?: Pemasok;
     tanggal_penerimaan: string;
     status: 'pending' | 'partial' | 'complete' | 'returned';
     total_item: number;
@@ -202,29 +202,29 @@ export default function Show({ penerimaan }: ShowProps) {
                             </CardContent>
                         </Card>
 
-                        {/* Informasi Supplier */}
+                        {/* Informasi Pemasok */}
                         <Card>
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
                                     <Building className="h-5 w-5" />
-                                    Informasi Supplier
+                                    Informasi Pemasok
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div>
-                                    <p className="text-sm text-gray-500">Nama Supplier</p>
-                                    <p className="font-medium">{penerimaan.supplier?.nama_supplier || '-'}</p>
+                                    <p className="text-sm text-gray-500">Nama Pemasok</p>
+                                    <p className="font-medium">{penerimaan.pemasok?.nama_pemasok || '-'}</p>
                                 </div>
-                                {penerimaan.supplier?.alamat && (
+                                {penerimaan.pemasok?.alamat && (
                                     <div>
                                         <p className="text-sm text-gray-500">Alamat</p>
-                                        <p className="font-medium">{penerimaan.supplier.alamat}</p>
+                                        <p className="font-medium">{penerimaan.pemasok.alamat}</p>
                                     </div>
                                 )}
-                                {penerimaan.supplier?.telepon && (
+                                {penerimaan.pemasok?.telepon && (
                                     <div>
                                         <p className="text-sm text-gray-500">Telepon</p>
-                                        <p className="font-medium">{penerimaan.supplier.telepon}</p>
+                                        <p className="font-medium">{penerimaan.pemasok.telepon}</p>
                                     </div>
                                 )}
                             </CardContent>

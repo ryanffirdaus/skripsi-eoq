@@ -9,9 +9,9 @@ import { BreadcrumbItem } from '@/types';
 import { Head, useForm } from '@inertiajs/react';
 import React from 'react';
 
-interface Supplier {
-    supplier_id: string;
-    nama_supplier: string;
+interface Pemasok {
+    pemasok_id: string;
+    nama_pemasok: string;
 }
 
 interface PengadaanDetail {
@@ -26,9 +26,9 @@ interface PengadaanDetail {
     harga_satuan: string;
     total_harga: string;
     catatan?: string;
-    supplier: {
-        supplier_id: string;
-        nama_supplier: string;
+    pemasok: {
+        pemasok_id: string;
+        nama_pemasok: string;
     } | null;
 }
 
@@ -43,7 +43,7 @@ interface Pengadaan {
 
 interface Props {
     pengadaan: Pengadaan;
-    suppliers: Supplier[];
+    pemasoks: Pemasok[];
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -52,13 +52,13 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Edit Pengadaan', href: '#' },
 ];
 
-export default function Edit({ pengadaan, suppliers }: Props) {
+export default function Edit({ pengadaan, pemasoks }: Props) {
     const { data, setData, put, processing, errors } = useForm({
         tanggal_pengadaan: pengadaan.tanggal_pengadaan,
         catatan: pengadaan.catatan || '',
         details: pengadaan.detail.map((item) => ({
             pengadaan_detail_id: item.pengadaan_detail_id,
-            supplier_id: item.supplier?.supplier_id || '',
+            pemasok_id: item.pemasok?.pemasok_id || '',
         })),
     });
 
@@ -108,7 +108,7 @@ export default function Edit({ pengadaan, suppliers }: Props) {
                     <div className="ml-3">
                         <h3 className="text-sm font-medium text-blue-800">Informasi Edit Pengadaan</h3>
                         <div className="mt-2 text-sm text-blue-700">
-                            <p>• Anda dapat mengubah tanggal, catatan, dan supplier untuk setiap item bahan baku.</p>
+                            <p>• Anda dapat mengubah tanggal, catatan, dan pemasok untuk setiap item bahan baku.</p>
                             <p>• Kuantitas dan jenis item tidak dapat diubah setelah pengadaan dibuat.</p>
                         </div>
                     </div>
@@ -157,30 +157,30 @@ export default function Edit({ pengadaan, suppliers }: Props) {
                                     <div className="mt-1 rounded border bg-white p-2 text-sm">{item.nama_item}</div>
                                 </div>
 
-                                {/* Supplier Dropdown */}
+                                {/* Pemasok Dropdown */}
                                 <div className="md:col-span-2">
-                                    <Label className="text-sm font-medium text-gray-700">Supplier</Label>
+                                    <Label className="text-sm font-medium text-gray-700">Pemasok</Label>
                                     {item.item_type === 'bahan_baku' ? (
                                         <>
                                             <Select
-                                                value={data.details[index].supplier_id || ''}
-                                                onValueChange={(value) => handleDetailChange(index, 'supplier_id', value)}
+                                                value={data.details[index].pemasok_id || ''}
+                                                onValueChange={(value) => handleDetailChange(index, 'pemasok_id', value)}
                                             >
                                                 <SelectTrigger
-                                                    className={cn('mt-1 bg-white', errors[`details.${index}.supplier_id`] && 'border-red-500')}
+                                                    className={cn('mt-1 bg-white', errors[`details.${index}.pemasok_id`] && 'border-red-500')}
                                                 >
-                                                    <SelectValue placeholder="Pilih Supplier (Opsional)" />
+                                                    <SelectValue placeholder="Pilih Pemasok (Opsional)" />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {suppliers.map((supplier) => (
-                                                        <SelectItem key={supplier.supplier_id} value={supplier.supplier_id}>
-                                                            {supplier.nama_supplier}
+                                                    {pemasoks.map((pemasok) => (
+                                                        <SelectItem key={pemasok.pemasok_id} value={pemasok.pemasok_id}>
+                                                            {pemasok.nama_pemasok}
                                                         </SelectItem>
                                                     ))}
                                                 </SelectContent>
                                             </Select>
-                                            {errors[`details.${index}.supplier_id`] && (
-                                                <p className="mt-1 text-sm text-red-600">{errors[`details.${index}.supplier_id`]}</p>
+                                            {errors[`details.${index}.pemasok_id`] && (
+                                                <p className="mt-1 text-sm text-red-600">{errors[`details.${index}.pemasok_id`]}</p>
                                             )}
                                         </>
                                     ) : (

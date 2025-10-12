@@ -13,15 +13,15 @@ import { Head, useForm } from '@inertiajs/react';
 import React from 'react';
 
 // --- INTERFACES ---
-interface Supplier {
-    supplier_id: string;
-    nama_supplier: string;
+interface Pemasok {
+    pemasok_id: string;
+    nama_pemasok: string;
 }
 
 interface PengadaanDetail {
     pengadaan_detail_id: string;
-    supplier_id: string;
-    supplier_nama: string;
+    pemasok_id: string;
+    pemasok_nama: string;
     item_type: 'bahan_baku' | 'produk';
     item_id: string;
     nama_item: string;
@@ -52,7 +52,7 @@ interface ItemPembelian {
 
 interface Props {
     pengadaans: Pengadaan[]; // Daftar pengadaan yang sudah disetujui (finance_approved)
-    suppliers: Supplier[];
+    pemasoks: Pemasok[];
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -61,10 +61,10 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Buat Purchase Order', href: '#' },
 ];
 
-export default function Create({ pengadaans, suppliers }: Props) {
+export default function Create({ pengadaans, pemasoks }: Props) {
     const { data, setData, post, processing, errors, reset, clearErrors } = useForm({
         pengadaan_id: '',
-        supplier_id: '',
+        pemasok_id: '',
         nomor_po: '',
         tanggal_pembelian: new Date().toISOString().split('T')[0],
         tanggal_kirim_diharapkan: '',
@@ -78,16 +78,16 @@ export default function Create({ pengadaans, suppliers }: Props) {
         return pengadaans.find((p) => p.pengadaan_id === data.pengadaan_id);
     }, [data.pengadaan_id, pengadaans]);
 
-    const availableSuppliers = React.useMemo(() => {
+    const availablePemasoks = React.useMemo(() => {
         if (!selectedPengadaan) return [];
-        const supplierIds = new Set(selectedPengadaan.detail.map((d) => d.supplier_id));
-        return suppliers.filter((s) => supplierIds.has(s.supplier_id));
-    }, [selectedPengadaan, suppliers]);
+        const pemasokIds = new Set(selectedPengadaan.detail.map((d) => d.pemasok_id));
+        return pemasoks.filter((s) => pemasokIds.has(s.pemasok_id));
+    }, [selectedPengadaan, pemasoks]);
 
     React.useEffect(() => {
-        if (selectedPengadaan && data.supplier_id) {
-            const itemsForSupplier = selectedPengadaan.detail
-                .filter((d) => d.supplier_id === data.supplier_id)
+        if (selectedPengadaan && data.pemasok_id) {
+            const itemsForPemasok = selectedPengadaan.detail
+                .filter((d) => d.pemasok_id === data.pemasok_id)
                 .map((d) => ({
                     pengadaan_detail_id: d.pengadaan_detail_id,
                     item_type: d.item_type,
@@ -97,17 +97,17 @@ export default function Create({ pengadaans, suppliers }: Props) {
                     qty_dipesan: d.qty_disetujui,
                     harga_satuan: d.harga_satuan,
                 }));
-            setData('items', itemsForSupplier);
+            setData('items', itemsForPemasok);
         } else {
             setData('items', []);
         }
-    }, [data.pengadaan_id, data.supplier_id, selectedPengadaan]);
+    }, [data.pengadaan_id, data.pemasok_id, selectedPengadaan]);
 
     const handlePengadaanChange = (pengadaanId: string) => {
         setData((prevData) => ({
             ...prevData,
             pengadaan_id: pengadaanId,
-            supplier_id: '', // Reset supplier
+            pemasok_id: '', // Reset pemasok
             items: [],
         }));
         clearErrors();
@@ -163,8 +163,8 @@ export default function Create({ pengadaans, suppliers }: Props) {
                         <h3 className="text-sm font-medium text-blue-800">Alur Pembuatan PO</h3>
                         <div className="mt-2 text-sm text-blue-700">
                             <p>1. Pilih Pengadaan yang sudah disetujui oleh Keuangan.</p>
-                            <p>2. Pilih Supplier yang akan dituju untuk PO ini.</p>
-                            <p>3. Sistem akan otomatis memuat item yang relevan untuk Supplier tersebut.</p>
+                            <p>2. Pilih Pemasok yang akan dituju untuk PO ini.</p>
+                            <p>3. Sistem akan otomatis memuat item yang relevan untuk Pemasok tersebut.</p>
                             <p>4. Lengkapi detail PO lainnya dan simpan.</p>
                         </div>
                     </div>
@@ -191,20 +191,20 @@ export default function Create({ pengadaans, suppliers }: Props) {
                 </div>
 
                 <div>
-                    <Label htmlFor="supplier_id">Supplier *</Label>
-                    <Select value={data.supplier_id} onValueChange={(value) => setData('supplier_id', value)} disabled={!data.pengadaan_id}>
-                        <SelectTrigger className={cn('mt-1', errors.supplier_id && 'border-red-500')}>
-                            <SelectValue placeholder={data.pengadaan_id ? 'Pilih Supplier...' : 'Pilih Pengadaan Dulu'} />
+                    <Label htmlFor="pemasok_id">Pemasok *</Label>
+                    <Select value={data.pemasok_id} onValueChange={(value) => setData('pemasok_id', value)} disabled={!data.pengadaan_id}>
+                        <SelectTrigger className={cn('mt-1', errors.pemasok_id && 'border-red-500')}>
+                            <SelectValue placeholder={data.pengadaan_id ? 'Pilih Pemasok...' : 'Pilih Pengadaan Terlebih Dahulu'} />
                         </SelectTrigger>
                         <SelectContent>
-                            {availableSuppliers.map((s) => (
-                                <SelectItem key={s.supplier_id} value={s.supplier_id}>
-                                    {s.nama_supplier}
+                            {availablePemasoks.map((s) => (
+                                <SelectItem key={s.pemasok_id} value={s.pemasok_id}>
+                                    {s.nama_pemasok}
                                 </SelectItem>
                             ))}
                         </SelectContent>
                     </Select>
-                    {errors.supplier_id && <p className="mt-1 text-sm text-red-600">{errors.supplier_id}</p>}
+                    {errors.pemasok_id && <p className="mt-1 text-sm text-red-600">{errors.pemasok_id}</p>}
                 </div>
 
                 <div>
@@ -251,7 +251,7 @@ export default function Create({ pengadaans, suppliers }: Props) {
                         onChange={(e) => setData('catatan', e.target.value)}
                         className="mt-1"
                         rows={3}
-                        placeholder="Catatan tambahan untuk supplier..."
+                        placeholder="Catatan tambahan untuk pemasok..."
                     />
                 </div>
             </div>
@@ -262,7 +262,7 @@ export default function Create({ pengadaans, suppliers }: Props) {
 
                 {data.items.length === 0 ? (
                     <div className="mt-4 rounded-lg border-2 border-dashed border-gray-300 p-8 text-center">
-                        <p className="text-sm text-gray-500">Pilih Pengadaan dan Supplier untuk memuat item.</p>
+                        <p className="text-sm text-gray-500">Pilih Pengadaan dan Pemasok untuk memuat item.</p>
                     </div>
                 ) : (
                     <div className="mt-4 space-y-4">

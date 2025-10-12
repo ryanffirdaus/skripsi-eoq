@@ -18,9 +18,9 @@ return new class extends Migration
             $table->string('pengadaan_id', 10)->index();
             $table->foreign('pengadaan_id')->references('pengadaan_id')->on('pengadaan')->onDelete('restrict');
 
-            // Foreign key ke tabel supplier
-            $table->string('supplier_id', 10)->index();
-            $table->foreign('supplier_id')->references('supplier_id')->on('supplier')->onDelete('restrict');
+            // Foreign key ke tabel pemasok
+            $table->string('pemasok_id', 10)->index();
+            $table->foreign('pemasok_id')->references('pemasok_id')->on('pemasok')->onDelete('restrict');
 
             $table->string('nomor_po', 20)->unique()->comment('Nomor Purchase Order yang formal, cth: PO-202309-0001');
             $table->date('tanggal_pembelian');

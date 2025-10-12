@@ -36,8 +36,8 @@ interface Penerimaan extends Record<string, unknown> {
     pembelian: {
         nomor_po: string;
     };
-    supplier: {
-        nama_supplier: string;
+    pemasok: {
+        nama_pemasok: string;
     };
 }
 
@@ -89,10 +89,10 @@ export default function Index({ penerimaan, filters, flash }: Props) {
                 render: (item: Penerimaan) => item.pembelian?.nomor_po || '-',
             },
             {
-                key: 'supplier',
-                label: 'Supplier',
+                key: 'pemasok',
+                label: 'Pemasok',
                 sortable: false,
-                render: (item: Penerimaan) => item.supplier?.nama_supplier || '-',
+                render: (item: Penerimaan) => item.pemasok?.nama_pemasok || '-',
             },
             {
                 key: 'tanggal_penerimaan',

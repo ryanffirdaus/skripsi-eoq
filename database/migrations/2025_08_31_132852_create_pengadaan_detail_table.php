@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('pengadaan_detail', function (Blueprint $table) {
             $table->string('pengadaan_detail_id')->primary();
             $table->string('pengadaan_id');
-            $table->string('supplier_id')->nullable();
+            $table->string('pemasok_id')->nullable();
             $table->enum('item_type', ['bahan_baku', 'produk']); // Type of item being procured
             $table->string('item_id'); // bahan_baku_id or produk_id
             $table->string('nama_item'); // Denormalized for performance
@@ -29,7 +29,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->foreign('pengadaan_id')->references('pengadaan_id')->on('pengadaan')->onDelete('cascade');
-            $table->foreign('supplier_id')->references('supplier_id')->on('supplier')->onDelete('cascade');
+            $table->foreign('pemasok_id')->references('pemasok_id')->on('pemasok')->onDelete('cascade');
 
             // Index for better performance
             $table->index(['pengadaan_id', 'item_type', 'item_id']);

@@ -33,7 +33,7 @@ class PengirimanSeeder extends Seeder
                 continue;
             }
 
-            $status = fake()->randomElement(['pending', 'shipped', 'delivered', 'cancelled']);
+            $status = fake()->randomElement(['pending', 'dikirim', 'selesai', 'dibatalkan']);
 
             $pengiriman = [
                 'pesanan_id' => $pesananId,

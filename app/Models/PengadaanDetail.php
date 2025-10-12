@@ -17,7 +17,7 @@ class PengadaanDetail extends Model
     protected $fillable = [
         'pengadaan_detail_id',
         'pengadaan_id',
-        'supplier_id',
+        'pemasok_id',
         'item_type',
         'item_id',
         'nama_item',
@@ -67,9 +67,9 @@ class PengadaanDetail extends Model
         return $this->belongsTo(Pengadaan::class, 'pengadaan_id', 'pengadaan_id');
     }
 
-    public function supplier()
+    public function pemasok()
     {
-        return $this->belongsTo(Supplier::class, 'supplier_id', 'supplier_id');
+        return $this->belongsTo(Pemasok::class, 'pemasok_id', 'pemasok_id');
     }
 
     public function bahanBaku()

@@ -7,25 +7,22 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
 
-class Supplier extends Model
+class Pemasok extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $primaryKey = 'supplier_id';
+    protected $primaryKey = 'pemasok_id';
     protected $keyType = 'string';
-    protected $table = 'supplier';
+    protected $table = 'pemasok';
     public $incrementing = false;
 
     protected $fillable = [
-        'supplier_id',
-        'nama_supplier',
-        'kontak_person',
+        'pemasok_id',
+        'nama_pemasok',
+        'narahubung',
         'email',
         'telepon',
         'alamat',
-        'kota',
-        'provinsi',
-        'kode_pos',
         'status',
         'catatan',
         'created_by',
@@ -38,10 +35,10 @@ class Supplier extends Model
         parent::boot();
 
         static::creating(function ($model) {
-            if (!$model->supplier_id) {
-                $latest = static::withTrashed()->orderBy('supplier_id', 'desc')->first();
-                $nextNumber = $latest ? (int)substr($latest->supplier_id, 3) + 1 : 1;
-                $model->supplier_id = 'SUP' . str_pad($nextNumber, 7, '0', STR_PAD_LEFT);
+            if (!$model->pemasok_id) {
+                $latest = static::withTrashed()->orderBy('pemasok_id', 'desc')->first();
+                $nextNumber = $latest ? (int)substr($latest->pemasok_id, 3) + 1 : 1;
+                $model->pemasok_id = 'PMS' . str_pad($nextNumber, 7, '0', STR_PAD_LEFT);
             }
 
             if (Auth::check()) {
@@ -66,7 +63,7 @@ class Supplier extends Model
     // Relationships
     public function pengadaanDetail()
     {
-        return $this->hasMany(PengadaanDetail::class, 'supplier_id', 'supplier_id');
+        return $this->hasMany(PengadaanDetail::class, 'pemasok_id', 'pemasok_id');
     }
 
     public function createdBy()
@@ -108,6 +105,6 @@ class Supplier extends Model
 
     public function penerimaanBahanBaku()
     {
-        return $this->hasMany(PenerimaanBahanBaku::class, 'supplier_id', 'supplier_id');
+        return $this->hasMany(PenerimaanBahanBaku::class, 'pemasok_id', 'pemasok_id');
     }
 }

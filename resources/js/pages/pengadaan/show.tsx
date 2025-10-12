@@ -23,10 +23,10 @@ import {
     Users,
 } from 'lucide-react';
 
-interface Supplier {
-    supplier_id: string;
-    nama_supplier: string;
-    kontak_person: string;
+interface Pemasok {
+    pemasok_id: string;
+    nama_pemasok: string;
+    narahubung: string;
     telepon: string;
     email?: string;
 }
@@ -58,7 +58,7 @@ interface PengadaanDetail {
 
 interface Pengadaan {
     pengadaan_id: string;
-    supplier_id: string;
+    pemasok_id: string;
     jenis_pengadaan: string;
     pesanan_id?: string;
     tanggal_pengadaan: string;
@@ -72,7 +72,7 @@ interface Pengadaan {
     nomor_po?: string;
     alasan_pengadaan?: string;
     catatan?: string;
-    supplier: Supplier;
+    pemasok: Pemasok;
     pesanan?: Pesanan;
     detail: PengadaanDetail[];
     can_edit: boolean;
@@ -176,7 +176,7 @@ export default function Show({ pengadaan }: Props) {
             title={`Pengadaan ${pengadaan.pengadaan_id}`}
             pageTitle={`Detail Pengadaan ${pengadaan.pengadaan_id}`}
             breadcrumbs={breadcrumbs}
-            subtitle={`${pengadaan.jenis_pengadaan.toUpperCase()} - ${pengadaan.supplier.nama_supplier}`}
+            subtitle={`${pengadaan.jenis_pengadaan.toUpperCase()} - ${pengadaan.pemasok.nama_pemasok}`}
             badge={{
                 label: `${pengadaan.status_label} • ${pengadaan.prioritas_label}`,
                 color: getStatusColor(pengadaan.status),
@@ -365,12 +365,12 @@ export default function Show({ pengadaan }: Props) {
                     </Card>
                 </div>
 
-                {/* Informasi Supplier */}
+                {/* Informasi Pemasok */}
                 <Card>
                     <CardHeader>
                         <CardTitle className="flex items-center">
                             <Building2 className="mr-2 h-5 w-5" />
-                            Informasi Supplier
+                            Informasi Pemasok
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -378,9 +378,9 @@ export default function Show({ pengadaan }: Props) {
                             <div className="space-y-2">
                                 <div className="flex items-center text-sm font-medium text-gray-600">
                                     <Building2 className="mr-2 h-4 w-4" />
-                                    Nama Supplier
+                                    Nama Pemasok
                                 </div>
-                                <p className="text-sm font-medium">{pengadaan.supplier.nama_supplier}</p>
+                                <p className="text-sm font-medium">{pengadaan.pemasok.nama_pemasok}</p>
                             </div>
 
                             <div className="space-y-2">
@@ -388,7 +388,7 @@ export default function Show({ pengadaan }: Props) {
                                     <User className="mr-2 h-4 w-4" />
                                     Kontak Person
                                 </div>
-                                <p className="text-sm">{pengadaan.supplier.kontak_person}</p>
+                                <p className="text-sm">{pengadaan.pemasok.narahubung}</p>
                             </div>
 
                             <div className="space-y-2">
@@ -396,16 +396,16 @@ export default function Show({ pengadaan }: Props) {
                                     <Phone className="mr-2 h-4 w-4" />
                                     Telepon
                                 </div>
-                                <p className="text-sm">{pengadaan.supplier.telepon}</p>
+                                <p className="text-sm">{pengadaan.pemasok.telepon}</p>
                             </div>
 
-                            {pengadaan.supplier.email && (
+                            {pengadaan.pemasok.email && (
                                 <div className="space-y-2">
                                     <div className="flex items-center text-sm font-medium text-gray-600">
                                         <Mail className="mr-2 h-4 w-4" />
                                         Email
                                     </div>
-                                    <p className="text-sm">{pengadaan.supplier.email}</p>
+                                    <p className="text-sm">{pengadaan.pemasok.email}</p>
                                 </div>
                             )}
                         </div>
