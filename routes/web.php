@@ -74,7 +74,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('transaksi-pembayaran', TransaksiPembayaranController::class);
 
     // Penugasan Produksi CRUD routes
-    Route::resource('penugasan-produksi', PenugasanProduksiController::class)->except(['edit', 'update', 'destroy']);
+    Route::resource('penugasan-produksi', PenugasanProduksiController::class);
 
     // Quality Control routes
     Route::get('/quality-control', [QualityControlController::class, 'index'])->name('qc.index');

@@ -295,14 +295,24 @@ class PembelianController extends Controller
         // 2. Ambil semua pemasok untuk dropdown
         $pemasok = Pemasok::select('pemasok_id', 'nama_pemasok')->orderBy('nama_pemasok')->get();
 
+        // 2b. Status options untuk update status di halaman edit
+        $statusOptions = [
+            ['value' => 'draft', 'label' => 'Draft'],
+            ['value' => 'sent', 'label' => 'Terkirim'],
+            ['value' => 'confirmed', 'label' => 'Dikonfirmasi'],
+            ['value' => 'partially_received', 'label' => 'Diterima Sebagian'],
+            ['value' => 'fully_received', 'label' => 'Diterima Penuh'],
+            ['value' => 'cancelled', 'label' => 'Dibatalkan'],
+        ];
+
         // 3. Format data untuk dikirim ke frontend
         $pembelianData = [
             'pembelian_id' => $pembelian->pembelian_id,
             'pengadaan_id' => $pembelian->pengadaan_id,
             'nomor_po' => $pembelian->nomor_po,
             'pemasok_id' => $pembelian->pemasok_id,
-            'tanggal_pembelian' => $pembelian->tanggal_pembelian,
-            'tanggal_kirim_diharapkan' => $pembelian->tanggal_kirim_diharapkan,
+            'tanggal_pembelian' => $pembelian->tanggal_pembelian ? \Carbon\Carbon::parse($pembelian->tanggal_pembelian)->format('Y-m-d') : '',
+            'tanggal_kirim_diharapkan' => $pembelian->tanggal_kirim_diharapkan ? \Carbon\Carbon::parse($pembelian->tanggal_kirim_diharapkan)->format('Y-m-d') : '',
             'total_biaya' => $pembelian->total_biaya,
             'status' => $pembelian->status,
             'catatan' => $pembelian->catatan,
@@ -315,17 +325,18 @@ class PembelianController extends Controller
                 return [
                     'pembelian_detail_id' => $item->pembelian_detail_id,
                     'pengadaan_detail_id' => $item->pengadaan_detail_id,
-                    'nama_item' => $pengadaanDetail->nama_item,
-                    'satuan' => $pengadaanDetail->satuan,
-                    'qty_dipesan' => $pengadaanDetail->qty,
-                    'harga_satuan' => $pengadaanDetail->harga_satuan,
+                    'nama_item' => $pengadaanDetail ? $pengadaanDetail->nama_item : '-',
+                    'satuan' => $pengadaanDetail ? $pengadaanDetail->satuan : '-',
+                    'qty_dipesan' => $pengadaanDetail ? $pengadaanDetail->qty_diminta : 0,  // FIX: qty → qty_diminta
+                    'harga_satuan' => $pengadaanDetail ? $pengadaanDetail->harga_satuan : 0,
                 ];
             }),
         ];
 
         return Inertia::render('pembelian/edit', [
             'pembelian' => $pembelianData,
-            'pemasok' => $pemasok,
+            'pemasoks' => $pemasok,  // FIX: pemasok → pemasoks
+            'statusOptions' => $statusOptions,
         ]);
     }
 
@@ -342,6 +353,7 @@ class PembelianController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
+            'status' => 'nullable|in:draft,sent,confirmed,partially_received,fully_received,cancelled',
             'pemasok_id' => 'required|exists:pemasok,pemasok_id',
             'tanggal_pembelian' => 'required|date',
             'tanggal_kirim_diharapkan' => 'nullable|date|after_or_equal:tanggal_pembelian',
@@ -355,10 +367,22 @@ class PembelianController extends Controller
             return redirect()->back()->withErrors($validator)->withInput();
         }
 
+        // Validasi status transition
+        if ($request->has('status') && $request->status !== $pembelian->status) {
+            if (!$pembelian->isValidStatusTransition($request->status)) {
+                return redirect()->back()
+                    ->with('flash', [
+                        'message' => 'Perubahan status dari "' . $pembelian->status . '" ke "' . $request->status . '" tidak diperbolehkan.',
+                        'type' => 'error'
+                    ])
+                    ->withInput();
+            }
+        }
+
         DB::beginTransaction();
         try {
-            // Update header pembelian
-            $pembelian->update([
+            // Update header pembelian (termasuk status jika ada)
+            $updateData = [
                 'pemasok_id' => $request->pemasok_id,
                 'tanggal_pembelian' => $request->tanggal_pembelian,
                 'tanggal_kirim_diharapkan' => $request->tanggal_kirim_diharapkan,
@@ -366,7 +390,13 @@ class PembelianController extends Controller
                 'metode_pembayaran' => $request->metode_pembayaran,
                 'termin_pembayaran' => $request->termin_pembayaran,
                 'jumlah_dp' => $request->metode_pembayaran === 'termin' ? $request->jumlah_dp : 0,
-            ]);
+            ];
+
+            if ($request->has('status')) {
+                $updateData['status'] = $request->status;
+            }
+
+            $pembelian->update($updateData);
 
             // Detail items tidak perlu diupdate karena data diambil dari pengadaan_detail
             // Model event akan otomatis update total biaya

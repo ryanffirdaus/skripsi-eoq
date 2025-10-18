@@ -471,14 +471,26 @@ class PengadaanController extends Controller
             ->orderBy('nama_pemasok')
             ->get();
 
-        // Strukturnya sudah benar, tidak perlu diubah karena Laravel akan
-        // secara otomatis menyertakan objek 'pemasok' di dalam setiap 'detail'.
+        // Status options untuk update status di halaman edit (SOURCE OF TRUTH: migration)
+        $statusOptions = [
+            ['value' => 'pending', 'label' => 'Pending'],
+            ['value' => 'disetujui_procurement', 'label' => 'Disetujui Procurement'],
+            ['value' => 'ditolak_procurement', 'label' => 'Ditolak Procurement'],
+            ['value' => 'disetujui_finance', 'label' => 'Disetujui Finance'],
+            ['value' => 'ditolak_finance', 'label' => 'Ditolak Finance'],
+            ['value' => 'diproses', 'label' => 'Diproses'],
+            ['value' => 'diterima', 'label' => 'Diterima'],
+            ['value' => 'dibatalkan', 'label' => 'Dibatalkan'],
+        ];
+
         return Inertia::render('pengadaan/edit', [
             'pengadaan' => [
                 'pengadaan_id'      => $pengadaan->pengadaan_id,
                 'jenis_pengadaan'   => $pengadaan->jenis_pengadaan,
                 'pesanan_id'        => $pengadaan->pesanan_id,
+                'status'            => $pengadaan->status,
                 'catatan'           => $pengadaan->catatan,
+                'total_biaya'       => $pengadaan->total_biaya,
                 'detail'            => $pengadaan->detail->map(function ($detail) {
                     return [
                         'pengadaan_detail_id' => $detail->pengadaan_detail_id,
@@ -494,6 +506,7 @@ class PengadaanController extends Controller
                 }),
             ],
             'pemasoks' => $pemasok,
+            'statusOptions' => $statusOptions,
         ]);
     }
 
@@ -511,10 +524,12 @@ class PengadaanController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
+            'status' => 'nullable|in:pending,disetujui_procurement,ditolak_procurement,disetujui_finance,ditolak_finance,diproses,diterima,dibatalkan',
             'catatan' => 'nullable|string',
             'details' => 'required|array|min:1',
             'details.*.pengadaan_detail_id' => 'required|exists:pengadaan_detail,pengadaan_detail_id',
             'details.*.pemasok_id' => 'nullable|exists:pemasok,pemasok_id',
+            'details.*.harga_satuan' => 'nullable|numeric|min:0',
         ]);
 
         if ($validator->fails()) {
@@ -523,13 +538,37 @@ class PengadaanController extends Controller
                 ->withInput();
         }
 
-        // Update pengadaan data
-        $pengadaan->update($request->only(['catatan']));
+        // Validasi status transition
+        if ($request->has('status') && $request->status !== $pengadaan->status) {
+            if (!$pengadaan->isValidStatusTransition($request->status)) {
+                return redirect()->back()
+                    ->with('flash', [
+                        'message' => 'Perubahan status dari "' . $pengadaan->status . '" ke "' . $request->status . '" tidak diperbolehkan.',
+                        'type' => 'error'
+                    ])
+                    ->withInput();
+            }
+        }
 
-        // Update each detail's pemasok_id
+        // Update pengadaan data (termasuk status jika ada)
+        $updateData = ['catatan' => $request->catatan];
+        if ($request->has('status')) {
+            $updateData['status'] = $request->status;
+        }
+        $pengadaan->update($updateData);
+
+        // Update each detail's pemasok_id dan harga_satuan
         foreach ($request->details as $detailData) {
+            $updateDetailData = ['pemasok_id' => $detailData['pemasok_id']];
+
+            // Hanya update harga jika belum disetujui (pending, ditolak_procurement, ditolak_finance)
+            $canEditPrice = in_array($pengadaan->status, ['pending', 'ditolak_procurement', 'ditolak_finance']);
+            if ($canEditPrice && isset($detailData['harga_satuan'])) {
+                $updateDetailData['harga_satuan'] = $detailData['harga_satuan'];
+            }
+
             PengadaanDetail::where('pengadaan_detail_id', $detailData['pengadaan_detail_id'])
-                ->update(['pemasok_id' => $detailData['pemasok_id']]);
+                ->update($updateDetailData);
         }
 
         return redirect()->route('pengadaan.index')

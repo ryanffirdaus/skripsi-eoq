@@ -130,12 +130,49 @@ class Pembelian extends Model
 
     public function canBeEdited()
     {
-        return in_array($this->status, ['draft', 'sent']);
+        // Edit button tampil untuk semua status kecuali cancelled dan fully_received
+        return !in_array($this->status, ['cancelled', 'fully_received']);
     }
 
     public function canBeCancelled()
     {
         return !in_array($this->status, ['fully_received', 'cancelled']);
+    }
+
+    /**
+     * Validasi apakah status transition valid
+     * Flow: draft → sent → confirmed → partially_received → fully_received
+     * Bisa cancelled dari status manapun kecuali fully_received
+     */
+    public function isValidStatusTransition($newStatus)
+    {
+        $currentStatus = $this->status;
+
+        // Jika status sama, tidak perlu validasi
+        if ($currentStatus === $newStatus) {
+            return true;
+        }
+
+        // Bisa cancelled dari status manapun kecuali fully_received atau sudah cancelled
+        if ($newStatus === 'cancelled') {
+            return !in_array($currentStatus, ['fully_received', 'cancelled']);
+        }
+
+        // Tidak bisa update jika sudah fully_received atau cancelled
+        if (in_array($currentStatus, ['fully_received', 'cancelled'])) {
+            return false;
+        }
+
+        // Define valid transitions
+        $validTransitions = [
+            'draft' => ['sent', 'cancelled'],
+            'sent' => ['confirmed', 'cancelled'],
+            'confirmed' => ['partially_received', 'fully_received', 'cancelled'],
+            'partially_received' => ['fully_received', 'cancelled'],
+        ];
+
+        return isset($validTransitions[$currentStatus]) &&
+            in_array($newStatus, $validTransitions[$currentStatus]);
     }
 
     /**

@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
 import { BreadcrumbItem } from '@/types';
 import { CalculatorIcon, InformationCircleIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { Head, useForm } from '@inertiajs/react';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 interface Pemasok {
     pemasok_id: string;
@@ -131,9 +131,8 @@ export default function Create({ pemasoks, pesanan, bahanBaku, produk }: Props) 
         });
     };
 
-    const calculateProcurement = async () => {
+    const calculateProcurement = useCallback(async () => {
         if (!data.pesanan_id) {
-            alert('Pilih pesanan terlebih dahulu!');
             return;
         }
 
@@ -164,7 +163,19 @@ export default function Create({ pemasoks, pesanan, bahanBaku, produk }: Props) 
         } finally {
             setIsCalculating(false);
         }
-    };
+    }, [data.pesanan_id]);
+
+    // Auto calculate saat pesanan dipilih
+    useEffect(() => {
+        if (data.pesanan_id) {
+            calculateProcurement();
+        } else {
+            // Reset jika pesanan dihapus
+            setItems([]);
+            setCalculationResult(null);
+            setShowManualAdd(false);
+        }
+    }, [data.pesanan_id, calculateProcurement]);
 
     const addManualItem = () => {
         const newItems = [
@@ -290,7 +301,7 @@ export default function Create({ pemasoks, pesanan, bahanBaku, produk }: Props) 
                     <div className="ml-3">
                         <h3 className="text-sm font-medium text-blue-800">Sistem Otomatis Pengadaan</h3>
                         <div className="mt-2 text-sm text-blue-700">
-                            <p>• Pilih pesanan dan klik "Hitung Kebutuhan" untuk otomatis menghitung procurement</p>
+                            <p>• Pilih pesanan untuk otomatis menghitung kebutuhan procurement</p>
                             <p>• Sistem akan menghitung kebutuhan produk dan bahan baku berdasarkan stok yang ada</p>
                             <p>• Jumlah procurement = EOQ + kekurangan stok untuk memenuhi pesanan</p>
                             <p>• Anda dapat menambah item manual atau mengubah quantity sesuai kebutuhan</p>
@@ -303,30 +314,23 @@ export default function Create({ pemasoks, pesanan, bahanBaku, produk }: Props) 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div>
                     <Label htmlFor="pesanan_id">Pesanan *</Label>
-                    <div className="mt-1 flex gap-2">
-                        <Select value={data.pesanan_id} onValueChange={(value) => setData('pesanan_id', value)}>
-                            <SelectTrigger className={cn('flex-1', errors.pesanan_id && 'border-red-500')}>
-                                <SelectValue placeholder="Pilih Pesanan" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {pesanan.map((order) => (
-                                    <SelectItem key={order.pesanan_id} value={order.pesanan_id}>
-                                        {order.display_text}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        <Button
-                            type="button"
-                            onClick={calculateProcurement}
-                            disabled={!data.pesanan_id || isCalculating}
-                            variant="outline"
-                            className="flex items-center gap-2"
-                        >
-                            <CalculatorIcon className="h-4 w-4" />
-                            {isCalculating ? 'Menghitung...' : 'Hitung Kebutuhan'}
-                        </Button>
-                    </div>
+                    <Select value={data.pesanan_id} onValueChange={(value) => setData('pesanan_id', value)}>
+                        <SelectTrigger className={cn('mt-1', errors.pesanan_id && 'border-red-500')}>
+                            <SelectValue placeholder="Pilih Pesanan" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {pesanan.map((order) => (
+                                <SelectItem key={order.pesanan_id} value={order.pesanan_id}>
+                                    {order.display_text}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    {isCalculating && (
+                        <p className="mt-2 text-sm text-blue-600">
+                            <CalculatorIcon className="inline h-4 w-4 animate-spin" /> Menghitung kebutuhan otomatis...
+                        </p>
+                    )}
                     {errors.pesanan_id && <p className="mt-1 text-sm text-red-600">{errors.pesanan_id}</p>}
                     {selectedPesanan && (
                         <div className="mt-2 rounded bg-gray-50 p-3">

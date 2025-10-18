@@ -1,20 +1,10 @@
 import { createDeleteAction, createEditAction } from '@/components/table/table-actions';
 import TableTemplate from '@/components/table/table-template';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { formatCurrency } from '@/lib/formatters';
 import { type BreadcrumbItem } from '@/types';
-import { router } from '@inertiajs/react';
 import { ShoppingCart, TrendingDown } from 'lucide-react';
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 
 interface Pengadaan extends Record<string, unknown> {
     pengadaan_id: string;
@@ -79,10 +69,11 @@ export default function Index({ pengadaan, filters, flash }: Props) {
     const getStatusBadge = (status: string) => {
         const statusConfig = {
             pending: { variant: 'secondary' as const, label: 'Menunggu' },
-            disetujui_procurement: { variant: 'default' as const, label: 'Disetujui (Pengadaan)' },
-            disetujui_finance: { variant: 'default' as const, label: 'Disetujui (Keuangan)' },
-            diproses: { variant: 'default' as const, label: 'Dipesan' },
-            partial_diterima: { variant: 'default' as const, label: 'Sebagian' },
+            disetujui_procurement: { variant: 'default' as const, label: 'Disetujui (Procurement)' },
+            ditolak_procurement: { variant: 'destructive' as const, label: 'Ditolak (Procurement)' },
+            disetujui_finance: { variant: 'default' as const, label: 'Disetujui (Finance)' },
+            ditolak_finance: { variant: 'destructive' as const, label: 'Ditolak (Finance)' },
+            diproses: { variant: 'default' as const, label: 'Diproses' },
             diterima: { variant: 'default' as const, label: 'Diterima' },
             dibatalkan: { variant: 'destructive' as const, label: 'Dibatalkan' },
         };
@@ -112,119 +103,7 @@ export default function Index({ pengadaan, filters, flash }: Props) {
         );
     };
 
-    const handleStatusUpdate = useCallback(async (pengadaanId: string, newStatus: string, additionalData: Record<string, unknown> = {}) => {
-        try {
-            const response = await fetch(`/pengadaan/${pengadaanId}/status`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
-                },
-                body: JSON.stringify({
-                    status: newStatus,
-                    ...additionalData,
-                }),
-            });
-
-            if (response.ok) {
-                router.reload({ only: ['pengadaan'] });
-                alert('Status berhasil diperbarui!');
-            } else {
-                const errorData = await response.json();
-                console.error('Failed to update status:', errorData);
-                alert('Gagal memperbarui status: ' + (errorData.message || 'Unknown error'));
-            }
-        } catch (error) {
-            console.error('Error updating status:', error);
-            alert('Terjadi kesalahan saat memperbarui status');
-        }
-    }, []);
-
-    const renderStatusActions = useCallback(
-        (item: Pengadaan) => {
-            const canUpdate = ['draft', 'pending', 'disetujui_procurement', 'disetujui_finance', 'diproses'].includes(item.status);
-
-            if (!canUpdate) return null;
-
-            return (
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="sm">
-                            Update Status
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                        <DropdownMenuLabel>Ubah Status</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-
-                        {item.status === 'pending' && (
-                            <>
-                                <DropdownMenuItem onClick={() => handleStatusUpdate(item.pengadaan_id, 'disetujui_procurement')}>
-                                    Setujui Pengadaan
-                                </DropdownMenuItem>
-                            </>
-                        )}
-
-                        {item.status === 'disetujui_procurement' && (
-                            <>
-                                <DropdownMenuItem onClick={() => handleStatusUpdate(item.pengadaan_id, 'disetujui_finance')}>
-                                    Setujui Pengadaan
-                                </DropdownMenuItem>
-                            </>
-                        )}
-
-                        {item.status === 'disetujui_finance' && (
-                            <DropdownMenuItem
-                                onClick={() => {
-                                    const nomorPO = prompt('Masukkan Nomor PO:');
-                                    if (nomorPO) {
-                                        handleStatusUpdate(item.pengadaan_id, 'diproses', { nomor_po: nomorPO });
-                                    }
-                                }}
-                            >
-                                Tandai Telah Dipesan
-                            </DropdownMenuItem>
-                        )}
-
-                        {item.status === 'diproses' && (
-                            <>
-                                <DropdownMenuItem
-                                    onClick={() => {
-                                        const tanggalDelivery = prompt('Masukkan Tanggal Delivery (YYYY-MM-DD):');
-                                        if (tanggalDelivery) {
-                                            handleStatusUpdate(item.pengadaan_id, 'partial_diterima', { tanggal_delivery: tanggalDelivery });
-                                        }
-                                    }}
-                                >
-                                    Terima Sebagian
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                    onClick={() => {
-                                        const tanggalDelivery = prompt('Masukkan Tanggal Delivery (YYYY-MM-DD):');
-                                        if (tanggalDelivery) {
-                                            handleStatusUpdate(item.pengadaan_id, 'diterima', { tanggal_delivery: tanggalDelivery });
-                                        }
-                                    }}
-                                >
-                                    Terima Lengkap
-                                </DropdownMenuItem>
-                            </>
-                        )}
-
-                        {['draft', 'pending', 'disetujui_procurement', 'disetujui_finance'].includes(item.status) && (
-                            <>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem onClick={() => handleStatusUpdate(item.pengadaan_id, 'dibatalkan')} className="text-red-600">
-                                    Batalkan Pengadaan
-                                </DropdownMenuItem>
-                            </>
-                        )}
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            );
-        },
-        [handleStatusUpdate],
-    );
+    // Status update sekarang dilakukan di halaman edit
 
     const columns = useMemo(
         () => [
@@ -265,12 +144,7 @@ export default function Index({ pengadaan, filters, flash }: Props) {
                 defaultVisible: true,
                 render: (item: Record<string, unknown>) => {
                     const pengadaan = item as Pengadaan;
-                    return (
-                        <div className="flex items-center gap-2">
-                            {getStatusBadge(pengadaan.status)}
-                            {renderStatusActions(pengadaan)}
-                        </div>
-                    );
+                    return getStatusBadge(pengadaan.status);
                 },
             },
             {
@@ -285,7 +159,7 @@ export default function Index({ pengadaan, filters, flash }: Props) {
                 },
             },
         ],
-        [renderStatusActions],
+        [],
     );
 
     const filterOptions = useMemo(
@@ -296,10 +170,12 @@ export default function Index({ pengadaan, filters, flash }: Props) {
                 type: 'select' as const,
                 options: [
                     { value: '', label: 'Semua Status' },
-                    { value: 'pending', label: 'Menunggu Persetujuan' },
-                    { value: 'disetujui_procurement', label: 'Disetujui (Pengadaan)' },
-                    { value: 'disetujui_finance', label: 'Disetujui (Keuangan)' },
-                    { value: 'diproses', label: 'Dipesan' },
+                    { value: 'pending', label: 'Pending' },
+                    { value: 'disetujui_procurement', label: 'Disetujui (Procurement)' },
+                    { value: 'ditolak_procurement', label: 'Ditolak (Procurement)' },
+                    { value: 'disetujui_finance', label: 'Disetujui (Finance)' },
+                    { value: 'ditolak_finance', label: 'Ditolak (Finance)' },
+                    { value: 'diproses', label: 'Diproses' },
                     { value: 'diterima', label: 'Diterima' },
                     { value: 'dibatalkan', label: 'Dibatalkan' },
                 ],

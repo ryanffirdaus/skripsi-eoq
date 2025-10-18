@@ -1,19 +1,9 @@
 import { createDeleteAction, createEditAction, createViewAction } from '@/components/table/table-actions';
 import TableTemplate from '@/components/table/table-template';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { formatCurrency, formatDate } from '@/lib/formatters';
 import { type BreadcrumbItem } from '@/types';
-import { router } from '@inertiajs/react';
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 
 // 1. Interface disesuaikan untuk data Pembelian
 interface Pembelian extends Record<string, unknown> {
@@ -105,84 +95,7 @@ export default function Index({ pembelian, filters, pemasoks, flash }: Props) {
         );
     };
 
-    // 3. Logika untuk update status Pembelian (endpoint disesuaikan)
-    const handleStatusUpdate = useCallback(async (pembelianId: string, newStatus: string) => {
-        try {
-            await router.patch(
-                `/pembelian/${pembelianId}/status`,
-                { status: newStatus },
-                {
-                    preserveScroll: true,
-                    only: ['pembelian', 'flash'],
-                    onSuccess: () => {
-                        // Handle success notification from flash message
-                    },
-                    onError: () => {
-                        alert('Gagal memperbarui status.');
-                    },
-                },
-            );
-        } catch (error) {
-            console.error('Error updating status:', error);
-            alert('Terjadi kesalahan saat memperbarui status');
-        }
-    }, []);
-
-    // 4. Aksi dropdown untuk mengubah status Pembelian
-    const renderStatusActions = useCallback(
-        (item: Pembelian) => {
-            const canUpdate = !['fully_received', 'cancelled'].includes(item.status);
-
-            if (!canUpdate) return null;
-
-            return (
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="sm">
-                            Update Status
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                        <DropdownMenuLabel>Ubah Status</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-
-                        {item.status === 'draft' && (
-                            <DropdownMenuItem onClick={() => handleStatusUpdate(item.pembelian_id, 'sent')}>Tandai sebagai Terkirim</DropdownMenuItem>
-                        )}
-                        {item.status === 'sent' && (
-                            <DropdownMenuItem onClick={() => handleStatusUpdate(item.pembelian_id, 'confirmed')}>
-                                Konfirmasi oleh Pemasok
-                            </DropdownMenuItem>
-                        )}
-                        {item.status === 'confirmed' && (
-                            <>
-                                <DropdownMenuItem onClick={() => handleStatusUpdate(item.pembelian_id, 'partially_received')}>
-                                    Terima Sebagian Barang
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleStatusUpdate(item.pembelian_id, 'fully_received')}>
-                                    Terima Semua Barang
-                                </DropdownMenuItem>
-                            </>
-                        )}
-                        {item.status === 'partially_received' && (
-                            <DropdownMenuItem onClick={() => handleStatusUpdate(item.pembelian_id, 'fully_received')}>
-                                Terima Sisa Barang
-                            </DropdownMenuItem>
-                        )}
-                        {item.can_cancel && (
-                            <>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem onClick={() => handleStatusUpdate(item.pembelian_id, 'cancelled')} className="text-red-600">
-                                    Batalkan Pembelian
-                                </DropdownMenuItem>
-                            </>
-                        )}
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            );
-        },
-        [handleStatusUpdate],
-    );
+    // Status update sekarang dilakukan di halaman edit
 
     // 5. Definisi kolom untuk tabel Pembelian
     const columns = useMemo(
@@ -220,12 +133,7 @@ export default function Index({ pembelian, filters, pemasoks, flash }: Props) {
                 defaultVisible: true,
                 render: (item: Record<string, unknown>) => {
                     const po = item as Pembelian;
-                    return (
-                        <div className="flex items-center gap-2">
-                            {getStatusBadge(po.status)}
-                            {renderStatusActions(po)}
-                        </div>
-                    );
+                    return getStatusBadge(po.status);
                 },
             },
             {
@@ -236,7 +144,7 @@ export default function Index({ pembelian, filters, pemasoks, flash }: Props) {
                 defaultVisible: false,
             },
         ],
-        [renderStatusActions],
+        [],
     );
 
     // 6. Opsi filter untuk status dan pemasok

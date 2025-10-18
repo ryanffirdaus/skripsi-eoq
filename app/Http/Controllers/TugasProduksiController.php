@@ -15,7 +15,7 @@ class TugasProduksiController extends Controller
     public function index()
     {
         // Mengambil HANYA tugas milik user yang sedang login
-        $tugasProduksi = PenugasanProduksi::where('staf_id', Auth::id())
+        $tugasProduksi = PenugasanProduksi::where('user_id', Auth::id())
             ->with('pengadaan.detail.produk')
             ->latest()
             ->paginate(10);
@@ -27,7 +27,7 @@ class TugasProduksiController extends Controller
     {
         // Cari tugas spesifik milik user yang login untuk keamanan
         $penugasan = PenugasanProduksi::where('penugasan_produksi_id', $id)
-            ->where('staf_id', Auth::id())
+            ->where('user_id', Auth::id())
             ->firstOrFail();
 
         // Validasi agar tugas tidak dieksekusi dua kali

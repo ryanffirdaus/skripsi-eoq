@@ -11,61 +11,42 @@ class PenugasanProduksi extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $primaryKey = 'penugasan_produksi_id';
-    protected $keyType = 'string';
-    public $incrementing = false;
+    protected $primaryKey = 'penugasan_id';
     protected $table = 'penugasan_produksi';
 
     protected $fillable = [
-        'penugasan_produksi_id',
-        'pengadaan_id', // Foreign key ke tabel Pengadaan
-        'staf_id',      // Foreign key ke tabel User (Staf RnD)
-        'jumlah_produksi',
-        'jumlah_telah_diproduksi',
-        'status', // Enum: 'Ditugaskan', 'Berjalan', 'Selesai'
+        'pengadaan_id',
+        'assigned_to',
+        'assigned_by',
+        'qty_assigned',
+        'qty_completed',
+        'status',
+        'deadline',
         'catatan',
-        'created_by',
-        'updated_by',
-        'deleted_by',
     ];
 
-    protected static function boot()
-    {
-        parent::boot();
+    protected $casts = [
+        'deadline' => 'date',
+    ];
 
-        static::creating(function ($model) {
-            if (Auth::check()) {
-                $model->created_by = Auth::user()->user_id;
-            }
-        });
-    }
-
-    // RELASI UTAMA: Menghubungkan penugasan ini ke sumber permintaannya.
     public function pengadaan()
     {
         return $this->belongsTo(Pengadaan::class, 'pengadaan_id', 'pengadaan_id');
     }
 
-    // RELASI UTAMA: Menentukan siapa staf yang bertanggung jawab.
-    public function staf()
+    public function assignedToUser()
     {
-        return $this->belongsTo(User::class, 'staf_id', 'user_id');
+        return $this->belongsTo(User::class, 'assigned_to', 'user_id');
     }
 
-    // Relasi untuk melacak hasil produksi dari penugasan ini.
-    public function masterProduk()
+    public function assignedByUser()
     {
-        return $this->hasMany(MasterProduk::class, 'penugasan_id', 'penugasan_produksi_id');
+        return $this->belongsTo(User::class, 'assigned_by', 'user_id');
     }
 
-    // Relasi untuk tracking user
-    public function createdBy()
+    public function getProgressPercentageAttribute()
     {
-        return $this->belongsTo(User::class, 'created_by', 'user_id');
-    }
-
-    public function updatedBy()
-    {
-        return $this->belongsTo(User::class, 'updated_by', 'user_id');
+        if ($this->qty_assigned == 0) return 0;
+        return round(($this->qty_completed / $this->qty_assigned) * 100, 2);
     }
 }

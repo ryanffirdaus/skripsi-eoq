@@ -1,4 +1,5 @@
 import FormTemplate from '@/components/form/form-template';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
@@ -25,17 +26,25 @@ interface PengadaanDetail {
     catatan?: string;
 }
 
+interface StatusOption {
+    value: string;
+    label: string;
+}
+
 interface Pengadaan {
     pengadaan_id: string;
     jenis_pengadaan: string;
     pesanan_id?: string;
+    status: string;
     catatan?: string;
+    total_biaya: number;
     detail: PengadaanDetail[];
 }
 
 interface Props {
     pengadaan: Pengadaan;
     pemasoks: Pemasok[];
+    statusOptions: StatusOption[];
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -44,12 +53,14 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Edit Pengadaan', href: '#' },
 ];
 
-export default function Edit({ pengadaan, pemasoks }: Props) {
+export default function Edit({ pengadaan, pemasoks, statusOptions }: Props) {
     const { data, setData, put, processing, errors } = useForm({
+        status: pengadaan.status,
         catatan: pengadaan.catatan || '',
         details: pengadaan.detail.map((item) => ({
             pengadaan_detail_id: item.pengadaan_detail_id,
             pemasok_id: item.pemasok_id || '',
+            harga_satuan: item.harga_satuan || '',
         })),
     });
 
@@ -58,6 +69,9 @@ export default function Edit({ pengadaan, pemasoks }: Props) {
         updatedDetails[index] = { ...updatedDetails[index], [field]: value };
         setData('details', updatedDetails);
     };
+
+    // Check apakah harga masih bisa diedit (hanya untuk status pending, ditolak_procurement, ditolak_finance)
+    const isPriceEditable = ['pending', 'ditolak_procurement', 'ditolak_finance'].includes(pengadaan.status);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -99,7 +113,8 @@ export default function Edit({ pengadaan, pemasoks }: Props) {
                     <div className="ml-3">
                         <h3 className="text-sm font-medium text-blue-800">Informasi Edit Pengadaan</h3>
                         <div className="mt-2 text-sm text-blue-700">
-                            <p>• Anda dapat mengubah tanggal, catatan, dan pemasok untuk setiap item bahan baku.</p>
+                            <p>• Anda dapat mengubah status, catatan, dan pemasok untuk setiap item bahan baku.</p>
+                            <p>• Harga satuan hanya dapat diubah saat status: Pending, Ditolak Procurement, atau Ditolak Finance.</p>
                             <p>• Kuantitas dan jenis item tidak dapat diubah setelah pengadaan dibuat.</p>
                         </div>
                     </div>
@@ -107,7 +122,24 @@ export default function Edit({ pengadaan, pemasoks }: Props) {
             </div>
 
             {/* Basic Information */}
-            <div className="grid grid-cols-1 gap-6">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <div>
+                    <Label htmlFor="status">Status Pengadaan *</Label>
+                    <Select value={data.status} onValueChange={(value) => setData('status', value)}>
+                        <SelectTrigger className={cn('mt-1', errors.status && 'border-red-500')}>
+                            <SelectValue placeholder="Pilih Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {statusOptions.map((option) => (
+                                <SelectItem key={option.value} value={option.value}>
+                                    {option.label}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    {errors.status && <p className="mt-1 text-sm text-red-600">{errors.status}</p>}
+                </div>
+
                 <div>
                     <Label htmlFor="catatan">Catatan</Label>
                     <Textarea
@@ -176,9 +208,24 @@ export default function Edit({ pengadaan, pemasoks }: Props) {
 
                                 <div>
                                     <Label className="text-sm font-medium text-gray-700">Harga Satuan</Label>
-                                    <div className="mt-1 rounded border bg-white p-2 text-sm">
-                                        Rp {parseFloat(item.harga_satuan).toLocaleString('id-ID')}
-                                    </div>
+                                    {item.jenis_barang === 'bahan_baku' && isPriceEditable ? (
+                                        <>
+                                            <Input
+                                                type="number"
+                                                value={data.details[index].harga_satuan}
+                                                onChange={(e) => handleDetailChange(index, 'harga_satuan', e.target.value)}
+                                                className={cn('mt-1', errors[`details.${index}.harga_satuan`] && 'border-red-500')}
+                                                placeholder="Masukkan harga satuan"
+                                            />
+                                            {errors[`details.${index}.harga_satuan`] && (
+                                                <p className="mt-1 text-sm text-red-600">{errors[`details.${index}.harga_satuan`]}</p>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <div className="mt-1 rounded border bg-white p-2 text-sm">
+                                            Rp {parseFloat(item.harga_satuan).toLocaleString('id-ID')}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                             {item.catatan && (

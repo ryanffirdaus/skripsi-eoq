@@ -42,9 +42,15 @@ interface Pembelian {
     detail: PembelianDetail[];
 }
 
+interface StatusOption {
+    value: string;
+    label: string;
+}
+
 interface Props {
     pembelian: Pembelian;
     pemasoks: Pemasok[];
+    statusOptions: StatusOption[];
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -53,8 +59,9 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Edit Purchase Order', href: '#' },
 ];
 
-export default function Edit({ pembelian, pemasoks }: Props) {
+export default function Edit({ pembelian, pemasoks, statusOptions }: Props) {
     const { data, setData, put, processing, errors } = useForm({
+        status: pembelian.status,
         pemasok_id: pembelian.pemasok_id,
         tanggal_pembelian: pembelian.tanggal_pembelian,
         tanggal_kirim_diharapkan: pembelian.tanggal_kirim_diharapkan || '',
@@ -135,6 +142,24 @@ export default function Edit({ pembelian, pemasoks }: Props) {
                     </Select>
                     {errors.pemasok_id && <p className="mt-1 text-sm text-red-600">{errors.pemasok_id}</p>}
                 </div>
+
+                <div>
+                    <Label htmlFor="status">Status Pembelian *</Label>
+                    <Select value={data.status} onValueChange={(value) => setData('status', value)}>
+                        <SelectTrigger className={cn('mt-1', errors.status && 'border-red-500')}>
+                            <SelectValue placeholder="Pilih Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {statusOptions.map((option) => (
+                                <SelectItem key={option.value} value={option.value}>
+                                    {option.label}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    {errors.status && <p className="mt-1 text-sm text-red-600">{errors.status}</p>}
+                </div>
+
                 <div>
                     <Label htmlFor="tanggal_pembelian">Tanggal Pembelian *</Label>
                     <Input

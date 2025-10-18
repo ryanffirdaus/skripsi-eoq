@@ -72,18 +72,20 @@ class PenerimaanBahanBakuController extends Controller
                 'display_text' => $pembelian->nomor_po . ' - ' . ($pembelian->pemasok->nama_pemasok ?? 'N/A'),
                 'details' => $pembelian->detail->map(function ($detail) {
                     $pengadaanDetail = $detail->pengadaanDetail;
+                    if (!$pengadaanDetail) return null;
+
                     $qtyDiterima = $detail->penerimaanBahanBaku->sum('qty_diterima');
-                    $outstanding = $pengadaanDetail->qty - $qtyDiterima;
+                    $outstanding = $pengadaanDetail->qty_diminta - $qtyDiterima;  // FIX: qty → qty_diminta
 
                     return [
                         'pembelian_detail_id' => $detail->pembelian_detail_id,
                         'nama_item' => $pengadaanDetail->nama_item,
                         'satuan' => $pengadaanDetail->satuan,
-                        'qty_dipesan' => $pengadaanDetail->qty,
+                        'qty_dipesan' => $pengadaanDetail->qty_diminta,  // FIX: qty → qty_diminta
                         'qty_diterima' => $qtyDiterima,
                         'outstanding_qty' => $outstanding,
                     ];
-                })->filter(fn($d) => $d['outstanding_qty'] > 0)->values(),
+                })->filter(fn($d) => $d && $d['outstanding_qty'] > 0)->values(),
             ])
             ->filter(fn($p) => $p['details']->isNotEmpty())
             ->values();
@@ -165,7 +167,7 @@ class PenerimaanBahanBakuController extends Controller
                 'item' => [
                     'nama_item' => $penerimaanBahanBaku->pembelianDetail->pengadaanDetail->nama_item ?? 'N/A',
                     'satuan' => $penerimaanBahanBaku->pembelianDetail->pengadaanDetail->satuan ?? '-',
-                    'qty_dipesan' => $penerimaanBahanBaku->pembelianDetail->pengadaanDetail->qty ?? 0,
+                    'qty_dipesan' => $penerimaanBahanBaku->pembelianDetail->pengadaanDetail->qty_diminta ?? 0,  // FIX: qty → qty_diminta
                 ],
                 'created_at' => $penerimaanBahanBaku->created_at?->format('Y-m-d H:i:s'),
             ]
@@ -178,17 +180,19 @@ class PenerimaanBahanBakuController extends Controller
 
         return response()->json($pembelian->detail->map(function ($detail) {
             $pengadaanDetail = $detail->pengadaanDetail;
+            if (!$pengadaanDetail) return null;
+
             $qtyDiterima = $detail->penerimaanBahanBaku->sum('qty_diterima');
-            $outstanding = $pengadaanDetail->qty - $qtyDiterima;
+            $outstanding = $pengadaanDetail->qty_diminta - $qtyDiterima;  // FIX: qty → qty_diminta
 
             return [
                 'pembelian_detail_id' => $detail->pembelian_detail_id,
                 'nama_item' => $pengadaanDetail->nama_item,
                 'satuan' => $pengadaanDetail->satuan,
-                'qty_dipesan' => $pengadaanDetail->qty,
+                'qty_dipesan' => $pengadaanDetail->qty_diminta,  // FIX: qty → qty_diminta
                 'qty_diterima_sebelumnya' => $qtyDiterima,
                 'qty_sisa' => $outstanding,
             ];
-        })->filter(fn($d) => $d['qty_sisa'] > 0)->values());
+        })->filter(fn($d) => $d && $d['qty_sisa'] > 0)->values());
     }
 }

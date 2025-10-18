@@ -104,46 +104,85 @@ class Pengadaan extends Model
         });
     }
 
-    // Status methods
-    public function isDraft()
-    {
-        return $this->status === 'draft';
-    }
-
+    // Status methods (SOURCE OF TRUTH: migration)
     public function isPending()
     {
         return $this->status === 'pending';
     }
 
-    public function isApproved()
+    public function isDisetujuiProcurement()
     {
-        return $this->status === 'approved';
+        return $this->status === 'disetujui_procurement';
     }
 
-    public function isOrdered()
+    public function isDisetujuiFinance()
     {
-        return $this->status === 'ordered';
+        return $this->status === 'disetujui_finance';
     }
 
-    public function isReceived()
+    public function isDiproses()
     {
-        return $this->status === 'received';
+        return $this->status === 'diproses';
     }
 
-    public function isCancelled()
+    public function isDiterima()
     {
-        return $this->status === 'cancelled';
+        return $this->status === 'diterima';
+    }
+
+    public function isDibatalkan()
+    {
+        return $this->status === 'dibatalkan';
     }
 
     // Business logic methods
     public function canBeEdited()
     {
-        return in_array($this->status, ['draft', 'pending']);
+        // Edit button tampil untuk semua status kecuali dibatalkan dan diterima
+        return !in_array($this->status, ['dibatalkan', 'diterima']);
     }
 
     public function canBeCancelled()
     {
-        return !in_array($this->status, ['received', 'cancelled']);
+        return !in_array($this->status, ['diterima', 'dibatalkan']);
+    }
+
+    /**
+     * Validasi apakah status transition valid
+     * Flow: pending → disetujui_procurement/ditolak_procurement → disetujui_finance/ditolak_finance → diproses → diterima
+     * Bisa dibatalkan dari status manapun kecuali diterima
+     */
+    public function isValidStatusTransition($newStatus)
+    {
+        $currentStatus = $this->status;
+
+        // Jika status sama, tidak perlu validasi
+        if ($currentStatus === $newStatus) {
+            return true;
+        }
+
+        // Bisa dibatalkan dari status manapun kecuali diterima atau sudah dibatalkan
+        if ($newStatus === 'dibatalkan') {
+            return !in_array($currentStatus, ['diterima', 'dibatalkan']);
+        }
+
+        // Tidak bisa update jika sudah diterima atau dibatalkan
+        if (in_array($currentStatus, ['diterima', 'dibatalkan'])) {
+            return false;
+        }
+
+        // Define valid transitions
+        $validTransitions = [
+            'pending' => ['disetujui_procurement', 'ditolak_procurement', 'dibatalkan'],
+            'ditolak_procurement' => ['disetujui_procurement', 'dibatalkan'],
+            'disetujui_procurement' => ['disetujui_finance', 'ditolak_finance', 'dibatalkan'],
+            'ditolak_finance' => ['disetujui_finance', 'dibatalkan'],
+            'disetujui_finance' => ['diproses', 'dibatalkan'],
+            'diproses' => ['diterima', 'dibatalkan'],
+        ];
+
+        return isset($validTransitions[$currentStatus]) &&
+            in_array($newStatus, $validTransitions[$currentStatus]);
     }
 
     public function updateTotalBiaya()

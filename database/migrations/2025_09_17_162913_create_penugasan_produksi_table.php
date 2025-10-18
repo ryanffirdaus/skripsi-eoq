@@ -13,7 +13,7 @@ return new class extends Migration
 
             // Buat kolom string dulu
             $table->string('pengadaan_id');
-            $table->string('staf_id');
+            $table->string('user_id');
 
             $table->integer('jumlah_produksi');
             $table->integer('jumlah_telah_diproduksi')->default(0);
@@ -30,7 +30,7 @@ return new class extends Migration
 
             // Tambahkan foreign key
             $table->foreign('pengadaan_id')->references('pengadaan_id')->on('pengadaan');
-            $table->foreign('staf_id')->references('user_id')->on('users');
+            $table->foreign('user_id')->references('user_id')->on('users');
             $table->foreign('created_by')->references('user_id')->on('users');
             $table->foreign('updated_by')->references('user_id')->on('users');
             $table->foreign('deleted_by')->references('user_id')->on('users');
