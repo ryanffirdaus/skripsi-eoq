@@ -105,10 +105,11 @@ class PengadaanDetail extends Model
     public function getSatuanAttribute()
     {
         if ($this->jenis_barang === 'bahan_baku' && $this->bahanBaku) {
-            return $this->bahanBaku->satuan;
+            return $this->bahanBaku->satuan_bahan;
         } elseif ($this->jenis_barang === 'produk' && $this->produk) {
-            return $this->produk->satuan;
+            return $this->produk->satuan_produk;
         }
+
         return '-';
     }
 

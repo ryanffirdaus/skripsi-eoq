@@ -31,6 +31,16 @@ class PenugasanProduksi extends Model
         'jumlah_produksi' => 'integer',
     ];
 
+    protected $with = [
+        'pengadaanDetail',
+        'user',
+        'createdBy',
+    ];
+
+    protected $appends = [
+        'created_by_user',
+    ];
+
     protected static function boot()
     {
         parent::boot();
@@ -142,5 +152,11 @@ class PenugasanProduksi extends Model
     public function scopeOutstanding($query)
     {
         return $query->whereIn('status', ['assigned', 'in_progress']);
+    }
+
+    // Accessor untuk memastikan created_by_user selalu tersedia
+    public function getCreatedByUserAttribute()
+    {
+        return $this->createdBy;
     }
 }

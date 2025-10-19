@@ -5,9 +5,11 @@ namespace App\Providers;
 use App\Models\BahanBaku;
 use App\Models\Produk;
 use App\Models\Pengiriman;
+use App\Models\PenugasanProduksi;
 use App\Observers\BahanBakuObserver;
 use App\Observers\ProdukObserver;
 use App\Observers\PengirimanObserver;
+use App\Observers\PenugasanProduksiObserver;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -29,5 +31,6 @@ class AppServiceProvider extends ServiceProvider
         BahanBaku::observe(BahanBakuObserver::class);
         Produk::observe(ProdukObserver::class);
         Pengiriman::observe(PengirimanObserver::class);
+        PenugasanProduksi::observe(PenugasanProduksiObserver::class);
     }
 }

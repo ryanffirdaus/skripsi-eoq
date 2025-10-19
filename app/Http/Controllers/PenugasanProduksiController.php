@@ -27,7 +27,7 @@ class PenugasanProduksiController extends Controller
         // Get sort parameters from request
         $sortBy = $request->input('sort_by', 'deadline');
         $sortDirection = $request->input('sort_direction', 'desc');
-        $perPage = $request->input('per_page', 15);
+        $perPage = $request->input('per_page', 10);
         $mode = $request->input('mode', 'all');
 
         // Filter berdasarkan role dan mode
@@ -69,12 +69,10 @@ class PenugasanProduksiController extends Controller
         }
 
         $penugasan = $query->with([
-            'pengadaanDetail.pengadaan',
-            'pengadaanDetail.bahanBaku',
             'pengadaanDetail.produk',
+            'pengadaanDetail.bahanBaku',
             'user',
             'createdBy',
-            'updatedBy'
         ])->orderBy($sortBy, $sortDirection)->paginate($perPage)->withQueryString();
 
         return Inertia::render('penugasan-produksi/index', [
@@ -98,8 +96,9 @@ class PenugasanProduksiController extends Controller
      */
     public function create()
     {
-        // Get outstanding PengadaanDetails (yang belum selesai diproduksi)
-        $pengadaanDetails = PengadaanDetail::with(['pengadaan', 'bahanBaku', 'produk'])
+        // Get outstanding PengadaanDetails untuk PRODUK saja (yang belum selesai diproduksi)
+        $pengadaanDetails = PengadaanDetail::with(['pengadaan', 'produk'])
+            ->where('jenis_barang', 'produk')
             ->whereHas('pengadaan', function ($query) {
                 $query->whereIn('status', ['disetujui_finance', 'diproses']);
             })
@@ -130,6 +129,13 @@ class PenugasanProduksiController extends Controller
         ]);
 
         $pengadaanDetail = PengadaanDetail::findOrFail($validated['pengadaan_detail_id']);
+
+        // Validasi bahwa pengadaan detail ini harus untuk produk
+        if ($pengadaanDetail->jenis_barang !== 'produk') {
+            return back()->withErrors([
+                'pengadaan_detail_id' => 'Penugasan produksi hanya untuk produk, bukan bahan baku'
+            ])->withInput();
+        }
 
         // Validasi jumlah tidak melebihi qty_disetujui
         $maxQty = $pengadaanDetail->qty_disetujui ?? $pengadaanDetail->qty_diminta;
@@ -280,7 +286,7 @@ class PenugasanProduksiController extends Controller
             ]);
         }
 
-        return redirect()->route('penugasan-produksi.show', $penugasan_produksi)
+        return redirect()->route('penugasan-produksi.index')
             ->with('success', 'Penugasan produksi berhasil diperbarui');
     }
 

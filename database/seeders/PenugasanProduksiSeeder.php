@@ -18,8 +18,8 @@ class PenugasanProduksiSeeder extends Seeder
     {
         // Get sample data
         $pengadaanDetails = PengadaanDetail::take(5)->get();
-        $users = User::where('role_id', 'ROLE003')->take(3)->get(); // Ambil 3 production staff/workers
-        $creator = User::where('role_id', 'ROLE002')->first() ?? User::first(); // Supervisor/Manager
+        $users = User::where('role_id', 'R03')->take(3)->get(); // Ambil 3 production staff/workers (Staf RnD)
+        $creator = User::whereIn('role_id', ['R01', 'R09'])->first() ?? User::first(); // Admin or Manajer RnD
 
         if ($pengadaanDetails->isEmpty() || $users->isEmpty() || !$creator) {
             $this->command->info('Skipping PenugasanProduksi seeder: insufficient data');

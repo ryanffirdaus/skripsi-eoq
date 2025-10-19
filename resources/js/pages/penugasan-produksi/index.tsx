@@ -8,20 +8,37 @@ interface User extends Record<string, unknown> {
     nama_lengkap: string;
 }
 
+interface BahanBaku extends Record<string, unknown> {
+    bahan_baku_id: string;
+    nama_bahan: string;
+    satuan_bahan: string;
+}
+
+interface Produk extends Record<string, unknown> {
+    produk_id: string;
+    nama_produk: string;
+    satuan_produk: string;
+}
+
 interface PengadaanDetail extends Record<string, unknown> {
     pengadaan_detail_id: string;
+    jenis_barang: string;
+    barang_id: string;
     nama_item: string;
     satuan: string;
+    bahan_baku?: BahanBaku;
+    produk?: Produk;
 }
 
 interface Penugasan extends Record<string, unknown> {
     penugasan_id: number;
     pengadaan_detail_id: string;
-    pengadaanDetail?: PengadaanDetail;
+    pengadaan_detail?: PengadaanDetail;
     user_id: string;
     user?: User;
-    created_by: string;
+    created_by?: string | User;
     createdBy?: User;
+    created_by_user?: User;
     jumlah_produksi: number;
     status: string;
     deadline: string;
@@ -79,18 +96,40 @@ const statusOptions = [
     { value: 'cancelled', label: 'Dibatalkan' },
 ];
 
+// Helper function to format deadline
+const formatDeadline = (deadline: string): string => {
+    try {
+        const date = new Date(deadline);
+        if (isNaN(date.getTime())) {
+            return deadline;
+        }
+        // Format: "19 Oct 2025" or use formatDistanceToNow
+        const formatter = new Intl.DateTimeFormat('id-ID', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+        });
+        return formatter.format(date);
+    } catch {
+        return deadline;
+    }
+};
+
 export default function Index({ penugasan, filters, userRole, flash }: Props) {
     const isAdmin = ['R01', 'R09'].includes(userRole);
     const mode = filters.mode === 'assigned' ? 'assigned' : 'all';
 
-    const baseColumns = [
+    const columns = [
         {
             key: 'pengadaan_detail_id',
             label: 'Item Produksi',
             sortable: true,
             hideable: true,
             defaultVisible: true,
-            render: (item: Penugasan) => item.pengadaanDetail?.nama_item || '-',
+            render: (item: Penugasan) => {
+                if (!item.pengadaan_detail) return '-';
+                return item.pengadaan_detail.nama_item || '-';
+            },
         },
         {
             key: 'satuan',
@@ -98,52 +137,30 @@ export default function Index({ penugasan, filters, userRole, flash }: Props) {
             sortable: false,
             hideable: true,
             defaultVisible: true,
-            render: (item: Penugasan) => item.pengadaanDetail?.satuan || '-',
+            render: (item: Penugasan) => {
+                return item.pengadaan_detail?.satuan || '-';
+            },
         },
-    ];
-
-    // Columns untuk mode "all" (semua penugasan) - tampilkan Worker dan Supervisor
-    const allModeColumns = isAdmin
-        ? [
-              {
-                  key: 'user_id',
-                  label: 'Worker',
-                  sortable: false,
-                  hideable: true,
-                  defaultVisible: true,
-                  render: (item: Penugasan) => item.user?.nama_lengkap || '-',
-              },
-              {
-                  key: 'created_by',
-                  label: 'Supervisor',
-                  sortable: false,
-                  hideable: true,
-                  defaultVisible: true,
-                  render: (item: Penugasan) => item.createdBy?.nama_lengkap || '-',
-              },
-          ]
-        : [];
-
-    // Columns untuk mode "assigned" (tugas yang ditugaskan ke workers) - tampilkan hanya Supervisor
-    const assignedModeColumns =
-        isAdmin && mode === 'assigned'
-            ? [
-                  {
-                      key: 'created_by',
-                      label: 'Supervisor',
-                      sortable: false,
-                      hideable: true,
-                      defaultVisible: true,
-                      render: (item: Penugasan) => item.createdBy?.nama_lengkap || '-',
-                  },
-              ]
-            : [];
-
-    const adminColumns = mode === 'assigned' ? assignedModeColumns : allModeColumns;
-
-    const columns = [
-        ...baseColumns,
-        ...adminColumns,
+        {
+            key: 'user_id',
+            label: 'Petugas',
+            sortable: false,
+            hideable: true,
+            defaultVisible: true,
+            render: (item: Penugasan) => item.user?.nama_lengkap || '-',
+        },
+        {
+            key: 'created_by',
+            label: 'Supervisor',
+            sortable: false,
+            hideable: true,
+            defaultVisible: true,
+            render: (item: Penugasan) => {
+                // Handle multiple possible field names due to snake_case/camelCase conversion
+                const createdByUser = item.createdBy || item.created_by_user || (typeof item.created_by === 'object' ? item.created_by : null);
+                return (createdByUser as User)?.nama_lengkap || '-';
+            },
+        },
         {
             key: 'jumlah_produksi',
             label: 'Jumlah Produksi',
@@ -157,6 +174,7 @@ export default function Index({ penugasan, filters, userRole, flash }: Props) {
             sortable: true,
             hideable: true,
             defaultVisible: true,
+            render: (item: Penugasan) => formatDeadline(item.deadline),
         },
         {
             key: 'status',
@@ -187,7 +205,10 @@ export default function Index({ penugasan, filters, userRole, flash }: Props) {
     ];
 
     const actions = [
-        createEditAction<Penugasan>((item) => `/penugasan-produksi/${item.penugasan_id}/edit`),
+        createEditAction<Penugasan>(
+            (item) => `/penugasan-produksi/${item.penugasan_id}/edit`,
+            (item) => item.status !== 'completed' && item.status !== 'cancelled',
+        ),
         ...(isAdmin
             ? [
                   createDeleteAction<Penugasan>((item) => {
