@@ -116,7 +116,7 @@ const formatDeadline = (deadline: string): string => {
 };
 
 export default function Index({ penugasan, filters, userRole, flash }: Props) {
-    const isAdmin = ['R01', 'R09'].includes(userRole);
+    const isAdmin = ['R01', 'R08'].includes(userRole);
     const mode = filters.mode === 'assigned' ? 'assigned' : 'all';
 
     const columns = [

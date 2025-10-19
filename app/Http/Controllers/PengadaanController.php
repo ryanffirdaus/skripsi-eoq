@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class PengadaanController extends Controller
 {
@@ -28,11 +29,35 @@ class PengadaanController extends Controller
      */
     public function index(Request $request)
     {
+        $user = Auth::user();
         $query = Pengadaan::with([
             'pesanan:pesanan_id',
             'createdBy:user_id,nama_lengkap',
             'updatedBy:user_id,nama_lengkap'
         ]);
+
+        // Filter berdasarkan role - tentukan status mana saja yang bisa dilihat
+        // Urutan status workflow: draft -> disetujui_gudang -> disetujui_pengadaan -> disetujui_keuangan -> diproses -> diterima
+        if (in_array($user->role_id, ['R02', 'R07'])) {
+            // Staf/Manajer Gudang - lihat SEMUA status (karena mereka yang membuat)
+        } elseif (in_array($user->role_id, ['R04', 'R09'])) {
+            // Staf/Manajer Pengadaan - lihat dari "disetujui_gudang" ke atas
+            $query->whereIn('status', [
+                'disetujui_gudang',
+                'disetujui_pengadaan',
+                'disetujui_keuangan',
+                'diproses',
+                'diterima',
+            ]);
+        } elseif (in_array($user->role_id, ['R06', 'R10'])) {
+            // Staf/Manajer Keuangan - lihat dari "disetujui_pengadaan" ke atas
+            $query->whereIn('status', [
+                'disetujui_pengadaan',
+                'disetujui_keuangan',
+                'diproses',
+                'diterima',
+            ]);
+        }
 
         // Apply search filter
         if ($request->filled('search')) {
@@ -473,11 +498,10 @@ class PengadaanController extends Controller
 
         // Status options untuk update status di halaman edit (SOURCE OF TRUTH: migration)
         $statusOptions = [
-            ['value' => 'pending', 'label' => 'Pending'],
-            ['value' => 'disetujui_procurement', 'label' => 'Disetujui Procurement'],
-            ['value' => 'ditolak_procurement', 'label' => 'Ditolak Procurement'],
-            ['value' => 'disetujui_finance', 'label' => 'Disetujui Finance'],
-            ['value' => 'ditolak_finance', 'label' => 'Ditolak Finance'],
+            ['value' => 'draft', 'label' => 'Draft'],
+            ['value' => 'disetujui_gudang', 'label' => 'Disetujui Gudang'],
+            ['value' => 'disetujui_pengadaan', 'label' => 'Disetujui Pengadaan'],
+            ['value' => 'disetujui_keuangan', 'label' => 'Disetujui Keuangan'],
             ['value' => 'diproses', 'label' => 'Diproses'],
             ['value' => 'diterima', 'label' => 'Diterima'],
             ['value' => 'dibatalkan', 'label' => 'Dibatalkan'],
@@ -515,6 +539,8 @@ class PengadaanController extends Controller
      */
     public function update(Request $request, Pengadaan $pengadaan)
     {
+        $user = Auth::user();
+
         if (!$pengadaan->canBeEdited()) {
             return redirect()->route('pengadaan.index')
                 ->with('flash', [
@@ -524,7 +550,7 @@ class PengadaanController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'status' => 'nullable|in:pending,disetujui_procurement,ditolak_procurement,disetujui_finance,ditolak_finance,diproses,diterima,dibatalkan',
+            'status' => 'nullable|in:draft,disetujui_gudang,disetujui_pengadaan,disetujui_keuangan,diproses,diterima,dibatalkan',
             'catatan' => 'nullable|string',
             'details' => 'required|array|min:1',
             'details.*.pengadaan_detail_id' => 'required|exists:pengadaan_detail,pengadaan_detail_id',
@@ -538,12 +564,44 @@ class PengadaanController extends Controller
                 ->withInput();
         }
 
-        // Validasi status transition
+        // Validasi status transition dan role permission
         if ($request->has('status') && $request->status !== $pengadaan->status) {
+            // Cek apakah status transition valid
             if (!$pengadaan->isValidStatusTransition($request->status)) {
                 return redirect()->back()
                     ->with('flash', [
                         'message' => 'Perubahan status dari "' . $pengadaan->status . '" ke "' . $request->status . '" tidak diperbolehkan.',
+                        'type' => 'error'
+                    ])
+                    ->withInput();
+            }
+
+            // Cek role permission untuk status tertentu
+            // Only Manajer Gudang (R07) bisa approve ke disetujui_gudang
+            if ($request->status === 'disetujui_gudang' && $user->role_id !== 'R07') {
+                return redirect()->back()
+                    ->with('flash', [
+                        'message' => 'Hanya Manajer Gudang yang bisa menyetujui pengadaan di tahap ini.',
+                        'type' => 'error'
+                    ])
+                    ->withInput();
+            }
+
+            // Only Manajer Pengadaan (R09) bisa approve ke disetujui_pengadaan
+            if ($request->status === 'disetujui_pengadaan' && $user->role_id !== 'R09') {
+                return redirect()->back()
+                    ->with('flash', [
+                        'message' => 'Hanya Manajer Pengadaan yang bisa menyetujui pengadaan di tahap ini.',
+                        'type' => 'error'
+                    ])
+                    ->withInput();
+            }
+
+            // Only Manajer Keuangan (R10) bisa approve ke disetujui_keuangan
+            if ($request->status === 'disetujui_keuangan' && $user->role_id !== 'R10') {
+                return redirect()->back()
+                    ->with('flash', [
+                        'message' => 'Hanya Manajer Keuangan yang bisa menyetujui pengadaan di tahap ini.',
                         'type' => 'error'
                     ])
                     ->withInput();
@@ -561,8 +619,8 @@ class PengadaanController extends Controller
         foreach ($request->details as $detailData) {
             $updateDetailData = ['pemasok_id' => $detailData['pemasok_id']];
 
-            // Hanya update harga jika belum disetujui (pending, ditolak_procurement, ditolak_finance)
-            $canEditPrice = in_array($pengadaan->status, ['pending', 'ditolak_procurement', 'ditolak_finance']);
+            // Hanya update harga jika masih draft atau disetujui_gudang (sebelum approval dari Pengadaan)
+            $canEditPrice = in_array($pengadaan->status, ['draft', 'disetujui_gudang']);
             if ($canEditPrice && isset($detailData['harga_satuan'])) {
                 $updateDetailData['harga_satuan'] = $detailData['harga_satuan'];
             }
@@ -710,13 +768,12 @@ class PengadaanController extends Controller
     {
         return match ($status) {
             'draft' => 'Draft',
-            'pending' => 'Menunggu Persetujuan',
-            'procurement_approved' => 'Disetujui',
-            'finance_approved' => 'Disetujui',
-            'ordered' => 'Dipesan',
-            'partial_received' => 'Diterima Sebagian',
-            'received' => 'Diterima',
-            'cancelled' => 'Dibatalkan',
+            'disetujui_gudang' => 'Disetujui Gudang',
+            'disetujui_pengadaan' => 'Disetujui Pengadaan',
+            'disetujui_keuangan' => 'Disetujui Keuangan',
+            'diproses' => 'Diproses',
+            'diterima' => 'Diterima',
+            'dibatalkan' => 'Dibatalkan',
             default => ucfirst($status)
         };
     }

@@ -19,12 +19,15 @@ class CheckRoleBasedAccess
         'R02' => [ // Staf Gudang
             'bahan-baku' => ['index', 'show'], // Hanya view
             'produk' => ['index', 'show'], // Hanya view
+            'pengadaan' => ['index', 'create', 'store', 'edit', 'update', 'show'], // Buat dan edit pengadaan
             'pengiriman' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'],
             'penerimaan-bahan-baku' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'],
         ],
-        'R03' => [], // Staf RnD
+        'R03' => [ // Staf RnD
+            'penugasan-produksi' => ['index', 'show', 'edit', 'update'], // Bisa lihat dan edit penugasan mereka
+        ],
         'R04' => [ // Staf Pengadaan
-            'pengadaan' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'],
+            'pengadaan' => ['index', 'show'], // View pengadaan (tidak bisa buat/edit/hapus - hanya Manajer Pengadaan)
             'pembelian' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'],
             'pemasok' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'],
             'penerimaan-bahan-baku' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'],
@@ -35,17 +38,32 @@ class CheckRoleBasedAccess
             'pesanan' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'],
         ],
         'R06' => [ // Staf Keuangan
+            'pengadaan' => ['index', 'show'], // View pengadaan saja
             'transaksi-pembayaran' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'],
         ],
         'R07' => [ // Manajer Gudang
             'bahan-baku' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'],
             'produk' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'],
+            'pengadaan' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'], // Full CRUD
             'pengiriman' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'],
             'penerimaan-bahan-baku' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'],
         ],
-        'R08' => [], // Manajer RnD
-        'R9' => [], // Manajer Pengadaan
-        'R10' => [], // Manajer Keuangan
+        'R08' => [ // Manajer RnD
+            'penugasan-produksi' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'], // CRUD penugasan
+            'bahan-baku' => ['index', 'show'], // Hanya view
+            'produk' => ['index', 'show'], // Hanya view
+            'pengadaan' => ['index', 'show'], // Hanya view
+        ],
+        'R09' => [ // Manajer Pengadaan
+            'pengadaan' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'],
+            'pembelian' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'],
+            'pemasok' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'],
+            'penerimaan-bahan-baku' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'],
+        ],
+        'R10' => [ // Manajer Keuangan
+            'pengadaan' => ['index', 'show'], // View dan bisa edit status saja (di controller)
+            'transaksi-pembayaran' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'],
+        ],
     ];
 
     /**

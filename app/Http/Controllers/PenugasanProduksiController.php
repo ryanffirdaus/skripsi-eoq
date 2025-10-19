@@ -31,13 +31,14 @@ class PenugasanProduksiController extends Controller
         $mode = $request->input('mode', 'all');
 
         // Filter berdasarkan role dan mode
-        if ($user->role_id === 'R01' || $user->role_id === 'R09') {
-            // Admin/Manajer RnD - lihat SEMUA penugasan (mode=all)
-            // Jika mode=assigned, tampilkan hanya tugas yang sudah ditugaskan ke workers (filter: status != cancelled)
+        if ($user->role_id === 'R01') {
+            // Admin - lihat SEMUA penugasan
             if ($mode === 'assigned') {
                 $query->where('status', '!=', 'cancelled');
             }
-            // Else: show all penugasan tanpa filter tambahan
+        } elseif ($user->role_id === 'R08') {
+            // Manajer RnD - lihat penugasan yang dia buat (created_by = user_id)
+            $query->where('created_by', $user->user_id);
         } elseif ($user->role_id === 'R03') {
             // Staf RnD - lihat tugas mereka sendiri
             $query->where('user_id', $user->user_id);

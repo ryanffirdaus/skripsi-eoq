@@ -3,6 +3,7 @@ import TableTemplate from '@/components/table/table-template';
 import { Badge } from '@/components/ui/badge';
 import { formatCurrency } from '@/lib/formatters';
 import { type BreadcrumbItem } from '@/types';
+import { router } from '@inertiajs/react';
 import { ShoppingCart, TrendingDown } from 'lucide-react';
 import { useMemo } from 'react';
 
@@ -68,11 +69,10 @@ const breadcrumbs: BreadcrumbItem[] = [
 export default function Index({ pengadaan, filters, flash }: Props) {
     const getStatusBadge = (status: string) => {
         const statusConfig = {
-            pending: { variant: 'secondary' as const, label: 'Menunggu' },
-            disetujui_procurement: { variant: 'default' as const, label: 'Disetujui (Procurement)' },
-            ditolak_procurement: { variant: 'destructive' as const, label: 'Ditolak (Procurement)' },
-            disetujui_finance: { variant: 'default' as const, label: 'Disetujui (Finance)' },
-            ditolak_finance: { variant: 'destructive' as const, label: 'Ditolak (Finance)' },
+            draft: { variant: 'outline' as const, label: 'Draft' },
+            disetujui_gudang: { variant: 'secondary' as const, label: 'Disetujui Gudang' },
+            disetujui_pengadaan: { variant: 'default' as const, label: 'Disetujui Pengadaan' },
+            disetujui_keuangan: { variant: 'default' as const, label: 'Disetujui Keuangan' },
             diproses: { variant: 'default' as const, label: 'Diproses' },
             diterima: { variant: 'default' as const, label: 'Diterima' },
             dibatalkan: { variant: 'destructive' as const, label: 'Dibatalkan' },
@@ -170,11 +170,10 @@ export default function Index({ pengadaan, filters, flash }: Props) {
                 type: 'select' as const,
                 options: [
                     { value: '', label: 'Semua Status' },
-                    { value: 'pending', label: 'Pending' },
-                    { value: 'disetujui_procurement', label: 'Disetujui (Procurement)' },
-                    { value: 'ditolak_procurement', label: 'Ditolak (Procurement)' },
-                    { value: 'disetujui_finance', label: 'Disetujui (Finance)' },
-                    { value: 'ditolak_finance', label: 'Ditolak (Finance)' },
+                    { value: 'draft', label: 'Draft' },
+                    { value: 'disetujui_gudang', label: 'Disetujui Gudang' },
+                    { value: 'disetujui_pengadaan', label: 'Disetujui Pengadaan' },
+                    { value: 'disetujui_keuangan', label: 'Disetujui Keuangan' },
                     { value: 'diproses', label: 'Diproses' },
                     { value: 'diterima', label: 'Diterima' },
                     { value: 'dibatalkan', label: 'Dibatalkan' },
@@ -204,7 +203,7 @@ export default function Index({ pengadaan, filters, flash }: Props) {
             createDeleteAction<Pengadaan>((item) => {
                 router.delete(`/pengadaan/${item.pengadaan_id}`, {
                     preserveState: false,
-                    onError: (errors) => {
+                    onError: (errors: unknown) => {
                         console.error('Delete failed:', errors);
                     },
                 });

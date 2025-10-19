@@ -104,20 +104,34 @@ class Pengadaan extends Model
         });
     }
 
+    // Status constants (SOURCE OF TRUTH: migration)
+    public const STATUS_DRAFT = 'draft';
+    public const STATUS_DISETUJUI_GUDANG = 'disetujui_gudang';
+    public const STATUS_DISETUJUI_PENGADAAN = 'disetujui_pengadaan';
+    public const STATUS_DISETUJUI_KEUANGAN = 'disetujui_keuangan';
+    public const STATUS_DIPROSES = 'diproses';
+    public const STATUS_DITERIMA = 'diterima';
+    public const STATUS_DIBATALKAN = 'dibatalkan';
+
     // Status methods (SOURCE OF TRUTH: migration)
-    public function isPending()
+    public function isDraft()
     {
-        return $this->status === 'pending';
+        return $this->status === 'draft';
     }
 
-    public function isDisetujuiProcurement()
+    public function isDisetujuiGudang()
     {
-        return $this->status === 'disetujui_procurement';
+        return $this->status === 'disetujui_gudang';
     }
 
-    public function isDisetujuiFinance()
+    public function isDisetujuiPengadaan()
     {
-        return $this->status === 'disetujui_finance';
+        return $this->status === 'disetujui_pengadaan';
+    }
+
+    public function isDisetujuiKeuangan()
+    {
+        return $this->status === 'disetujui_keuangan';
     }
 
     public function isDiproses()
@@ -138,8 +152,11 @@ class Pengadaan extends Model
     // Business logic methods
     public function canBeEdited()
     {
-        // Edit button tampil untuk semua status kecuali dibatalkan dan diterima
-        return !in_array($this->status, ['dibatalkan', 'diterima']);
+        // Edit button tampil untuk draft dan disetujui_gudang saja
+        // Staf/Manajer Gudang bisa edit di draft dan disetujui_gudang
+        // Staf/Manajer Pengadaan bisa edit di disetujui_gudang dan disetujui_pengadaan (tambah pemasok)
+        // Manajer Keuangan bisa edit di disetujui_pengadaan dan disetujui_keuangan
+        return !in_array($this->status, ['diterima', 'dibatalkan', 'diproses']);
     }
 
     public function canBeCancelled()
@@ -149,8 +166,8 @@ class Pengadaan extends Model
 
     /**
      * Validasi apakah status transition valid
-     * Flow: pending → disetujui_procurement/ditolak_procurement → disetujui_finance/ditolak_finance → diproses → diterima
-     * Bisa dibatalkan dari status manapun kecuali diterima
+     * Flow: draft → disetujui_gudang → disetujui_pengadaan → disetujui_keuangan → diproses → diterima
+     * Bisa dibatalkan dari status manapun kecuali diterima atau sudah dibatalkan
      */
     public function isValidStatusTransition($newStatus)
     {
@@ -171,13 +188,12 @@ class Pengadaan extends Model
             return false;
         }
 
-        // Define valid transitions
+        // Define valid transitions (WORKFLOW)
         $validTransitions = [
-            'pending' => ['disetujui_procurement', 'ditolak_procurement', 'dibatalkan'],
-            'ditolak_procurement' => ['disetujui_procurement', 'dibatalkan'],
-            'disetujui_procurement' => ['disetujui_finance', 'ditolak_finance', 'dibatalkan'],
-            'ditolak_finance' => ['disetujui_finance', 'dibatalkan'],
-            'disetujui_finance' => ['diproses', 'dibatalkan'],
+            'draft' => ['disetujui_gudang', 'dibatalkan'],
+            'disetujui_gudang' => ['disetujui_pengadaan', 'dibatalkan'],
+            'disetujui_pengadaan' => ['disetujui_keuangan', 'dibatalkan'],
+            'disetujui_keuangan' => ['diproses', 'dibatalkan'],
             'diproses' => ['diterima', 'dibatalkan'],
         ];
 

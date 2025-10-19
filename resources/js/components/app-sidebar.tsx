@@ -26,6 +26,7 @@ const mainNavItems: NavItem[] = [
         title: 'Dashboard',
         href: '/dashboard',
         icon: LayoutGrid,
+        roles: ['R01', 'R02', 'R03', 'R04', 'R05', 'R06', 'R07', 'R08', 'R09', 'R10'], // Semua role
     },
     {
         title: 'Users',
@@ -37,93 +38,107 @@ const mainNavItems: NavItem[] = [
         title: 'Bahan Baku',
         href: '/bahan-baku',
         icon: Component, // Lebih spesifik dari Atom
-        roles: ['R01', 'R02', 'R08'], // Admin, Staf Gudang, Manajer Gudang
+        roles: ['R01', 'R02', 'R07', 'R08'], // Admin, Staf Gudang, Manajer Gudang, Manajer RnD
     },
     {
         title: 'Produk',
         href: '/produk',
         icon: Box, // Lebih spesifik dari Container
-        roles: ['R01', 'R02', 'R08'], // Admin, Staf Gudang, Manajer Gudang
+        roles: ['R01', 'R02', 'R07', 'R08'], // Admin, Staf Gudang, Manajer Gudang, Manajer RnD
     },
     {
         title: 'Pelanggan',
         href: '/pelanggan',
         icon: Contact2, // Jelas membedakan dari Users
-        roles: ['R01', 'R05', 'R08', 'R09', 'R10', 'R11'], // Admin, Staf Penjualan, Managers
+        roles: ['R01', 'R05', 'R10', 'R11'], // Admin, Staf Penjualan, Manajer Penjualan, Manajer Keuangan
     },
     {
         title: 'Pemasok',
         href: '/pemasok',
         icon: Building2,
-        roles: ['R01', 'R04', 'R10'], // Admin, Staf Pengadaan, Manajer Pengadaan
+        roles: ['R01', 'R04', 'R09', 'R10'], // Admin, Staf Pengadaan, Manajer Pengadaan, Manajer Keuangan
     },
     {
         title: 'Pesanan',
         href: '/pesanan',
         icon: ShoppingCart, // Order dari pelanggan
-        roles: ['R01', 'R05', 'R08', 'R09', 'R10', 'R11'], // Admin, Staf Penjualan, Managers
+        roles: ['R01', 'R05', 'R10', 'R11'], // Admin, Staf Penjualan, Manajer Penjualan, Manajer Keuangan
     },
     {
         title: 'Pengiriman',
         href: '/pengiriman',
         icon: Truck,
-        roles: ['R01', 'R02', 'R08'], // Admin, Staf Gudang, Manajer Gudang
+        roles: ['R01', 'R02', 'R07'], // Admin, Staf Gudang, Manajer Gudang
     },
     {
         title: 'Pengadaan',
         href: '/pengadaan',
         icon: Package,
-        roles: ['R01', 'R04', 'R10'], // Admin, Staf Pengadaan, Manajer Pengadaan
+        roles: ['R01', 'R02', 'R04', 'R06', 'R07', 'R09', 'R10'], // Admin, Staf Gudang, Staf Pengadaan, Staf Keuangan, Manajer Gudang, Manajer Pengadaan, Manajer Keuangan
     },
     {
         title: 'Pembelian',
         href: '/pembelian',
         icon: ShoppingBag, // Pembelian ke pemasok
-        roles: ['R01', 'R04', 'R10'], // Admin, Staf Pengadaan, Manajer Pengadaan
+        roles: ['R01', 'R04', 'R09'], // Admin, Staf Pengadaan, Manajer Pengadaan
     },
     {
         title: 'Penerimaan Bahan Baku',
         href: '/penerimaan-bahan-baku',
         icon: PackageCheck,
-        roles: ['R01', 'R04', 'R02', 'R10', 'R08'], // Admin, Staf Pengadaan, Staf Gudang, Managers
+        roles: ['R01', 'R04', 'R02', 'R07'], // Admin, Staf Pengadaan, Staf Gudang, Manajer Gudang
     },
     {
         title: 'Transaksi Pembayaran',
         href: '/transaksi-pembayaran',
         icon: CreditCard,
-        roles: ['R01', 'R07', 'R11'], // Admin, Staf Keuangan, Manajer Keuangan
+        roles: ['R01', 'R06', 'R10'], // Admin, Staf Keuangan, Manajer Keuangan
     },
 ];
 
 export function AppSidebar() {
     const page = usePage<{ auth?: { user?: { role_id?: string } } }>();
     const userRole = page.props.auth?.user?.role_id || '';
-    const isAdmin = ['ROLE001', 'ROLE002'].includes(userRole);
 
-    // Dynamic items berdasarkan role
-    const penugasanItems: NavItem[] = isAdmin
-        ? [
-              {
-                  title: 'Penugasan',
-                  href: '/penugasan-produksi',
-                  icon: Briefcase,
-                  roles: ['R01', 'R09'], // Admin, Manajer RnD
-              },
-              {
-                  title: 'Yang Ditugaskan',
-                  href: '/penugasan-produksi?mode=assigned',
-                  icon: Briefcase,
-                  roles: ['R01', 'R09'], // Admin, Manajer RnD
-              },
-          ]
-        : [
-              {
-                  title: 'Penugasan Produksi',
-                  href: '/penugasan-produksi',
-                  icon: Briefcase,
-                  roles: ['R01', 'R03', 'R09'], // Admin, Staf RnD, Manajer RnD
-              },
-          ];
+    const penugasanItems: NavItem[] = [];
+
+    // Untuk Manajer RnD - bisa menugaskan
+    if (userRole === 'R08') {
+        penugasanItems.push({
+            title: 'Penugasan Produksi',
+            href: '/penugasan-produksi',
+            icon: Briefcase,
+            roles: ['R08'], // Manajer RnD
+        });
+    }
+
+    // Untuk Staf RnD - hanya bisa lihat yang ditugaskan ke mereka
+    if (userRole === 'R03') {
+        penugasanItems.push({
+            title: 'Penugasan',
+            href: '/penugasan-produksi?mode=assigned',
+            icon: Briefcase,
+            roles: ['R03'], // Staf RnD
+        });
+    }
+
+    // Untuk Admin - lihat semua
+    if (userRole === 'R01') {
+        penugasanItems.push(
+            {
+                title: 'Penugasan Produksi',
+                href: '/penugasan-produksi',
+                icon: Briefcase,
+                roles: ['R01'], // Admin
+            },
+            {
+                title: 'Penugasan - Mode Assigned',
+                href: '/penugasan-produksi?mode=assigned',
+                icon: Briefcase,
+                roles: ['R01'], // Admin
+            },
+        );
+    }
 
     const allItems = [...mainNavItems, ...penugasanItems];
 
