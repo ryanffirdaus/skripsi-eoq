@@ -105,13 +105,15 @@ class Pengadaan extends Model
     }
 
     // Status constants (SOURCE OF TRUTH: migration)
+    // Flow: draft → pending_approval_gudang → pending_supplier_allocation → pending_approval_pengadaan → pending_approval_keuangan → processed → received
     public const STATUS_DRAFT = 'draft';
-    public const STATUS_DISETUJUI_GUDANG = 'disetujui_gudang';
-    public const STATUS_DISETUJUI_PENGADAAN = 'disetujui_pengadaan';
-    public const STATUS_DISETUJUI_KEUANGAN = 'disetujui_keuangan';
-    public const STATUS_DIPROSES = 'diproses';
-    public const STATUS_DITERIMA = 'diterima';
-    public const STATUS_DIBATALKAN = 'dibatalkan';
+    public const STATUS_PENDING_APPROVAL_GUDANG = 'pending_approval_gudang'; // Menunggu approval Manajer Gudang
+    public const STATUS_PENDING_SUPPLIER_ALLOCATION = 'pending_supplier_allocation'; // Menunggu diisi pemasok
+    public const STATUS_PENDING_APPROVAL_PENGADAAN = 'pending_approval_pengadaan'; // Menunggu approval Manajer Pengadaan
+    public const STATUS_PENDING_APPROVAL_KEUANGAN = 'pending_approval_keuangan'; // Menunggu approval Manajer Keuangan
+    public const STATUS_PROCESSED = 'processed'; // Sudah disetujui keuangan, siap di-PO
+    public const STATUS_RECEIVED = 'received'; // Barang diterima
+    public const STATUS_CANCELLED = 'cancelled'; // Dibatalkan
 
     // Status methods (SOURCE OF TRUTH: migration)
     public function isDraft()
@@ -119,55 +121,57 @@ class Pengadaan extends Model
         return $this->status === 'draft';
     }
 
-    public function isDisetujuiGudang()
+    public function isPendingApprovalGudang()
     {
-        return $this->status === 'disetujui_gudang';
+        return $this->status === 'pending_approval_gudang';
     }
 
-    public function isDisetujuiPengadaan()
+    public function isPendingSupplierAllocation()
     {
-        return $this->status === 'disetujui_pengadaan';
+        return $this->status === 'pending_supplier_allocation';
     }
 
-    public function isDisetujuiKeuangan()
+    public function isPendingApprovalPengadaan()
     {
-        return $this->status === 'disetujui_keuangan';
+        return $this->status === 'pending_approval_pengadaan';
     }
 
-    public function isDiproses()
+    public function isPendingApprovalKeuangan()
     {
-        return $this->status === 'diproses';
+        return $this->status === 'pending_approval_keuangan';
     }
 
-    public function isDiterima()
+    public function isProcessed()
     {
-        return $this->status === 'diterima';
+        return $this->status === 'processed';
     }
 
-    public function isDibatalkan()
+    public function isReceived()
     {
-        return $this->status === 'dibatalkan';
+        return $this->status === 'received';
+    }
+
+    public function isCancelled()
+    {
+        return $this->status === 'cancelled';
     }
 
     // Business logic methods
     public function canBeEdited()
     {
-        // Edit button tampil untuk draft dan disetujui_gudang saja
-        // Staf/Manajer Gudang bisa edit di draft dan disetujui_gudang
-        // Staf/Manajer Pengadaan bisa edit di disetujui_gudang dan disetujui_pengadaan (tambah pemasok)
-        // Manajer Keuangan bisa edit di disetujui_pengadaan dan disetujui_keuangan
-        return !in_array($this->status, ['diterima', 'dibatalkan', 'diproses']);
+        // Bisa edit di tahap: draft, pending_approval_gudang, pending_supplier_allocation, pending_approval_pengadaan
+        return !in_array($this->status, ['pending_approval_keuangan', 'processed', 'received', 'cancelled']);
     }
 
     public function canBeCancelled()
     {
-        return !in_array($this->status, ['diterima', 'dibatalkan']);
+        return !in_array($this->status, ['received', 'cancelled']);
     }
 
     /**
      * Validasi apakah status transition valid
-     * Flow: draft → disetujui_gudang → disetujui_pengadaan → disetujui_keuangan → diproses → diterima
-     * Bisa dibatalkan dari status manapun kecuali diterima atau sudah dibatalkan
+     * Flow: draft → pending_approval_gudang → pending_supplier_allocation → pending_approval_pengadaan → pending_approval_keuangan → processed → received
+     * Bisa cancelled dari status manapun kecuali received atau sudah cancelled
      */
     public function isValidStatusTransition($newStatus)
     {
@@ -178,23 +182,24 @@ class Pengadaan extends Model
             return true;
         }
 
-        // Bisa dibatalkan dari status manapun kecuali diterima atau sudah dibatalkan
-        if ($newStatus === 'dibatalkan') {
-            return !in_array($currentStatus, ['diterima', 'dibatalkan']);
+        // Bisa cancelled dari status manapun kecuali received atau sudah cancelled
+        if ($newStatus === 'cancelled') {
+            return !in_array($currentStatus, ['received', 'cancelled']);
         }
 
-        // Tidak bisa update jika sudah diterima atau dibatalkan
-        if (in_array($currentStatus, ['diterima', 'dibatalkan'])) {
+        // Tidak bisa update jika sudah received atau cancelled
+        if (in_array($currentStatus, ['received', 'cancelled'])) {
             return false;
         }
 
         // Define valid transitions (WORKFLOW)
         $validTransitions = [
-            'draft' => ['disetujui_gudang', 'dibatalkan'],
-            'disetujui_gudang' => ['disetujui_pengadaan', 'dibatalkan'],
-            'disetujui_pengadaan' => ['disetujui_keuangan', 'dibatalkan'],
-            'disetujui_keuangan' => ['diproses', 'dibatalkan'],
-            'diproses' => ['diterima', 'dibatalkan'],
+            'draft' => ['pending_approval_gudang', 'cancelled'],
+            'pending_approval_gudang' => ['pending_supplier_allocation', 'cancelled'],
+            'pending_supplier_allocation' => ['pending_approval_pengadaan', 'cancelled'],
+            'pending_approval_pengadaan' => ['pending_approval_keuangan', 'cancelled'],
+            'pending_approval_keuangan' => ['processed', 'cancelled'],
+            'processed' => ['received', 'cancelled'],
         ];
 
         return isset($validTransitions[$currentStatus]) &&

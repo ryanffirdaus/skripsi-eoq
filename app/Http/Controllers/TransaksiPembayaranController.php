@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Pembelian;
 use App\Models\TransaksiPembayaran;
+use App\Http\Traits\RoleAccess;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -11,6 +12,7 @@ use Inertia\Inertia;
 
 class TransaksiPembayaranController extends Controller
 {
+    use RoleAccess;
     /**
      * Display a listing of the resource.
      * Menampilkan daftar semua transaksi pembayaran.
@@ -98,10 +100,18 @@ class TransaksiPembayaranController extends Controller
             'per_page'        => (int) $perPage,
         ];
 
+        // Tentukan permissions berdasarkan role
+        $permissions = [
+            'canCreate' => $this->hasRoles(['R06', 'R10']), // Staf Keuangan, Manajer Keuangan
+            'canEdit' => $this->hasRoles(['R06', 'R10']), // Staf Keuangan, Manajer Keuangan
+            'canDelete' => $this->hasRoles(['R06', 'R10']), // Staf Keuangan, Manajer Keuangan
+        ];
+
         return Inertia::render('transaksi-pembayaran/index', [
             'transaksiPembayaran' => $transaksiPembayaran,
             'filters'             => $filters,
             'pembelians'          => $pembelians,
+            'permissions'         => $permissions,
         ]);
     }
 
@@ -245,8 +255,8 @@ class TransaksiPembayaranController extends Controller
     {
         $transaksiPembayaran->load([
             'pembelian.pemasok:pemasok_id,nama_pemasok,nomor_telepon,email,alamat',
-            'pembelian.detail.pengadaanDetail.bahanBaku:bahan_baku_id,nama_bahan,satuan',
-            'pembelian.detail.pengadaanDetail.produk:produk_id,nama_produk,satuan',
+            'pembelian.detail.pengadaanDetail.bahanBaku:bahan_baku_id,nama_bahan,satuan_bahan',
+            'pembelian.detail.pengadaanDetail.produk:produk_id,nama_produk,satuan_produk',
         ]);
 
         $data = [

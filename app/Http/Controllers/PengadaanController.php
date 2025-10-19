@@ -37,25 +37,25 @@ class PengadaanController extends Controller
         ]);
 
         // Filter berdasarkan role - tentukan status mana saja yang bisa dilihat
-        // Urutan status workflow: draft -> disetujui_gudang -> disetujui_pengadaan -> disetujui_keuangan -> diproses -> diterima
+        // Workflow: draft -> pending_approval_gudang -> pending_supplier_allocation -> pending_approval_pengadaan -> pending_approval_keuangan -> processed -> received
         if (in_array($user->role_id, ['R02', 'R07'])) {
             // Staf/Manajer Gudang - lihat SEMUA status (karena mereka yang membuat)
         } elseif (in_array($user->role_id, ['R04', 'R09'])) {
-            // Staf/Manajer Pengadaan - lihat dari "disetujui_gudang" ke atas
+            // Staf/Manajer Pengadaan - lihat dari "pending_supplier_allocation" ke atas
             $query->whereIn('status', [
-                'disetujui_gudang',
-                'disetujui_pengadaan',
-                'disetujui_keuangan',
-                'diproses',
-                'diterima',
+                'pending_supplier_allocation',
+                'pending_approval_pengadaan',
+                'pending_approval_keuangan',
+                'processed',
+                'received',
             ]);
         } elseif (in_array($user->role_id, ['R06', 'R10'])) {
-            // Staf/Manajer Keuangan - lihat dari "disetujui_pengadaan" ke atas
+            // Staf/Manajer Keuangan - lihat dari "pending_approval_pengadaan" ke atas
             $query->whereIn('status', [
-                'disetujui_pengadaan',
-                'disetujui_keuangan',
-                'diproses',
-                'diterima',
+                'pending_approval_pengadaan',
+                'pending_approval_keuangan',
+                'processed',
+                'received',
             ]);
         }
 
@@ -577,8 +577,8 @@ class PengadaanController extends Controller
             }
 
             // Cek role permission untuk status tertentu
-            // Only Manajer Gudang (R07) bisa approve ke disetujui_gudang
-            if ($request->status === 'disetujui_gudang' && $user->role_id !== 'R07') {
+            // Only Manajer Gudang (R07) bisa approve ke pending_approval_gudang
+            if ($request->status === 'pending_approval_gudang' && $user->role_id !== 'R07') {
                 return redirect()->back()
                     ->with('flash', [
                         'message' => 'Hanya Manajer Gudang yang bisa menyetujui pengadaan di tahap ini.',
@@ -587,8 +587,8 @@ class PengadaanController extends Controller
                     ->withInput();
             }
 
-            // Only Manajer Pengadaan (R09) bisa approve ke disetujui_pengadaan
-            if ($request->status === 'disetujui_pengadaan' && $user->role_id !== 'R09') {
+            // Only Manajer Pengadaan (R09) bisa approve ke pending_approval_pengadaan (setelah pemasok dialokasikan)
+            if ($request->status === 'pending_approval_pengadaan' && $user->role_id !== 'R09') {
                 return redirect()->back()
                     ->with('flash', [
                         'message' => 'Hanya Manajer Pengadaan yang bisa menyetujui pengadaan di tahap ini.',
@@ -597,11 +597,21 @@ class PengadaanController extends Controller
                     ->withInput();
             }
 
-            // Only Manajer Keuangan (R10) bisa approve ke disetujui_keuangan
-            if ($request->status === 'disetujui_keuangan' && $user->role_id !== 'R10') {
+            // Only Manajer Keuangan (R10) bisa approve ke pending_approval_keuangan
+            if ($request->status === 'pending_approval_keuangan' && $user->role_id !== 'R10') {
                 return redirect()->back()
                     ->with('flash', [
                         'message' => 'Hanya Manajer Keuangan yang bisa menyetujui pengadaan di tahap ini.',
+                        'type' => 'error'
+                    ])
+                    ->withInput();
+            }
+
+            // Only Manajer Gudang (R07) bisa approve ke processed (setelah keuangan approve)
+            if ($request->status === 'processed' && $user->role_id !== 'R07') {
+                return redirect()->back()
+                    ->with('flash', [
+                        'message' => 'Hanya Manajer Gudang yang bisa memproses pengadaan setelah disetujui keuangan.',
                         'type' => 'error'
                     ])
                     ->withInput();
@@ -619,8 +629,8 @@ class PengadaanController extends Controller
         foreach ($request->details as $detailData) {
             $updateDetailData = ['pemasok_id' => $detailData['pemasok_id']];
 
-            // Hanya update harga jika masih draft atau disetujui_gudang (sebelum approval dari Pengadaan)
-            $canEditPrice = in_array($pengadaan->status, ['draft', 'disetujui_gudang']);
+            // Hanya update harga jika masih draft atau pending_approval_gudang (sebelum approval dari Pengadaan)
+            $canEditPrice = in_array($pengadaan->status, ['draft', 'pending_approval_gudang']);
             if ($canEditPrice && isset($detailData['harga_satuan'])) {
                 $updateDetailData['harga_satuan'] = $detailData['harga_satuan'];
             }
@@ -768,13 +778,14 @@ class PengadaanController extends Controller
     {
         return match ($status) {
             'draft' => 'Draft',
-            'disetujui_gudang' => 'Disetujui Gudang',
-            'disetujui_pengadaan' => 'Disetujui Pengadaan',
-            'disetujui_keuangan' => 'Disetujui Keuangan',
-            'diproses' => 'Diproses',
-            'diterima' => 'Diterima',
-            'dibatalkan' => 'Dibatalkan',
-            default => ucfirst($status)
+            'pending_approval_gudang' => 'Menunggu Approval Gudang',
+            'pending_supplier_allocation' => 'Menunggu Alokasi Pemasok',
+            'pending_approval_pengadaan' => 'Menunggu Approval Pengadaan',
+            'pending_approval_keuangan' => 'Menunggu Approval Keuangan',
+            'processed' => 'Sudah Diproses',
+            'received' => 'Diterima',
+            'cancelled' => 'Dibatalkan',
+            default => ucfirst(str_replace('_', ' ', $status))
         };
     }
 }

@@ -1,13 +1,9 @@
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import ShowPageTemplate from '@/components/templates/show-page-template';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import AppLayout from '@/layouts/app-layout';
-import { cn } from '@/lib/utils';
 import { BreadcrumbItem } from '@/types';
-import { Head, router } from '@inertiajs/react';
-import { Building2, Calendar, CheckCircle, CreditCard, Edit, Eye, FileText, Package, Truck, XCircle } from 'lucide-react';
+import { Building2, Calendar, CreditCard, Package } from 'lucide-react';
 
 interface Pemasok {
     pemasok_id: string;
@@ -20,20 +16,22 @@ interface Pemasok {
 
 interface Pengadaan {
     pengadaan_id: string;
-    nomor_pengadaan: string;
-    tanggal_pengadaan: string;
+    nomor_po?: string;
 }
 
 interface PembelianDetail {
-    detail_id: string;
-    bahan_baku_id: string;
-    nama_bahan: string;
+    pembelian_detail_id: string;
+    pengadaan_detail_id: string;
+    jenis_barang: string;
+    nama_item: string;
     satuan: string;
-    kuantitas: number;
+    qty_dipesan: number;
+    qty_diterima: number;
     harga_satuan: number;
-    subtotal: number;
-    kuantitas_diterima: number;
-    persentase_diterima: number;
+    total_harga: number;
+    outstanding_qty: number;
+    is_fully_received: boolean;
+    persentase_diterima?: number;
 }
 
 interface TransaksiPembayaran {
@@ -42,8 +40,7 @@ interface TransaksiPembayaran {
     tanggal_pembayaran: string;
     jumlah_pembayaran: number;
     metode_pembayaran: string;
-    nomor_referensi?: string;
-    keterangan?: string;
+    bukti_pembayaran?: string;
 }
 
 interface Pembelian extends Record<string, unknown> {
@@ -52,7 +49,7 @@ interface Pembelian extends Record<string, unknown> {
     nomor_po: string;
     pemasok: Pemasok;
     tanggal_pembelian: string;
-    tanggal_jatuh_tempo?: string;
+    tanggal_kirim_diharapkan?: string;
     total_biaya: number;
     status: string;
     status_label: string;
@@ -62,44 +59,39 @@ interface Pembelian extends Record<string, unknown> {
     total_dibayar?: number;
     sisa_pembayaran?: number;
     is_dp_paid?: boolean;
+    is_fully_paid?: boolean;
     catatan?: string;
     can_edit: boolean;
     can_cancel: boolean;
-    can_receive: boolean;
-    can_invoice: boolean;
-    can_mark_paid: boolean;
+    detail: PembelianDetail[];
+    transaksi_pembayaran?: TransaksiPembayaran[];
     created_at: string;
     updated_at: string;
-    details: PembelianDetail[];
-    transaksi_pembayaran?: TransaksiPembayaran[];
+    created_by?: { user_id: string; nama_lengkap: string };
+    updated_by?: { user_id: string; nama_lengkap: string };
 }
 
 interface Props {
     pembelian: Pembelian;
-    flash?: {
-        message?: string;
-        type?: 'success' | 'error' | 'warning' | 'info';
-    };
 }
 
-export default function Show({ pembelian, flash }: Props) {
-    const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Dashboard', href: '/dashboard' },
-        { title: 'Pembelian', href: '/pembelian' },
-        { title: pembelian.nomor_po, href: `/pembelian/${pembelian.pembelian_id}` },
-    ];
+const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Dashboard', href: '/dashboard' },
+    { title: 'Pembelian', href: '/pembelian' },
+    { title: 'Detail Pembelian', href: '#' },
+];
 
+export default function Show({ pembelian }: Props) {
     const getStatusColor = (status: string) => {
-        const colors: Record<string, string> = {
-            draft: 'bg-gray-100 text-gray-800',
-            sent: 'bg-blue-100 text-blue-800',
-            confirmed: 'bg-purple-100 text-purple-800',
-            received: 'bg-green-100 text-green-800',
-            invoiced: 'bg-yellow-100 text-yellow-800',
-            paid: 'bg-emerald-100 text-emerald-800',
-            cancelled: 'bg-red-100 text-red-800',
+        const statusColors: Record<string, string> = {
+            draft: 'border-gray-200 bg-gray-50 text-gray-700',
+            sent: 'border-blue-200 bg-blue-50 text-blue-700',
+            confirmed: 'border-purple-200 bg-purple-50 text-purple-700',
+            partially_received: 'border-orange-200 bg-orange-50 text-orange-700',
+            fully_received: 'border-green-200 bg-green-50 text-green-700',
+            cancelled: 'border-red-200 bg-red-50 text-red-700',
         };
-        return colors[status] || 'bg-gray-100 text-gray-800';
+        return statusColors[status] || 'border-gray-200 bg-gray-50 text-gray-700';
     };
 
     const formatCurrency = (amount: number) => {
@@ -119,422 +111,291 @@ export default function Show({ pembelian, flash }: Props) {
         });
     };
 
-    const handleStatusUpdate = (action: string) => {
-        if (confirm(`Apakah Anda yakin ingin ${action} Purchase Order ini?`)) {
-            router.patch(`/pembelian/${pembelian.pembelian_id}/status`, {
-                action: action,
-            });
-        }
-    };
+    const details = pembelian.detail || [];
+    const totalQty = details.reduce((sum, d) => sum + (d.qty_dipesan || 0), 0);
+    const totalReceived = details.reduce((sum, d) => sum + (d.qty_diterima || 0), 0);
+    const progressPercent = totalQty > 0 ? (totalReceived / totalQty) * 100 : 0;
 
-    const handleCancel = () => {
-        if (confirm('Apakah Anda yakin ingin membatalkan Purchase Order ini? Tindakan ini tidak dapat dibatalkan.')) {
-            router.delete(`/pembelian/${pembelian.pembelian_id}`);
-        }
-    };
-
-    const totalDiterima = pembelian.details.reduce((sum, detail) => sum + detail.kuantitas_diterima, 0);
-    const totalKuantitas = pembelian.details.reduce((sum, detail) => sum + detail.kuantitas, 0);
-    const persentaseKeseluruhan = totalKuantitas > 0 ? (totalDiterima / totalKuantitas) * 100 : 0;
+    const actions = [
+        {
+            label: 'Kembali',
+            href: '/pembelian',
+            variant: 'outline' as const,
+        },
+        ...(pembelian.can_edit
+            ? [
+                  {
+                      label: 'Edit',
+                      href: `/pembelian/${pembelian.pembelian_id}/edit`,
+                      variant: 'default' as const,
+                  },
+              ]
+            : []),
+    ];
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`Purchase Order - ${pembelian.nomor_po}`} />
-
-            <div className="space-y-6">
-                {flash?.message && (
-                    <Alert>
-                        <AlertDescription>{flash.message}</AlertDescription>
-                    </Alert>
-                )}
-
-                {/* Header */}
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h1 className="text-2xl font-bold text-gray-900">{pembelian.nomor_po}</h1>
-                        <p className="text-gray-600">Purchase Order Detail</p>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                        <Badge className={cn('text-sm', getStatusColor(pembelian.status))}>{pembelian.status_label}</Badge>
-                    </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex flex-wrap gap-2">
-                    {pembelian.can_edit && (
-                        <Button onClick={() => router.visit(`/pembelian/${pembelian.pembelian_id}/edit`)} variant="outline">
-                            <Edit className="mr-2 h-4 w-4" />
-                            Edit PO
-                        </Button>
-                    )}
-
-                    {pembelian.status === 'draft' && (
-                        <Button onClick={() => handleStatusUpdate('send')} variant="default">
-                            <Truck className="mr-2 h-4 w-4" />
-                            Kirim PO
-                        </Button>
-                    )}
-
-                    {pembelian.status === 'sent' && (
-                        <Button onClick={() => handleStatusUpdate('confirm')} variant="default">
-                            <CheckCircle className="mr-2 h-4 w-4" />
-                            Konfirmasi Diterima
-                        </Button>
-                    )}
-
-                    {pembelian.can_receive && (
-                        <Button onClick={() => router.visit(`/pembelian/${pembelian.pembelian_id}/receive`)} variant="default">
-                            <Package className="mr-2 h-4 w-4" />
-                            Terima Barang
-                        </Button>
-                    )}
-
-                    {pembelian.can_invoice && (
-                        <Button onClick={() => handleStatusUpdate('invoice')} variant="default">
-                            <FileText className="mr-2 h-4 w-4" />
-                            Buat Invoice
-                        </Button>
-                    )}
-
-                    {pembelian.can_mark_paid && (
-                        <Button onClick={() => handleStatusUpdate('mark_paid')} variant="default">
-                            <CreditCard className="mr-2 h-4 w-4" />
-                            Tandai Lunas
-                        </Button>
-                    )}
-
-                    {pembelian.can_cancel && (
-                        <Button onClick={handleCancel} variant="destructive">
-                            <XCircle className="mr-2 h-4 w-4" />
-                            Batalkan PO
-                        </Button>
-                    )}
-                </div>
-
-                <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-                    {/* Purchase Order Information */}
-                    <div className="space-y-6 lg:col-span-2">
+        <ShowPageTemplate
+            title={`PO - ${pembelian.nomor_po}`}
+            pageTitle={`Detail Purchase Order ${pembelian.nomor_po}`}
+            breadcrumbs={breadcrumbs}
+            subtitle={`Pemasok: ${pembelian.pemasok.nama_pemasok}`}
+            badge={{
+                label: pembelian.status_label,
+                color: getStatusColor(pembelian.status),
+            }}
+            actions={actions}
+        >
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+                {/* Main Content */}
+                <div className="space-y-6 lg:col-span-2">
+                    {/* Overview Cards */}
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                         <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center">
-                                    <FileText className="mr-2 h-5 w-5" />
-                                    Informasi Purchase Order
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                {pembelian.pengadaan && (
-                                    <div className="rounded-lg bg-blue-50 p-4">
-                                        <p className="text-sm text-blue-800">
-                                            <strong>Berdasarkan Pengadaan:</strong>{' '}
-                                            <Button
-                                                variant="link"
-                                                className="h-auto p-0 text-blue-800 underline"
-                                                onClick={() => router.visit(`/pengadaan/${pembelian.pengadaan?.pengadaan_id}`)}
-                                            >
-                                                {pembelian.pengadaan.nomor_pengadaan}
-                                            </Button>{' '}
-                                            ({formatDate(pembelian.pengadaan.tanggal_pengadaan)})
-                                        </p>
-                                    </div>
-                                )}
-
-                                <div className="grid grid-cols-2 gap-4">
+                            <CardContent className="p-4">
+                                <div className="flex items-center space-x-3">
+                                    <Calendar className="h-5 w-5 text-blue-600" />
                                     <div>
-                                        <p className="text-sm font-medium text-gray-500">Nomor PO</p>
-                                        <p className="font-semibold">{pembelian.nomor_po}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm font-medium text-gray-500">Status</p>
-                                        <Badge className={cn('text-sm', getStatusColor(pembelian.status))}>{pembelian.status_label}</Badge>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm font-medium text-gray-500">Tanggal Pembelian</p>
-                                        <p className="flex items-center">
-                                            <Calendar className="mr-2 h-4 w-4 text-gray-400" />
-                                            {formatDate(pembelian.tanggal_pembelian)}
-                                        </p>
-                                    </div>
-                                    {pembelian.tanggal_jatuh_tempo && (
-                                        <div>
-                                            <p className="text-sm font-medium text-gray-500">Tanggal Jatuh Tempo</p>
-                                            <p className="flex items-center">
-                                                <Calendar className="mr-2 h-4 w-4 text-gray-400" />
-                                                {formatDate(pembelian.tanggal_jatuh_tempo)}
-                                            </p>
-                                        </div>
-                                    )}
-                                    {pembelian.metode_pembayaran && (
-                                        <div>
-                                            <p className="text-sm font-medium text-gray-500">Metode Pembayaran</p>
-                                            <p className="capitalize">{pembelian.metode_pembayaran}</p>
-                                        </div>
-                                    )}
-                                    <div>
-                                        <p className="text-sm font-medium text-gray-500">Total Biaya</p>
-                                        <p className="text-lg font-bold text-green-600">{formatCurrency(pembelian.total_biaya)}</p>
+                                        <p className="text-sm font-medium text-gray-600">Tanggal PO</p>
+                                        <p className="text-sm font-semibold">{formatDate(pembelian.tanggal_pembelian)}</p>
                                     </div>
                                 </div>
-
-                                {pembelian.catatan && (
-                                    <div>
-                                        <p className="mb-2 text-sm font-medium text-gray-500">Catatan</p>
-                                        <p className="rounded-lg bg-gray-50 p-3 text-sm">{pembelian.catatan}</p>
-                                    </div>
-                                )}
                             </CardContent>
                         </Card>
 
-                        {/* Payment Information Card */}
-                        {pembelian.metode_pembayaran === 'termin' && (
-                            <Card>
-                                <CardHeader>
-                                    <div className="flex items-center justify-between">
-                                        <CardTitle className="flex items-center gap-2">
-                                            <CreditCard className="h-5 w-5" />
-                                            Informasi Pembayaran Termin
-                                        </CardTitle>
-                                        {pembelian.is_dp_paid && (
-                                            <Badge variant="outline" className="bg-green-50 text-green-700">
-                                                <CheckCircle className="mr-1 h-3 w-3" />
-                                                DP Dibayar
-                                            </Badge>
-                                        )}
-                                    </div>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                    {/* Payment Progress */}
-                                    <div className="space-y-2">
-                                        <div className="flex items-center justify-between text-sm">
-                                            <span>Progress Pembayaran</span>
-                                            <span className="font-medium">
-                                                {(((pembelian.total_dibayar || 0) / pembelian.total_biaya) * 100 || 0).toFixed(1)}%
-                                            </span>
-                                        </div>
-                                        <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
-                                            <div
-                                                className="h-full bg-green-500 transition-all"
-                                                style={{
-                                                    width: `${Math.min(((pembelian.total_dibayar || 0) / pembelian.total_biaya) * 100, 100)}%`,
-                                                }}
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <Separator />
-
-                                    {/* Payment Summary */}
-                                    <div className="grid gap-4 sm:grid-cols-3">
-                                        <div>
-                                            <p className="text-sm text-gray-500">Total Biaya</p>
-                                            <p className="text-lg font-bold">{formatCurrency(pembelian.total_biaya)}</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-sm text-gray-500">Total Dibayar</p>
-                                            <p className="text-lg font-bold text-green-600">{formatCurrency(pembelian.total_dibayar || 0)}</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-sm text-gray-500">Sisa Pembayaran</p>
-                                            <p className="text-lg font-bold text-orange-600">{formatCurrency(pembelian.sisa_pembayaran || 0)}</p>
-                                        </div>
-                                    </div>
-
-                                    {pembelian.jumlah_dp && pembelian.jumlah_dp > 0 && (
-                                        <div className="rounded-lg bg-blue-50 p-3">
-                                            <p className="text-sm font-medium text-blue-900">Down Payment (DP)</p>
-                                            <p className="mt-1 text-lg font-bold text-blue-700">{formatCurrency(pembelian.jumlah_dp)}</p>
-                                        </div>
-                                    )}
-
-                                    {pembelian.termin_pembayaran && (
-                                        <div>
-                                            <p className="mb-2 text-sm font-medium text-gray-500">Ketentuan Termin</p>
-                                            <p className="rounded-lg bg-gray-50 p-3 text-sm whitespace-pre-wrap">{pembelian.termin_pembayaran}</p>
-                                        </div>
-                                    )}
-
-                                    {/* Payment History */}
-                                    {pembelian.transaksi_pembayaran && pembelian.transaksi_pembayaran.length > 0 && (
-                                        <div>
-                                            <h4 className="mb-3 text-sm font-medium">Riwayat Pembayaran</h4>
-                                            <div className="space-y-2">
-                                                {pembelian.transaksi_pembayaran.map((transaksi) => (
-                                                    <div
-                                                        key={transaksi.transaksi_pembayaran_id}
-                                                        className="flex items-center justify-between rounded-lg border bg-white p-3"
-                                                    >
-                                                        <div>
-                                                            <p className="font-medium">
-                                                                <Badge
-                                                                    variant="outline"
-                                                                    className={cn(
-                                                                        transaksi.jenis_pembayaran === 'dp'
-                                                                            ? 'bg-blue-50 text-blue-700'
-                                                                            : transaksi.jenis_pembayaran === 'termin'
-                                                                              ? 'bg-purple-50 text-purple-700'
-                                                                              : 'bg-green-50 text-green-700',
-                                                                    )}
-                                                                >
-                                                                    {transaksi.jenis_pembayaran === 'dp'
-                                                                        ? 'DP'
-                                                                        : transaksi.jenis_pembayaran === 'termin'
-                                                                          ? 'Termin'
-                                                                          : 'Pelunasan'}
-                                                                </Badge>
-                                                                <span className="ml-2">{formatCurrency(transaksi.jumlah_pembayaran)}</span>
-                                                            </p>
-                                                            <p className="text-sm text-gray-500">
-                                                                {formatDate(transaksi.tanggal_pembayaran)}
-                                                                {transaksi.nomor_referensi && ` • Ref: ${transaksi.nomor_referensi}`}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-                                </CardContent>
-                            </Card>
-                        )}
-
-                        {/* Purchase Order Details */}
                         <Card>
-                            <CardHeader>
-                                <CardTitle>Detail Pembelian</CardTitle>
-                                {persentaseKeseluruhan > 0 && (
-                                    <div className="text-sm text-gray-600">Progress penerimaan: {persentaseKeseluruhan.toFixed(1)}%</div>
-                                )}
-                            </CardHeader>
-                            <CardContent>
-                                <div className="space-y-4">
-                                    {pembelian.details.map((detail, index) => (
-                                        <div key={detail.detail_id} className="rounded-lg border p-4">
-                                            <div className="mb-3 flex items-center justify-between">
+                            <CardContent className="p-4">
+                                <div className="flex items-center space-x-3">
+                                    <CreditCard className="h-5 w-5 text-green-600" />
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-600">Total Biaya</p>
+                                        <p className="text-sm font-semibold text-green-600">{formatCurrency(pembelian.total_biaya)}</p>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <Card>
+                            <CardContent className="p-4">
+                                <div className="flex items-center space-x-3">
+                                    <Package className="h-5 w-5 text-orange-600" />
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-600">Progress</p>
+                                        <p className="text-sm font-semibold text-orange-600">{progressPercent.toFixed(0)}%</p>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    {/* Detail Pembelian */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Detail Item</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="space-y-4">
+                                {details.length === 0 ? (
+                                    <p className="text-center text-gray-500">Tidak ada item</p>
+                                ) : (
+                                    details.map((detail, index) => (
+                                        <div key={detail.pembelian_detail_id} className="rounded-lg border p-4">
+                                            <div className="flex items-center justify-between">
                                                 <h4 className="font-medium">Item #{index + 1}</h4>
-                                                {detail.persentase_diterima > 0 && (
-                                                    <Badge variant="secondary">{detail.persentase_diterima.toFixed(1)}% diterima</Badge>
-                                                )}
+                                                <Badge
+                                                    variant={detail.is_fully_received ? 'default' : 'secondary'}
+                                                    className={
+                                                        detail.is_fully_received ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                                                    }
+                                                >
+                                                    {detail.is_fully_received ? 'Lengkap' : 'Sebagian'}
+                                                </Badge>
                                             </div>
 
-                                            <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                                            <div className="mt-3 grid grid-cols-2 gap-4 md:grid-cols-4">
                                                 <div>
-                                                    <p className="text-sm font-medium text-gray-500">Nama Bahan</p>
-                                                    <p>{detail.nama_bahan}</p>
+                                                    <p className="text-sm font-medium text-gray-500">Nama Item</p>
+                                                    <p className="text-sm font-semibold">{detail.nama_item}</p>
                                                 </div>
                                                 <div>
-                                                    <p className="text-sm font-medium text-gray-500">Kuantitas</p>
-                                                    <p>
-                                                        {detail.kuantitas} {detail.satuan}
+                                                    <p className="text-sm font-medium text-gray-500">Qty Diminta</p>
+                                                    <p className="text-sm font-semibold">
+                                                        {detail.qty_dipesan} {detail.satuan}
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-medium text-gray-500">Qty Diterima</p>
+                                                    <p className="text-sm font-semibold text-green-600">
+                                                        {detail.qty_diterima} {detail.satuan}
                                                     </p>
                                                 </div>
                                                 <div>
                                                     <p className="text-sm font-medium text-gray-500">Harga Satuan</p>
-                                                    <p>{formatCurrency(detail.harga_satuan)}</p>
-                                                </div>
-                                                <div>
-                                                    <p className="text-sm font-medium text-gray-500">Subtotal</p>
-                                                    <p className="font-semibold">{formatCurrency(detail.subtotal)}</p>
+                                                    <p className="text-sm font-semibold">{formatCurrency(detail.harga_satuan)}</p>
                                                 </div>
                                             </div>
 
-                                            {detail.kuantitas_diterima > 0 && (
-                                                <div className="mt-3 border-t pt-3">
-                                                    <div className="grid grid-cols-2 gap-4">
-                                                        <div>
-                                                            <p className="text-sm font-medium text-green-600">Diterima</p>
-                                                            <p className="text-green-700">
-                                                                {detail.kuantitas_diterima} {detail.satuan}
-                                                            </p>
-                                                        </div>
-                                                        <div>
-                                                            <p className="text-sm font-medium text-orange-600">Sisa</p>
-                                                            <p className="text-orange-700">
-                                                                {detail.kuantitas - detail.kuantitas_diterima} {detail.satuan}
-                                                            </p>
-                                                        </div>
-                                                    </div>
+                                            <div className="mt-3 border-t pt-3">
+                                                <div className="flex justify-between text-sm">
+                                                    <span className="font-medium text-gray-600">Total:</span>
+                                                    <span className="font-semibold text-gray-900">{formatCurrency(detail.total_harga)}</span>
                                                 </div>
-                                            )}
+                                            </div>
                                         </div>
-                                    ))}
+                                    ))
+                                )}
 
-                                    <Separator />
-
-                                    <div className="flex justify-end">
-                                        <div className="text-right">
-                                            <p className="text-lg font-bold">Total: {formatCurrency(pembelian.total_biaya)}</p>
+                                {details.length > 0 && (
+                                    <>
+                                        <Separator />
+                                        <div className="flex justify-end">
+                                            <div className="text-right">
+                                                <p className="text-sm text-gray-600">Total Keseluruhan:</p>
+                                                <p className="text-lg font-bold text-gray-900">{formatCurrency(pembelian.total_biaya)}</p>
+                                            </div>
                                         </div>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
+                                    </>
+                                )}
+                            </div>
+                        </CardContent>
+                    </Card>
 
-                    {/* Pemasok Information */}
-                    <div className="space-y-6">
+                    {/* Payment Information */}
+                    {pembelian.metode_pembayaran && (
                         <Card>
                             <CardHeader>
-                                <CardTitle className="flex items-center">
-                                    <Building2 className="mr-2 h-5 w-5" />
-                                    Informasi Pemasok
-                                </CardTitle>
+                                <CardTitle>Informasi Pembayaran</CardTitle>
                             </CardHeader>
-                            <CardContent className="space-y-3">
+                            <CardContent className="space-y-4">
+                                <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-500">Metode Pembayaran</p>
+                                        <p className="capitalize">{pembelian.metode_pembayaran}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-500">Total Dibayar</p>
+                                        <p className="font-semibold text-green-600">{formatCurrency(pembelian.total_dibayar || 0)}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-500">Sisa Pembayaran</p>
+                                        <p className="font-semibold text-orange-600">{formatCurrency(pembelian.sisa_pembayaran || 0)}</p>
+                                    </div>
+                                </div>
+
+                                {pembelian.metode_pembayaran === 'termin' && pembelian.jumlah_dp && (
+                                    <div className="rounded-lg bg-blue-50 p-3">
+                                        <p className="text-sm font-medium text-blue-900">Down Payment (DP)</p>
+                                        <p className="text-lg font-bold text-blue-700">{formatCurrency(pembelian.jumlah_dp)}</p>
+                                    </div>
+                                )}
+
+                                {pembelian.transaksi_pembayaran && pembelian.transaksi_pembayaran.length > 0 && (
+                                    <div className="border-t pt-4">
+                                        <h4 className="mb-3 font-medium">Riwayat Transaksi</h4>
+                                        <div className="space-y-2">
+                                            {pembelian.transaksi_pembayaran.map((t) => (
+                                                <div
+                                                    key={t.transaksi_pembayaran_id}
+                                                    className="flex items-center justify-between rounded-lg border p-3"
+                                                >
+                                                    <div>
+                                                        <Badge
+                                                            variant="outline"
+                                                            className={
+                                                                t.jenis_pembayaran === 'dp'
+                                                                    ? 'bg-blue-50 text-blue-700'
+                                                                    : t.jenis_pembayaran === 'termin'
+                                                                      ? 'bg-purple-50 text-purple-700'
+                                                                      : 'bg-green-50 text-green-700'
+                                                            }
+                                                        >
+                                                            {t.jenis_pembayaran === 'dp'
+                                                                ? 'DP'
+                                                                : t.jenis_pembayaran === 'termin'
+                                                                  ? 'Termin'
+                                                                  : 'Pelunasan'}
+                                                        </Badge>
+                                                        <span className="ml-2 text-sm">{formatDate(t.tanggal_pembayaran)}</span>
+                                                    </div>
+                                                    <span className="font-semibold">{formatCurrency(t.jumlah_pembayaran)}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    )}
+                </div>
+
+                {/* Sidebar */}
+                <div className="space-y-6">
+                    {/* Pemasok Card */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <Building2 className="h-5 w-5" />
+                                Pemasok
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                            <div>
+                                <p className="text-sm font-medium text-gray-500">Nama</p>
+                                <p className="font-semibold">{pembelian.pemasok.nama_pemasok}</p>
+                            </div>
+
+                            {pembelian.pemasok.alamat && (
                                 <div>
-                                    <p className="text-sm font-medium text-gray-500">Nama Pemasok</p>
-                                    <p className="font-semibold">{pembelian.pemasok.nama_pemasok}</p>
+                                    <p className="text-sm font-medium text-gray-500">Alamat</p>
+                                    <p className="text-sm">{pembelian.pemasok.alamat}</p>
                                 </div>
-                                {pembelian.pemasok.alamat && (
-                                    <div>
-                                        <p className="text-sm font-medium text-gray-500">Alamat</p>
-                                        <p className="text-sm">{pembelian.pemasok.alamat}</p>
-                                    </div>
-                                )}
-                                {pembelian.pemasok.telepon && (
-                                    <div>
-                                        <p className="text-sm font-medium text-gray-500">Telepon</p>
-                                        <p className="text-sm">{pembelian.pemasok.telepon}</p>
-                                    </div>
-                                )}
-                                {pembelian.pemasok.email && (
-                                    <div>
-                                        <p className="text-sm font-medium text-gray-500">Email</p>
-                                        <p className="text-sm">{pembelian.pemasok.email}</p>
-                                    </div>
-                                )}
-                                {pembelian.pemasok.narahubung && (
-                                    <div>
-                                        <p className="text-sm font-medium text-gray-500">Narahubung</p>
-                                        <p className="text-sm">{pembelian.pemasok.narahubung}</p>
-                                    </div>
-                                )}
-                                <div className="border-t pt-3">
-                                    <Button variant="outline" size="sm" onClick={() => router.visit(`/pemasok/${pembelian.pemasok.pemasok_id}`)}>
-                                        <Eye className="mr-2 h-4 w-4" />
-                                        Lihat Detail Pemasok
-                                    </Button>
-                                </div>
-                            </CardContent>
-                        </Card>
+                            )}
 
-                        {/* History/Timeline could go here */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Riwayat</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-2">
-                                <div className="text-sm">
-                                    <p className="font-medium">Dibuat</p>
-                                    <p className="text-gray-600">{formatDate(pembelian.created_at)}</p>
+                            {pembelian.pemasok.telepon && (
+                                <div>
+                                    <p className="text-sm font-medium text-gray-500">Telepon</p>
+                                    <p className="text-sm">{pembelian.pemasok.telepon}</p>
                                 </div>
-                                <div className="text-sm">
-                                    <p className="font-medium">Terakhir Diupdate</p>
-                                    <p className="text-gray-600">{formatDate(pembelian.updated_at)}</p>
+                            )}
+
+                            {pembelian.pemasok.email && (
+                                <div>
+                                    <p className="text-sm font-medium text-gray-500">Email</p>
+                                    <p className="text-sm">{pembelian.pemasok.email}</p>
                                 </div>
-                            </CardContent>
-                        </Card>
-                    </div>
+                            )}
+
+                            {pembelian.pemasok.narahubung && (
+                                <div>
+                                    <p className="text-sm font-medium text-gray-500">Narahubung</p>
+                                    <p className="text-sm">{pembelian.pemasok.narahubung}</p>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    {/* Audit Trail */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-base">Riwayat</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3 text-sm">
+                            <div>
+                                <p className="font-medium text-gray-500">Dibuat</p>
+                                <p>{formatDate(pembelian.created_at)}</p>
+                                {pembelian.created_by && <p className="text-xs text-gray-500">oleh {pembelian.created_by.nama_lengkap}</p>}
+                            </div>
+
+                            <Separator />
+
+                            <div>
+                                <p className="font-medium text-gray-500">Diperbarui</p>
+                                <p>{formatDate(pembelian.updated_at)}</p>
+                                {pembelian.updated_by && <p className="text-xs text-gray-500">oleh {pembelian.updated_by.nama_lengkap}</p>}
+                            </div>
+                        </CardContent>
+                    </Card>
                 </div>
             </div>
-        </AppLayout>
+        </ShowPageTemplate>
     );
 }

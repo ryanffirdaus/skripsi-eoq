@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { formatCurrency } from '@/lib/formatters';
 import { type BreadcrumbItem } from '@/types';
 import { router } from '@inertiajs/react';
-import { ShoppingCart, TrendingDown } from 'lucide-react';
+import { Ban, CheckCircle, DollarSign, FileText, Package, ShoppingCart, TrendingDown, Users } from 'lucide-react';
 import { useMemo } from 'react';
 
 interface Pengadaan extends Record<string, unknown> {
@@ -69,18 +69,103 @@ const breadcrumbs: BreadcrumbItem[] = [
 export default function Index({ pengadaan, filters, flash }: Props) {
     const getStatusBadge = (status: string) => {
         const statusConfig = {
-            draft: { variant: 'outline' as const, label: 'Draft' },
-            disetujui_gudang: { variant: 'secondary' as const, label: 'Disetujui Gudang' },
-            disetujui_pengadaan: { variant: 'default' as const, label: 'Disetujui Pengadaan' },
-            disetujui_keuangan: { variant: 'default' as const, label: 'Disetujui Keuangan' },
-            diproses: { variant: 'default' as const, label: 'Diproses' },
-            diterima: { variant: 'default' as const, label: 'Diterima' },
-            dibatalkan: { variant: 'destructive' as const, label: 'Dibatalkan' },
+            draft: {
+                variant: 'outline' as const,
+                label: 'Draft',
+                icon: FileText,
+                description: 'Tahap 1: Awal Pembuatan',
+                bgColor: 'bg-slate-100',
+                textColor: 'text-slate-700',
+                borderColor: 'border-slate-300',
+            },
+            pending_approval_gudang: {
+                variant: 'secondary' as const,
+                label: 'Menunggu Approval Gudang',
+                icon: Users,
+                description: 'Tahap 2: Review Gudang',
+                bgColor: 'bg-blue-100',
+                textColor: 'text-blue-700',
+                borderColor: 'border-blue-300',
+            },
+            pending_supplier_allocation: {
+                variant: 'default' as const,
+                label: 'Menunggu Alokasi Pemasok',
+                icon: ShoppingCart,
+                description: 'Tahap 3: Penunjukan Supplier',
+                bgColor: 'bg-amber-100',
+                textColor: 'text-amber-700',
+                borderColor: 'border-amber-300',
+            },
+            pending_approval_pengadaan: {
+                variant: 'default' as const,
+                label: 'Menunggu Approval Pengadaan',
+                icon: DollarSign,
+                description: 'Tahap 4: Approval Final Pengadaan',
+                bgColor: 'bg-purple-100',
+                textColor: 'text-purple-700',
+                borderColor: 'border-purple-300',
+            },
+            pending_approval_keuangan: {
+                variant: 'default' as const,
+                label: 'Menunggu Approval Keuangan',
+                icon: DollarSign,
+                description: 'Tahap 5: Review Budget',
+                bgColor: 'bg-indigo-100',
+                textColor: 'text-indigo-700',
+                borderColor: 'border-indigo-300',
+            },
+            processed: {
+                variant: 'default' as const,
+                label: 'Sudah Diproses',
+                icon: CheckCircle,
+                description: 'Tahap 6: Siap PO',
+                bgColor: 'bg-emerald-100',
+                textColor: 'text-emerald-700',
+                borderColor: 'border-emerald-300',
+            },
+            received: {
+                variant: 'default' as const,
+                label: 'Diterima',
+                icon: Package,
+                description: 'Tahap 7: Selesai',
+                bgColor: 'bg-green-100',
+                textColor: 'text-green-700',
+                borderColor: 'border-green-300',
+            },
+            cancelled: {
+                variant: 'destructive' as const,
+                label: 'Dibatalkan',
+                icon: Ban,
+                description: 'Dibatalkan',
+                bgColor: 'bg-red-100',
+                textColor: 'text-red-700',
+                borderColor: 'border-red-300',
+            },
         };
 
-        const config = statusConfig[status as keyof typeof statusConfig] || { variant: 'outline' as const, label: status };
+        const config = statusConfig[status as keyof typeof statusConfig] || {
+            variant: 'outline' as const,
+            label: status,
+            icon: FileText,
+            description: status,
+            bgColor: 'bg-slate-100',
+            textColor: 'text-slate-700',
+            borderColor: 'border-slate-300',
+        };
 
-        return <Badge variant={config.variant}>{config.label}</Badge>;
+        const IconComponent = config.icon;
+
+        return (
+            <div className="flex items-center gap-2">
+                <div
+                    className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 ${config.bgColor} ${config.textColor} ${config.borderColor} text-sm font-medium whitespace-nowrap`}
+                >
+                    <IconComponent className="h-4 w-4 flex-shrink-0" />
+                    <span>{config.label}</span>
+                </div>
+                <span className="hidden text-xs text-gray-500 md:inline">{config.description}</span>
+            </div>
+        );
     };
 
     const getJenisBadge = (jenis: string) => {
@@ -171,12 +256,13 @@ export default function Index({ pengadaan, filters, flash }: Props) {
                 options: [
                     { value: '', label: 'Semua Status' },
                     { value: 'draft', label: 'Draft' },
-                    { value: 'disetujui_gudang', label: 'Disetujui Gudang' },
-                    { value: 'disetujui_pengadaan', label: 'Disetujui Pengadaan' },
-                    { value: 'disetujui_keuangan', label: 'Disetujui Keuangan' },
-                    { value: 'diproses', label: 'Diproses' },
-                    { value: 'diterima', label: 'Diterima' },
-                    { value: 'dibatalkan', label: 'Dibatalkan' },
+                    { value: 'pending_approval_gudang', label: 'Menunggu Approval Gudang' },
+                    { value: 'pending_supplier_allocation', label: 'Menunggu Alokasi Pemasok' },
+                    { value: 'pending_approval_pengadaan', label: 'Menunggu Approval Pengadaan' },
+                    { value: 'pending_approval_keuangan', label: 'Menunggu Approval Keuangan' },
+                    { value: 'processed', label: 'Sudah Diproses' },
+                    { value: 'received', label: 'Diterima' },
+                    { value: 'cancelled', label: 'Dibatalkan' },
                 ],
             },
             {

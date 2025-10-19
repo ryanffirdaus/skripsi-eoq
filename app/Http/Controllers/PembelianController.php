@@ -7,6 +7,7 @@ use App\Models\PembelianDetail;
 use App\Models\Pengadaan;
 use App\Models\PengadaanDetail;
 use App\Models\Pemasok;
+use App\Http\Traits\RoleAccess;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -14,6 +15,8 @@ use Inertia\Inertia;
 
 class PembelianController extends Controller
 {
+    use RoleAccess;
+
     /**
      * Display a listing of the resource.
      * Menampilkan daftar semua Purchase Order.
@@ -88,10 +91,18 @@ class PembelianController extends Controller
             'per_page'       => (int) $perPage,
         ];
 
+        // Tentukan permissions berdasarkan role
+        $permissions = [
+            'canCreate' => $this->hasRoles(['R04', 'R09', 'R10']), // Staf Pengadaan, Manajer Pengadaan, Manajer Keuangan
+            'canEdit' => $this->hasRoles(['R04', 'R09', 'R10']), // Staf Pengadaan, Manajer Pengadaan, Manajer Keuangan
+            'canDelete' => $this->hasRoles(['R04', 'R09', 'R10']), // Staf Pengadaan, Manajer Pengadaan, Manajer Keuangan
+        ];
+
         return Inertia::render('pembelian/index', [
             'pembelian' => $pembelian,
             'filters'   => $filters,
             'pemasoks'  => $pemasok,
+            'permissions' => $permissions,
         ]);
     }
 

@@ -9,6 +9,27 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * PenerimaanBahanBakuSeeder
+ *
+ * Creates Goods Receipt records (Penerimaan Bahan Baku) for Purchase Orders.
+ *
+ * Workflow:
+ * - Processes Pembelian with statuses: sent, confirmed, partially_received, fully_received
+ * - Sent status: No receipts created (still in delivery)
+ * - Confirmed/Partially_received: Creates partial receipts (30-70% of ordered qty)
+ * - Fully_received: Creates complete receipts that total 100% of order
+ * - Supports multiple partial shipments and incremental receipts
+ *
+ * Receipt Scenarios:
+ * - No receipt: Waiting for delivery (sent status)
+ * - Partial receipt: First shipment arrives (30-70% of order)
+ * - Full receipt: Complete delivery with possible multi-shipment split
+ *
+ * Output:
+ * - PenerimaanBahanBaku records with various receipt patterns
+ * - Summary statistics showing receipt distribution
+ */
 class PenerimaanBahanBakuSeeder extends Seeder
 {
     public function run(): void
@@ -20,31 +41,38 @@ class PenerimaanBahanBakuSeeder extends Seeder
         PenerimaanBahanBakuDetail::truncate();
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
-        // Get Pembelian that need receipts based on their status
-        // - sent: waiting to be received
-        // - confirmed: confirmed, waiting/receiving goods
-        // - partially_received: some items received, need more
-        // - fully_received: all items received
+        // Get Pembelian with various statuses to create diverse receipt examples
+        // sent: waiting to be received
+        // confirmed: confirmed, ready/receiving goods
+        // partially_received: some items received, need more
+        // fully_received: all items received (complete)
         $eligiblePembelian = Pembelian::whereIn('status', ['sent', 'confirmed', 'partially_received', 'fully_received'])
             ->with('detail.pengadaanDetail')
             ->get();
 
         if ($eligiblePembelian->isEmpty()) {
-            $this->command->warn('Tidak ditemukan Pembelian yang siap untuk diterima barangnya. Seeding dilewati.');
+            $this->command->warn('Tidak ditemukan Pembelian dengan status yang sesuai (sent, confirmed, partially_received, fully_received). Seeding dilewati.');
             return;
         }
+
+        $receiptStatusCount = [
+            'no_receipt' => 0,
+            'partial_receipt' => 0,
+            'full_receipt' => 0,
+        ];
 
         foreach ($eligiblePembelian as $pembelian) {
             // Determine receipt pattern based on status
             $receiptPattern = match ($pembelian->status) {
-                'sent' => null, // No receipt yet
-                'confirmed' => 'partial', // Start receiving
-                'partially_received' => 'partial', // Continue receiving
-                'fully_received' => 'full', // Complete receipt
+                'sent' => null, // No receipt yet - waiting for goods
+                'confirmed' => 'partial', // Start receiving partial shipment
+                'partially_received' => 'partial', // Continue receiving (second shipment)
+                'fully_received' => 'full', // Complete receipt (all items received)
                 default => null,
             };
 
             if ($receiptPattern === null) {
+                $receiptStatusCount['no_receipt']++;
                 continue; // Skip if no receipt needed
             }
 
@@ -86,6 +114,7 @@ class PenerimaanBahanBakuSeeder extends Seeder
                     }
 
                     $this->command->line("  > Penerimaan LENGKAP untuk PO {$pembelian->nomor_po} item {$pembelianDetail->pembelian_detail_id} berhasil dibuat ({$totalReceived}/{$qtyDipesan}).");
+                    $receiptStatusCount['full_receipt']++;
                 } else {
                     // Partial receipt: 30-70% of ordered quantity
                     $qtyDiterima = rand(ceil($qtyDipesan * 0.3), ceil($qtyDipesan * 0.7));
@@ -96,10 +125,15 @@ class PenerimaanBahanBakuSeeder extends Seeder
                     ]);
 
                     $this->command->line("  > Penerimaan SEBAGIAN untuk PO {$pembelian->nomor_po} item {$pembelianDetail->pembelian_detail_id} berhasil dibuat ({$qtyDiterima}/{$qtyDipesan}).");
+                    $receiptStatusCount['partial_receipt']++;
                 }
             }
         }
 
+        // Summary
         $this->command->info('Seeding Penerimaan Bahan Baku selesai.');
+        $this->command->line("  - PO tanpa penerimaan (sent): {$receiptStatusCount['no_receipt']}");
+        $this->command->line("  - PO dengan penerimaan sebagian: {$receiptStatusCount['partial_receipt']}");
+        $this->command->line("  - PO dengan penerimaan lengkap: {$receiptStatusCount['full_receipt']}");
     }
 }

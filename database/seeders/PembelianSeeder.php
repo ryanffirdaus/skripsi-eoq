@@ -8,6 +8,23 @@ use App\Models\Pengadaan;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * PembelianSeeder
+ *
+ * Creates Purchase Orders (Pembelian) from approved Pengadaan records.
+ *
+ * Workflow:
+ * - Filters Pengadaan with status='processed' (approved by all levels including finance)
+ * - Only processes pengadaan containing 'bahan_baku' items (raw materials)
+ * - Groups items by pemasok (supplier) to create one PO per supplier
+ * - Creates PembelianDetail records linking to PengadaanDetail
+ * - Assigns various PO statuses: draft, sent, confirmed, partially_received, fully_received
+ * - Sets payment methods: tunai (cash), transfer, termin (installment)
+ *
+ * Output:
+ * - Multiple Pembelian records with different statuses for demo/test purposes
+ * - Each PO linked to its pengadaan source and supplier
+ */
 class PembelianSeeder extends Seeder
 {
     /**
@@ -21,11 +38,18 @@ class PembelianSeeder extends Seeder
         PembelianDetail::truncate();
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
-        // Get pengadaan that are approved by finance and ready for PO
-        $pengadaanSiapProses = Pengadaan::where('status', 'disetujui_finance')->with('detail.pemasok')->get();
+        // Get pengadaan that have status 'processed' and ready for PO (only bahan_baku)
+        // These are pengadaan that have passed all approval stages from finance
+        $pengadaanSiapProses = Pengadaan::where('status', 'processed')
+            ->with('detail')
+            ->get()
+            ->filter(function ($pengadaan) {
+                // Only include pengadaan that have at least one bahan_baku item
+                return $pengadaan->detail->where('jenis_barang', 'bahan_baku')->count() > 0;
+            });
 
         if ($pengadaanSiapProses->isEmpty()) {
-            $this->command->warn('Tidak ditemukan data Pengadaan dengan status "disetujui_finance". Seeding Pembelian dilewati.');
+            $this->command->warn('Tidak ditemukan data Pengadaan dengan status "processed" yang berisi bahan baku. Seeding Pembelian dilewati.');
             return;
         }
 
@@ -36,15 +60,16 @@ class PembelianSeeder extends Seeder
         $statusIndex = 0; // To cycle through all status options
 
         foreach ($pengadaanSiapProses as $pengadaan) {
-            // Group items by pemasok
+            // Filter only bahan_baku items and group by pemasok
             $itemsByPemasok = $pengadaan->detail
+                ->where('jenis_barang', 'bahan_baku')
                 ->filter(function ($item) {
                     return ($item->qty_disetujui !== null && $item->qty_disetujui > 0) && $item->pemasok_id !== null;
                 })
                 ->groupBy('pemasok_id');
 
             if ($itemsByPemasok->isEmpty()) {
-                $this->command->line("  > Pengadaan {$pengadaan->pengadaan_id} tidak memiliki item yang disetujui dengan pemasok. Dilewati.");
+                $this->command->line("  > Pengadaan {$pengadaan->pengadaan_id} tidak memiliki item bahan baku yang disetujui dengan pemasok. Dilewati.");
                 continue;
             }
 
@@ -92,10 +117,6 @@ class PembelianSeeder extends Seeder
 
                 $this->command->line("  > PO {$pembelian->nomor_po} untuk Pemasok ID {$pemasokId} berhasil dibuat dari Pengadaan {$pengadaan->pengadaan_id} (Status: {$status}, Payment: {$metodePembayaran}).");
             }
-
-            // 4. Update pengadaan status to 'diproses'
-            $pengadaan->status = 'diproses';
-            $pengadaan->save();
         }
 
         $this->command->info('Seeding untuk Pembelian selesai.');

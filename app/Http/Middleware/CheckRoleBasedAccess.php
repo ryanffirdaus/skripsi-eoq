@@ -39,6 +39,7 @@ class CheckRoleBasedAccess
         ],
         'R06' => [ // Staf Keuangan
             'pengadaan' => ['index', 'show'], // View pengadaan saja
+            'pembelian' => ['index', 'show'], // View pembelian saja
             'transaksi-pembayaran' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'],
         ],
         'R07' => [ // Manajer Gudang
@@ -62,6 +63,7 @@ class CheckRoleBasedAccess
         ],
         'R10' => [ // Manajer Keuangan
             'pengadaan' => ['index', 'show'], // View dan bisa edit status saja (di controller)
+            'pembelian' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'],
             'transaksi-pembayaran' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'],
         ],
     ];

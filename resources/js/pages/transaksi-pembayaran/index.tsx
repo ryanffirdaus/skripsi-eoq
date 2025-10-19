@@ -56,6 +56,11 @@ interface Props {
     transaksiPembayaran: PaginatedTransaksiPembayaran;
     filters: Filters;
     pembelians: Pembelian[];
+    permissions?: {
+        canCreate?: boolean;
+        canEdit?: boolean;
+        canDelete?: boolean;
+    };
     flash?: {
         message?: string;
         type?: 'success' | 'error' | 'warning' | 'info';
@@ -69,7 +74,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function Index({ transaksiPembayaran, filters, pembelians, flash }: Props) {
+export default function Index({ transaksiPembayaran, filters, pembelians, permissions, flash }: Props) {
     // 2. Definisi kolom untuk tabel TransaksiPembayaran
     const columns = useMemo(
         () => [
@@ -139,12 +144,18 @@ export default function Index({ transaksiPembayaran, filters, pembelians, flash 
     const actions = useMemo(
         () => [
             createViewAction<TransaksiPembayaran>((item) => `/transaksi-pembayaran/${item.transaksi_pembayaran_id}`),
-            createEditAction<TransaksiPembayaran>((item) => `/transaksi-pembayaran/${item.transaksi_pembayaran_id}/edit`),
-            createDeleteAction<TransaksiPembayaran>((item) => {
-                router.delete(`/transaksi-pembayaran/${item.transaksi_pembayaran_id}`);
-            }),
+            ...(permissions?.canEdit
+                ? [createEditAction<TransaksiPembayaran>((item) => `/transaksi-pembayaran/${item.transaksi_pembayaran_id}/edit`)]
+                : []),
+            ...(permissions?.canDelete
+                ? [
+                      createDeleteAction<TransaksiPembayaran>((item) => {
+                          router.delete(`/transaksi-pembayaran/${item.transaksi_pembayaran_id}`);
+                      }),
+                  ]
+                : []),
         ],
-        [],
+        [permissions?.canEdit, permissions?.canDelete],
     );
 
     return (
@@ -153,7 +164,7 @@ export default function Index({ transaksiPembayaran, filters, pembelians, flash 
             breadcrumbs={breadcrumbs}
             data={transaksiPembayaran}
             columns={columns}
-            createUrl="/transaksi-pembayaran/create"
+            createUrl={permissions?.canCreate ? '/transaksi-pembayaran/create' : undefined}
             createButtonText="Catat Pembayaran Baru"
             searchPlaceholder="Cari ID, No. PO, pemasok..."
             filters={filters}

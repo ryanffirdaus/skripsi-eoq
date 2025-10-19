@@ -3,6 +3,7 @@ import TableTemplate from '@/components/table/table-template';
 import { Badge } from '@/components/ui/badge';
 import { formatCurrency, formatDate } from '@/lib/formatters';
 import { type BreadcrumbItem } from '@/types';
+import { router } from '@inertiajs/react';
 import { useMemo } from 'react';
 
 // 1. Interface disesuaikan untuk data Pembelian
@@ -58,6 +59,11 @@ interface Props {
     pembelian: PaginatedPembelian;
     filters: Filters;
     pemasoks: Pemasok[]; // Menambahkan pemasoks untuk filter
+    permissions?: {
+        canCreate?: boolean;
+        canEdit?: boolean;
+        canDelete?: boolean;
+    };
     flash?: {
         message?: string;
         type?: 'success' | 'error' | 'warning' | 'info';
@@ -71,7 +77,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function Index({ pembelian, filters, pemasoks, flash }: Props) {
+export default function Index({ pembelian, filters, pemasoks, permissions, flash }: Props) {
     // 2. Badge disesuaikan untuk status Pembelian
     const getStatusBadge = (status: string) => {
         const statusColors = {
@@ -181,18 +187,26 @@ export default function Index({ pembelian, filters, pemasoks, flash }: Props) {
     const actions = useMemo(
         () => [
             createViewAction<Pembelian>((item) => `/pembelian/${item.pembelian_id}`),
-            createEditAction<Pembelian>(
-                (item) => `/pembelian/${item.pembelian_id}/edit`,
-                (item) => item.can_edit,
-            ),
-            createDeleteAction<Pembelian>(
-                (item) => {
-                    router.delete(`/pembelian/${item.pembelian_id}`);
-                },
-                (item) => item.can_cancel,
-            ),
+            ...(permissions?.canEdit
+                ? [
+                      createEditAction<Pembelian>(
+                          (item) => `/pembelian/${item.pembelian_id}/edit`,
+                          (item) => item.can_edit,
+                      ),
+                  ]
+                : []),
+            ...(permissions?.canDelete
+                ? [
+                      createDeleteAction<Pembelian>(
+                          (item) => {
+                              router.delete(`/pembelian/${item.pembelian_id}`);
+                          },
+                          (item) => item.can_cancel,
+                      ),
+                  ]
+                : []),
         ],
-        [],
+        [permissions?.canEdit, permissions?.canDelete],
     );
 
     return (
@@ -201,7 +215,7 @@ export default function Index({ pembelian, filters, pemasoks, flash }: Props) {
             breadcrumbs={breadcrumbs}
             data={pembelian}
             columns={columns}
-            createUrl="/pembelian/create"
+            createUrl={permissions?.canCreate ? '/pembelian/create' : undefined}
             createButtonText="Buat Pembelian Baru"
             searchPlaceholder="Cari No. PO, pemasok..."
             filters={filters}

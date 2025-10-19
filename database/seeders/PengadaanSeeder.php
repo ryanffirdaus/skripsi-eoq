@@ -37,14 +37,18 @@ class PengadaanSeeder extends Seeder
             return;
         }
 
-        // --- DATA SEEDER KOMPREHENSIF ---
+        // --- DATA SEEDER KOMPREHENSIF UNTUK WORKFLOW PENGADAAN 7 TAHAP ---
+        // Workflow: draft → pending_approval_gudang → pending_supplier_allocation → pending_approval_pengadaan
+        //           → pending_approval_keuangan → processed → received (+ cancelled from any stage)
+
         $pengadaanData = [
-            // 1. Pengadaan ROP - Bahan Baku (Pending)
+            // ============ STAGE 1: DRAFT ============
+            // 1. ROP - Bahan Baku (Draft)
             [
                 'jenis_pengadaan' => 'rop',
                 'pesanan_id' => null,
-                'status' => 'pending',
-                'catatan' => 'Pengadaan otomatis berdasarkan ROP bahan baku',
+                'status' => 'draft',
+                'catatan' => 'Pengadaan otomatis berdasarkan ROP bahan baku - menunggu review gudang',
                 'created_by' => 'US001',
                 'details' => [
                     ['type' => 'bahan_baku', 'qty' => 100, 'qty_disetujui' => null],
@@ -52,53 +56,79 @@ class PengadaanSeeder extends Seeder
                 ],
             ],
 
-            // 2. Pengadaan ROP - Produk (Approved by Procurement)
-            [
-                'jenis_pengadaan' => 'rop',
-                'pesanan_id' => null,
-                'status' => 'disetujui_procurement',
-                'catatan' => 'Pengadaan otomatis berdasarkan ROP produk',
-                'created_by' => 'US001',
-                'details' => [
-                    ['type' => 'produk', 'qty' => 50, 'qty_disetujui' => 48],
-                    ['type' => 'produk', 'qty' => 30, 'qty_disetujui' => 30],
-                ],
-            ],
-
-            // 3. Pengadaan dari Pesanan - Mixed (Approved by Procurement)
+            // 2. Pesanan - Mixed (Draft)
             [
                 'jenis_pengadaan' => 'pesanan',
                 'pesanan_id' => $pesanans->first()->pesanan_id,
-                'status' => 'disetujui_procurement',
-                'catatan' => 'Pengadaan dari pesanan pelanggan - bahan baku dan produk',
+                'status' => 'draft',
+                'catatan' => 'Pengadaan dari pesanan pelanggan - draft untuk review',
                 'created_by' => 'US001',
                 'details' => [
-                    ['type' => 'bahan_baku', 'qty' => 200, 'qty_disetujui' => 180],
-                    ['type' => 'produk', 'qty' => 75, 'qty_disetujui' => 75],
+                    ['type' => 'bahan_baku', 'qty' => 200, 'qty_disetujui' => null],
+                    ['type' => 'produk', 'qty' => 75, 'qty_disetujui' => null],
+                ],
+            ],
+
+            // ============ STAGE 2: PENDING APPROVAL GUDANG ============
+            // 3. ROP - Produk (Pending Approval Gudang)
+            [
+                'jenis_pengadaan' => 'rop',
+                'pesanan_id' => null,
+                'status' => 'pending_approval_gudang',
+                'catatan' => 'Pengadaan otomatis berdasarkan ROP produk - menunggu persetujuan manajer gudang',
+                'created_by' => 'US001',
+                'details' => [
+                    ['type' => 'produk', 'qty' => 50, 'qty_disetujui' => null],
+                    ['type' => 'produk', 'qty' => 30, 'qty_disetujui' => null],
+                ],
+            ],
+
+            // 4. Pesanan - Bahan Baku (Pending Approval Gudang)
+            [
+                'jenis_pengadaan' => 'pesanan',
+                'pesanan_id' => $pesanans->skip(1)->first()->pesanan_id ?? $pesanans->first()->pesanan_id,
+                'status' => 'pending_approval_gudang',
+                'catatan' => 'Pengadaan bahan untuk pesanan - menunggu persetujuan gudang',
+                'created_by' => 'US001',
+                'details' => [
+                    ['type' => 'bahan_baku', 'qty' => 200, 'qty_disetujui' => null],
+                    ['type' => 'bahan_baku', 'qty' => 150, 'qty_disetujui' => null],
+                ],
+            ],
+
+            // ============ STAGE 3: PENDING SUPPLIER ALLOCATION ============
+            // 5. ROP - Mixed (Pending Supplier Allocation)
+            [
+                'jenis_pengadaan' => 'rop',
+                'pesanan_id' => null,
+                'status' => 'pending_supplier_allocation',
+                'catatan' => 'Pengadaan campuran - menunggu alokasi pemasok dari manajer pengadaan',
+                'created_by' => 'US001',
+                'details' => [
+                    ['type' => 'bahan_baku', 'qty' => 90, 'qty_disetujui' => 90],
+                    ['type' => 'produk', 'qty' => 25, 'qty_disetujui' => 25],
+                ],
+            ],
+
+            // 6. Pesanan - Bahan Baku (Pending Supplier Allocation)
+            [
+                'jenis_pengadaan' => 'pesanan',
+                'pesanan_id' => $pesanans->skip(2)->first()->pesanan_id ?? $pesanans->first()->pesanan_id,
+                'status' => 'pending_supplier_allocation',
+                'catatan' => 'Bahan baku dari pesanan - menunggu penunjukan pemasok',
+                'created_by' => 'US001',
+                'details' => [
                     ['type' => 'bahan_baku', 'qty' => 120, 'qty_disetujui' => 120],
                 ],
             ],
 
-            // 4. Pengadaan dari Pesanan - Bahan Baku Only (Finance Approved - Ready for PO)
-            [
-                'jenis_pengadaan' => 'pesanan',
-                'pesanan_id' => $pesanans->skip(1)->first()->pesanan_id ?? $pesanans->first()->pesanan_id,
-                'status' => 'disetujui_finance',
-                'catatan' => 'Pengadaan bahan baku untuk pesanan - siap dibuat PO',
-                'created_by' => 'US001',
-                'details' => [
-                    ['type' => 'bahan_baku', 'qty' => 150, 'qty_disetujui' => 150],
-                    ['type' => 'bahan_baku', 'qty' => 100, 'qty_disetujui' => 100],
-                    ['type' => 'bahan_baku', 'qty' => 80, 'qty_disetujui' => 80],
-                ],
-            ],
-
-            // 5. Pengadaan ROP - Produk Only (Finance Approved - Ready for PO)
+            // ============ STAGE 4: PENDING APPROVAL PENGADAAN ============
+            // 7. ROP - Produk (Pending Approval Pengadaan)
             [
                 'jenis_pengadaan' => 'rop',
                 'pesanan_id' => null,
-                'status' => 'disetujui_finance',
-                'catatan' => 'Pengadaan produk jadi berdasarkan ROP - siap dibuat PO',
+                'status' => 'pending_approval_pengadaan',
+                'catatan' => 'Produk jadi ROP - menunggu persetujuan akhir manajer pengadaan',
                 'created_by' => 'US001',
                 'details' => [
                     ['type' => 'produk', 'qty' => 40, 'qty_disetujui' => 40],
@@ -106,40 +136,79 @@ class PengadaanSeeder extends Seeder
                 ],
             ],
 
-            // 6. Pengadaan Mixed - Bahan & Produk (Finance Approved)
+            // ============ STAGE 5: PENDING APPROVAL KEUANGAN ============
+            // 8. ROP - Bahan Baku (Pending Approval Keuangan)
             [
                 'jenis_pengadaan' => 'rop',
                 'pesanan_id' => null,
-                'status' => 'disetujui_finance',
-                'catatan' => 'Pengadaan campuran bahan baku dan produk - siap dibuat PO',
+                'status' => 'pending_approval_keuangan',
+                'catatan' => 'Bahan baku ROP - menunggu persetujuan budget dari manajer keuangan',
                 'created_by' => 'US001',
                 'details' => [
-                    ['type' => 'bahan_baku', 'qty' => 90, 'qty_disetujui' => 90],
-                    ['type' => 'produk', 'qty' => 25, 'qty_disetujui' => 25],
-                    ['type' => 'bahan_baku', 'qty' => 110, 'qty_disetujui' => 110],
-                    ['type' => 'produk', 'qty' => 35, 'qty_disetujui' => 35],
+                    ['type' => 'bahan_baku', 'qty' => 100, 'qty_disetujui' => 100],
+                    ['type' => 'bahan_baku', 'qty' => 150, 'qty_disetujui' => 150],
                 ],
             ],
 
-            // 7. Pengadaan Rejected
+            // 9. Pesanan - Mixed (Pending Approval Keuangan)
             [
                 'jenis_pengadaan' => 'pesanan',
-                'pesanan_id' => $pesanans->skip(2)->first()->pesanan_id ?? $pesanans->first()->pesanan_id,
-                'status' => 'dibatalkan',
-                'catatan' => 'Pengadaan dibatalkan - jumlah terlalu besar',
+                'pesanan_id' => $pesanans->first()->pesanan_id,
+                'status' => 'pending_approval_keuangan',
+                'catatan' => 'Pengadaan dari pesanan - review finansial oleh keuangan',
                 'created_by' => 'US001',
                 'details' => [
-                    ['type' => 'bahan_baku', 'qty' => 500, 'qty_disetujui' => null],
-                    ['type' => 'produk', 'qty' => 200, 'qty_disetujui' => null],
+                    ['type' => 'bahan_baku', 'qty' => 150, 'qty_disetujui' => 150],
+                    ['type' => 'produk', 'qty' => 75, 'qty_disetujui' => 75],
                 ],
             ],
 
-            // 8. Pengadaan Diproses (PO sudah dibuat, menunggu penerimaan)
+            // ============ STAGE 6: PROCESSED (Ready for PO) ============
+            // 10. ROP - Bahan Baku Only (Processed - Siap PO)
             [
                 'jenis_pengadaan' => 'rop',
                 'pesanan_id' => null,
-                'status' => 'diproses',
-                'catatan' => 'Pengadaan sedang diproses - PO sudah dikirim ke pemasok',
+                'status' => 'processed',
+                'catatan' => 'Pengadaan bahan baku siap dibuat PO - persetujuan lengkap dari semua level',
+                'created_by' => 'US001',
+                'details' => [
+                    ['type' => 'bahan_baku', 'qty' => 200, 'qty_disetujui' => 200],
+                    ['type' => 'bahan_baku', 'qty' => 180, 'qty_disetujui' => 180],
+                ],
+            ],
+
+            // 11. Pesanan - Bahan Baku (Processed - Siap PO)
+            [
+                'jenis_pengadaan' => 'pesanan',
+                'pesanan_id' => $pesanans->skip(1)->first()->pesanan_id ?? $pesanans->first()->pesanan_id,
+                'status' => 'processed',
+                'catatan' => 'Bahan untuk pesanan siap PO - approved all stages',
+                'created_by' => 'US001',
+                'details' => [
+                    ['type' => 'bahan_baku', 'qty' => 300, 'qty_disetujui' => 300],
+                ],
+            ],
+
+            // 12. ROP - Produk Only (Processed - Siap PO)
+            [
+                'jenis_pengadaan' => 'rop',
+                'pesanan_id' => null,
+                'status' => 'processed',
+                'catatan' => 'Produk jadi siap dibuat PO - semua approval selesai',
+                'created_by' => 'US001',
+                'details' => [
+                    ['type' => 'produk', 'qty' => 50, 'qty_disetujui' => 50],
+                    ['type' => 'produk', 'qty' => 40, 'qty_disetujui' => 40],
+                ],
+            ],
+
+            // ============ STAGE 7: RECEIVED ============
+            // 13. ROP - Bahan Baku (Received)
+            [
+                'jenis_pengadaan' => 'rop',
+                'pesanan_id' => null,
+                'status' => 'received',
+                'catatan' => 'Pengadaan bahan baku selesai - barang sudah diterima di gudang',
                 'created_by' => 'US001',
                 'details' => [
                     ['type' => 'bahan_baku', 'qty' => 120, 'qty_disetujui' => 120],
@@ -147,16 +216,55 @@ class PengadaanSeeder extends Seeder
                 ],
             ],
 
-            // 9. Pengadaan Diterima (Barang sudah diterima lengkap)
+            // 14. Pesanan - Mixed (Received)
+            [
+                'jenis_pengadaan' => 'pesanan',
+                'pesanan_id' => $pesanans->skip(2)->first()->pesanan_id ?? $pesanans->first()->pesanan_id,
+                'status' => 'received',
+                'catatan' => 'Pengadaan dari pesanan selesai - semua barang diterima',
+                'created_by' => 'US001',
+                'details' => [
+                    ['type' => 'bahan_baku', 'qty' => 100, 'qty_disetujui' => 100],
+                    ['type' => 'produk', 'qty' => 50, 'qty_disetujui' => 50],
+                ],
+            ],
+
+            // 15. ROP - Produk (Received)
             [
                 'jenis_pengadaan' => 'rop',
                 'pesanan_id' => null,
-                'status' => 'diterima',
-                'catatan' => 'Pengadaan selesai - barang sudah diterima lengkap',
+                'status' => 'received',
+                'catatan' => 'Pengadaan produk selesai - stok sudah diupdate di sistem',
                 'created_by' => 'US001',
                 'details' => [
-                    ['type' => 'produk', 'qty' => 50, 'qty_disetujui' => 50],
-                    ['type' => 'produk', 'qty' => 30, 'qty_disetujui' => 30],
+                    ['type' => 'produk', 'qty' => 75, 'qty_disetujui' => 75],
+                    ['type' => 'produk', 'qty' => 60, 'qty_disetujui' => 60],
+                ],
+            ],
+
+            // ============ CANCELLED STATES ============
+            // 16. Cancelled from Draft
+            [
+                'jenis_pengadaan' => 'rop',
+                'pesanan_id' => null,
+                'status' => 'cancelled',
+                'catatan' => 'Pengadaan dibatalkan dari draft - tidak diperlukan lagi',
+                'created_by' => 'US001',
+                'details' => [
+                    ['type' => 'bahan_baku', 'qty' => 500, 'qty_disetujui' => null],
+                ],
+            ],
+
+            // 17. Cancelled from Pending Approval
+            [
+                'jenis_pengadaan' => 'pesanan',
+                'pesanan_id' => $pesanans->first()->pesanan_id,
+                'status' => 'cancelled',
+                'catatan' => 'Pengadaan dibatalkan saat pending approval - budget terpotong',
+                'created_by' => 'US001',
+                'details' => [
+                    ['type' => 'bahan_baku', 'qty' => 400, 'qty_disetujui' => null],
+                    ['type' => 'produk', 'qty' => 200, 'qty_disetujui' => null],
                 ],
             ],
         ];
