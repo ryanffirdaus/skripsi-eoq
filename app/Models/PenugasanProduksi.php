@@ -15,38 +15,132 @@ class PenugasanProduksi extends Model
     protected $table = 'penugasan_produksi';
 
     protected $fillable = [
-        'pengadaan_id',
-        'assigned_to',
-        'assigned_by',
-        'qty_assigned',
-        'qty_completed',
+        'pengadaan_detail_id',
+        'user_id',
+        'jumlah_produksi',
         'status',
         'deadline',
         'catatan',
+        'created_by',
+        'updated_by',
+        'deleted_by',
     ];
 
     protected $casts = [
         'deadline' => 'date',
+        'jumlah_produksi' => 'integer',
     ];
 
-    public function pengadaan()
+    protected static function boot()
     {
-        return $this->belongsTo(Pengadaan::class, 'pengadaan_id', 'pengadaan_id');
+        parent::boot();
+
+        static::creating(function ($model) {
+            if (Auth::check()) {
+                $model->created_by = Auth::user()->user_id;
+            }
+        });
+
+        static::updating(function ($model) {
+            if (Auth::check()) {
+                $model->updated_by = Auth::user()->user_id;
+            }
+        });
+
+        static::deleting(function ($model) {
+            if (Auth::check()) {
+                $model->deleted_by = Auth::user()->user_id;
+                $model->save();
+            }
+        });
     }
 
-    public function assignedToUser()
+    // Relationships
+
+    public function pengadaanDetail()
     {
-        return $this->belongsTo(User::class, 'assigned_to', 'user_id');
+        return $this->belongsTo(PengadaanDetail::class, 'pengadaan_detail_id', 'pengadaan_detail_id');
     }
 
-    public function assignedByUser()
+    public function user()
     {
-        return $this->belongsTo(User::class, 'assigned_by', 'user_id');
+        return $this->belongsTo(User::class, 'user_id', 'user_id');
     }
 
-    public function getProgressPercentageAttribute()
+    public function createdBy()
     {
-        if ($this->qty_assigned == 0) return 0;
-        return round(($this->qty_completed / $this->qty_assigned) * 100, 2);
+        return $this->belongsTo(User::class, 'created_by', 'user_id');
+    }
+
+    public function updatedBy()
+    {
+        return $this->belongsTo(User::class, 'updated_by', 'user_id');
+    }
+
+    public function deletedBy()
+    {
+        return $this->belongsTo(User::class, 'deleted_by', 'user_id');
+    }
+
+    // Status Methods
+    public function isAssigned()
+    {
+        return $this->status === 'assigned';
+    }
+
+    public function isInProgress()
+    {
+        return $this->status === 'in_progress';
+    }
+
+    public function isCompleted()
+    {
+        return $this->status === 'completed';
+    }
+
+    public function isCancelled()
+    {
+        return $this->status === 'cancelled';
+    }
+
+    // Status Transition Validation
+    public function isValidStatusTransition($newStatus)
+    {
+        $currentStatus = $this->status;
+
+        if ($currentStatus === $newStatus) {
+            return true;
+        }
+
+        $validTransitions = [
+            'assigned' => ['in_progress', 'cancelled'],
+            'in_progress' => ['completed', 'cancelled'],
+            'completed' => [],
+            'cancelled' => [],
+        ];
+
+        return isset($validTransitions[$currentStatus]) &&
+            in_array($newStatus, $validTransitions[$currentStatus]);
+    }
+
+    // Scope methods
+    public function scopeByStatus($query, $status)
+    {
+        return $query->where('status', $status);
+    }
+
+    public function scopeByUser($query, $userId)
+    {
+        return $query->where('user_id', $userId);
+    }
+
+    public function scopeByPengadaanDetail($query, $pengadaanDetailId)
+    {
+        return $query->where('pengadaan_detail_id', $pengadaanDetailId);
+    }
+
+    public function scopeOutstanding($query)
+    {
+        return $query->whereIn('status', ['assigned', 'in_progress']);
     }
 }

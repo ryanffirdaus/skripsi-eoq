@@ -6,16 +6,21 @@ use App\Models\Pesanan;
 use App\Models\Pelanggan;
 use App\Models\Produk;
 use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class PesananController extends Controller
 {
+    use AuthorizesRequests;
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
+        // Check authorization
+        $this->authorize('viewAny', Pesanan::class);
+
         // Ambil query params
         $search = $request->input('search');
         $status = $request->input('status'); // filter status
@@ -93,6 +98,8 @@ class PesananController extends Controller
      */
     public function create()
     {
+        $this->authorize('create', Pesanan::class);
+
         $pelanggan = Pelanggan::all();
         $produk = Produk::all();
 
@@ -107,6 +114,8 @@ class PesananController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorize('create', Pesanan::class);
+
         $validated = $request->validate([
             'pelanggan_id' => 'required|exists:pelanggan,pelanggan_id',
             'tanggal_pemesanan' => 'required|date',
@@ -165,6 +174,8 @@ class PesananController extends Controller
     public function edit($pesanan_id)
     {
         $pesanan = Pesanan::with(['pelanggan', 'detail.produk'])->where('pesanan_id', $pesanan_id)->firstOrFail();
+        $this->authorize('update', $pesanan);
+
         $pelanggan = Pelanggan::all();
         $produk = Produk::all();
 
@@ -181,6 +192,8 @@ class PesananController extends Controller
     public function update(Request $request, $pesanan_id)
     {
         $pesanan = Pesanan::where('pesanan_id', $pesanan_id)->firstOrFail();
+        $this->authorize('update', $pesanan);
+
         $validated = $request->validate([
             'pelanggan_id' => 'required|exists:pelanggan,pelanggan_id',
             'tanggal_pemesanan' => 'required|date',
@@ -228,6 +241,8 @@ class PesananController extends Controller
     public function destroy($pesanan_id)
     {
         $pesanan = Pesanan::where('pesanan_id', $pesanan_id)->firstOrFail();
+        $this->authorize('delete', $pesanan);
+
         $pesanan->delete();
 
         return redirect()->route('pesanan.index')->with('flash', [

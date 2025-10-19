@@ -183,6 +183,31 @@ class User extends Authenticatable
         return $this->belongsTo(User::class, 'updated_by', 'user_id');
     }
 
+    // Relationships for PenugasanProduksi (Production Assignment)
+    // Penugasan yang ditugaskan kepada user ini
+    public function penugasanProduksi()
+    {
+        return $this->hasMany(PenugasanProduksi::class, 'user_id', 'user_id');
+    }
+
+    // Penugasan yang dibuat/ditugaskan oleh user ini
+    public function penugasanCreated()
+    {
+        return $this->hasMany(PenugasanProduksi::class, 'created_by', 'user_id');
+    }
+
+    // Penugasan yang di-update oleh user ini
+    public function penugasanUpdated()
+    {
+        return $this->hasMany(PenugasanProduksi::class, 'updated_by', 'user_id');
+    }
+
+    // Penugasan yang dihapus oleh user ini
+    public function penugasanDeleted()
+    {
+        return $this->hasMany(PenugasanProduksi::class, 'deleted_by', 'user_id');
+    }
+
     /**
      * Get the route key for the model.
      */

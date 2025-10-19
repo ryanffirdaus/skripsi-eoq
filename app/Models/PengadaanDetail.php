@@ -138,4 +138,10 @@ class PengadaanDetail extends Model
     {
         return $query->whereRaw('qty_diterima < COALESCE(qty_disetujui, qty_diminta)');
     }
+
+    // Relationship to PenugasanProduksi
+    public function penugasan()
+    {
+        return $this->hasMany(PenugasanProduksi::class, 'pengadaan_detail_id', 'pengadaan_detail_id');
+    }
 }

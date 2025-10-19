@@ -4,16 +4,21 @@ namespace App\Http\Controllers;
 
 use App\Models\Pelanggan;
 use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
 
 class PelangganController extends Controller
 {
+    use AuthorizesRequests;
     /**
      * Display a listing of the pelanggan.
      */
     public function index(Request $request)
     {
+        // Check authorization
+        $this->authorize('viewAny', Pelanggan::class);
+
         // Get query parameters with default values
         $search = $request->input('search');
         $sortBy = $request->input('sort_by', 'pelanggan_id');
@@ -58,6 +63,7 @@ class PelangganController extends Controller
      */
     public function create()
     {
+        $this->authorize('create', Pelanggan::class);
         return Inertia::render('pelanggan/create');
     }
 
@@ -66,6 +72,8 @@ class PelangganController extends Controller
      */
     public function show(Pelanggan $pelanggan)
     {
+        $this->authorize('view', $pelanggan);
+
         $pelanggan->load([
             'pesanan.produk',
             'createdBy:user_id,nama_lengkap',
@@ -82,6 +90,8 @@ class PelangganController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorize('create', Pelanggan::class);
+
         $validated = $request->validate([
             'nama_pelanggan' => ['required', 'string', 'max:255'],
             'email_pelanggan' => ['required', 'email', 'max:255', 'unique:pelanggan,email_pelanggan'],
@@ -107,6 +117,8 @@ class PelangganController extends Controller
      */
     public function edit(Pelanggan $pelanggan)
     {
+        $this->authorize('update', $pelanggan);
+
         return Inertia::render('pelanggan/edit', [
             'pelanggan' => $pelanggan
         ]);
@@ -117,6 +129,8 @@ class PelangganController extends Controller
      */
     public function update(Request $request, Pelanggan $pelanggan)
     {
+        $this->authorize('update', $pelanggan);
+
         $validated = $request->validate([
             'nama_pelanggan' => ['required', 'string', 'max:255'],
             'email_pelanggan' => ['required', 'email', 'max:255', 'unique:pelanggan,email_pelanggan,' . $pelanggan->pelanggan_id . ',pelanggan_id'],
@@ -142,6 +156,8 @@ class PelangganController extends Controller
      */
     public function destroy(Pelanggan $pelanggan)
     {
+        $this->authorize('delete', $pelanggan);
+
         try {
             $namaPelanggan = $pelanggan->nama_pelanggan;
             $pelangganId = $pelanggan->pelanggan_id;
