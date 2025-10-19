@@ -77,6 +77,11 @@ class PesananController extends Controller
             ];
         });
 
+        // Check permissions
+        $canCreate = $this->hasRoles(['R01', 'R05']); // Admin, Staf Penjualan
+        $canEdit = $this->hasRoles(['R01', 'R05']);
+        $canDelete = $this->hasRoles(['R01', 'R05']);
+
         return Inertia::render('pesanan/index', [
             'pesanan' => $pesanan,
             'filters' => [
@@ -85,6 +90,11 @@ class PesananController extends Controller
                 'sort_by' => $sortBy,
                 'sort_direction' => $sortDirection,
                 'per_page' => (int) $perPage,
+            ],
+            'permissions' => [
+                'canCreate' => $canCreate,
+                'canEdit' => $canEdit,
+                'canDelete' => $canDelete,
             ],
             'flash' => [
                 'message' => session('message'),
@@ -163,8 +173,16 @@ class PesananController extends Controller
             'updatedBy:user_id,nama_lengkap'
         ])->where('pesanan_id', $pesanan_id)->firstOrFail();
 
+        // Check permissions
+        $canEdit = $this->hasRoles(['R01', 'R05']); // Admin, Staf Penjualan
+        $canDelete = $this->hasRoles(['R01', 'R05']);
+
         return Inertia::render('pesanan/show', [
             'pesanan' => $pesanan,
+            'permissions' => [
+                'canEdit' => $canEdit,
+                'canDelete' => $canDelete,
+            ],
         ]);
     }
 

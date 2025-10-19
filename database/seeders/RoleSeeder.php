@@ -19,13 +19,11 @@ class RoleSeeder extends Seeder
             ['role_id' => 'R03', 'name' => 'Staf RnD'],
             ['role_id' => 'R04', 'name' => 'Staf Pengadaan'],
             ['role_id' => 'R05', 'name' => 'Staf Penjualan'],
-            ['role_id' => 'R06', 'name' => 'Staf QA'],
-            ['role_id' => 'R07', 'name' => 'Staf Keuangan'],
-            ['role_id' => 'R08', 'name' => 'Manajer Gudang'],
-            ['role_id' => 'R09', 'name' => 'Manajer RnD'],
-            ['role_id' => 'R10', 'name' => 'Manajer Pengadaan'],
-            ['role_id' => 'R11', 'name' => 'Manajer Keuangan'],
-
+            ['role_id' => 'R06', 'name' => 'Staf Keuangan'],
+            ['role_id' => 'R07', 'name' => 'Manajer Gudang'],
+            ['role_id' => 'R08', 'name' => 'Manajer RnD'],
+            ['role_id' => 'R09', 'name' => 'Manajer Pengadaan'],
+            ['role_id' => 'R10', 'name' => 'Manajer Keuangan'],
         ]);
     }
 }

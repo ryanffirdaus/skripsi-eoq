@@ -34,9 +34,13 @@ interface BahanBaku {
 
 interface Props {
     bahanBaku: BahanBaku;
+    permissions: {
+        canEdit?: boolean;
+        canDelete?: boolean;
+    };
 }
 
-export default function Show({ bahanBaku }: Props) {
+export default function Show({ bahanBaku, permissions }: Props) {
     const breadcrumbs: BreadcrumbItem[] = [
         {
             title: 'Bahan Baku',
@@ -48,12 +52,17 @@ export default function Show({ bahanBaku }: Props) {
         },
     ];
 
+    // Actions - hanya tampil jika ada permission
     const actions = [
-        {
-            label: 'Edit Bahan Baku',
-            href: `/bahan-baku/${bahanBaku.bahan_baku_id}/edit`,
-            variant: 'outline' as const,
-        },
+        ...(permissions.canEdit
+            ? [
+                  {
+                      label: 'Edit Bahan Baku',
+                      href: `/bahan-baku/${bahanBaku.bahan_baku_id}/edit`,
+                      variant: 'outline' as const,
+                  },
+              ]
+            : []),
         {
             label: 'Kembali',
             href: '/bahan-baku',

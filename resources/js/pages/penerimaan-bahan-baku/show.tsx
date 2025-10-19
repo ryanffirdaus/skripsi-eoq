@@ -1,10 +1,9 @@
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import AppLayout from '@/layouts/app-layout';
-import { Head, router } from '@inertiajs/react';
-import { AlertTriangle, Building, Calendar, Edit, FileText, Package, User } from 'lucide-react';
+import { InfoSection } from '@/components/info-section';
+import ShowPageTemplate from '@/components/templates/show-page-template';
+import TimestampSection from '@/components/timestamp-section';
+import { formatCurrency, formatDate } from '@/lib/formatters';
+import { type BreadcrumbItem } from '@/types';
+import { AlertTriangle } from 'lucide-react';
 
 interface Pemasok {
     pemasok_id: string;
@@ -67,282 +66,219 @@ interface PenerimaanBahanBaku {
     receivedBy?: User;
     checked_by?: string;
     checkedBy?: User;
-    details: PenerimaanDetail[];
+    details?: PenerimaanDetail[];
     created_at: string;
     updated_at: string;
 }
 
 interface ShowProps {
     penerimaan: PenerimaanBahanBaku;
+    permissions?: {
+        canEdit?: boolean;
+        canDelete?: boolean;
+    };
 }
 
-const getStatusColor = (status: string) => {
-    switch (status) {
-        case 'pending':
-            return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-        case 'partial':
-            return 'bg-blue-100 text-blue-800 border-blue-200';
-        case 'complete':
-            return 'bg-green-100 text-green-800 border-green-200';
-        case 'returned':
-            return 'bg-red-100 text-red-800 border-red-200';
-        default:
-            return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
+const getStatusBadge = (status: string) => {
+    const badges = {
+        pending: { label: 'Pending', color: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
+        partial: { label: 'Sebagian', color: 'bg-blue-100 text-blue-800 border-blue-200' },
+        complete: { label: 'Selesai', color: 'bg-green-100 text-green-800 border-green-200' },
+        returned: { label: 'Diretur', color: 'bg-red-100 text-red-800 border-red-200' },
+    };
+    return badges[status as keyof typeof badges] || badges.pending;
 };
 
-const getStatusText = (status: string) => {
-    switch (status) {
-        case 'pending':
-            return 'Pending';
-        case 'partial':
-            return 'Sebagian';
-        case 'complete':
-            return 'Selesai';
-        case 'returned':
-            return 'Diretur';
-        default:
-            return status;
-    }
-};
+export default function Show({ penerimaan, permissions = {} }: ShowProps) {
+    const breadcrumbs: BreadcrumbItem[] = [
+        {
+            title: 'Penerimaan Bahan Baku',
+            href: '/penerimaan-bahan-baku',
+        },
+        {
+            title: `Detail ${penerimaan.nomor_dokumen}`,
+            href: `/penerimaan-bahan-baku/${penerimaan.penerimaan_id}`,
+        },
+    ];
 
-export default function Show({ penerimaan }: ShowProps) {
-    const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('id-ID', {
-            style: 'currency',
-            currency: 'IDR',
-            minimumFractionDigits: 0,
-        }).format(amount);
-    };
+    // Actions - hanya tampil jika ada permission
+    const actions = [
+        ...(permissions.canEdit
+            ? [
+                  {
+                      label: 'Edit Penerimaan',
+                      href: `/penerimaan-bahan-baku/${penerimaan.penerimaan_id}/edit`,
+                      variant: 'outline' as const,
+                  },
+              ]
+            : []),
+        {
+            label: 'Kembali',
+            href: '/penerimaan-bahan-baku',
+            variant: 'outline' as const,
+        },
+    ];
 
-    const formatDate = (dateString: string) => {
-        if (!dateString) return '-';
-        return new Date(dateString).toLocaleDateString('id-ID', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-        });
-    };
+    const statusBadge = getStatusBadge(penerimaan.status);
+    const totalNilaiPenerimaan = penerimaan.details?.reduce((sum, detail) => sum + (detail.subtotal || 0), 0) || 0;
 
-    const formatDateTime = (dateString: string) => {
-        if (!dateString) return '-';
-        return new Date(dateString).toLocaleString('id-ID', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-        });
-    };
+    const informasiUmum = [
+        {
+            label: 'No. Dokumen',
+            value: penerimaan.nomor_dokumen,
+        },
+        ...(penerimaan.pembelian
+            ? [
+                  {
+                      label: 'No. Pembelian',
+                      value: penerimaan.pembelian.nomor_po,
+                  },
+              ]
+            : []),
+        {
+            label: 'Tanggal Penerimaan',
+            value: formatDate(penerimaan.tanggal_penerimaan, {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+            }),
+        },
+        {
+            label: 'Diterima Oleh',
+            value: penerimaan.receivedBy?.nama_lengkap || '-',
+        },
+    ];
 
-    const totalNilaiPenerimaan = penerimaan.details.reduce((sum, detail) => sum + (detail.subtotal || 0), 0);
+    const informasiPemasok = [
+        {
+            label: 'Nama Pemasok',
+            value: penerimaan.pemasok?.nama_pemasok || '-',
+        },
+        ...(penerimaan.pemasok?.alamat
+            ? [
+                  {
+                      label: 'Alamat',
+                      value: penerimaan.pemasok.alamat,
+                  },
+              ]
+            : []),
+        ...(penerimaan.pemasok?.telepon
+            ? [
+                  {
+                      label: 'Telepon',
+                      value: penerimaan.pemasok.telepon,
+                  },
+              ]
+            : []),
+    ];
+
+    const ringkasanItems = [
+        {
+            label: 'Total Item',
+            value: <span className="text-2xl font-bold text-blue-600">{penerimaan.total_item}</span>,
+        },
+        {
+            label: 'Qty Diterima',
+            value: <span className="text-2xl font-bold text-green-600">{penerimaan.total_qty_diterima}</span>,
+        },
+        {
+            label: 'Qty Ditolak',
+            value: <span className="text-2xl font-bold text-red-600">{penerimaan.total_qty_rejected}</span>,
+        },
+        {
+            label: 'Total Nilai',
+            value: <span className="text-2xl font-bold text-gray-900">{formatCurrency(totalNilaiPenerimaan)}</span>,
+        },
+    ];
 
     return (
-        <AppLayout>
-            <Head title={`Detail Penerimaan - ${penerimaan.nomor_dokumen}`} />
+        <ShowPageTemplate
+            title={penerimaan.nomor_dokumen}
+            pageTitle={`Detail Penerimaan Bahan Baku ${penerimaan.nomor_dokumen}`}
+            breadcrumbs={breadcrumbs}
+            subtitle={`Pemasok: ${penerimaan.pemasok?.nama_pemasok || '-'}`}
+            badge={statusBadge}
+            actions={actions}
+        >
+            <div className="space-y-8">
+                <InfoSection title="Informasi Umum" items={informasiUmum} />
 
-            <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h1 className="text-3xl font-bold tracking-tight">Detail Penerimaan</h1>
-                        <p className="text-muted-foreground">{penerimaan.nomor_dokumen}</p>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <Badge className={getStatusColor(penerimaan.status)}>{getStatusText(penerimaan.status)}</Badge>
-                        <Button variant="outline" onClick={() => router.visit(`/penerimaan-bahan-baku/${penerimaan.penerimaan_id}/edit`)}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            Edit
-                        </Button>
+                <InfoSection title="Informasi Pemasok" items={informasiPemasok} />
+
+                {/* Ringkasan Penerimaan */}
+                <div className="space-y-4">
+                    <h2 className="text-xl font-semibold">Ringkasan Penerimaan</h2>
+                    <div className="grid grid-cols-2 gap-6 rounded-lg border bg-white p-6 md:grid-cols-4 dark:bg-gray-950">
+                        {ringkasanItems.map((item) => (
+                            <div key={item.label} className="text-center">
+                                <div>{item.value}</div>
+                                <p className="mt-2 text-sm text-gray-500">{item.label}</p>
+                            </div>
+                        ))}
                     </div>
                 </div>
 
-                <Separator />
-                <div className="space-y-6">
-                    {/* Main Info Cards */}
-                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                        {/* Informasi Umum */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <FileText className="h-5 w-5" />
-                                    Informasi Umum
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="flex items-center gap-3">
-                                    <Package className="h-4 w-4 text-gray-400" />
-                                    <div>
-                                        <p className="text-sm text-gray-500">No. Dokumen</p>
-                                        <p className="font-medium">{penerimaan.nomor_dokumen}</p>
-                                    </div>
-                                </div>
-                                {penerimaan.pembelian && (
-                                    <div className="flex items-center gap-3">
-                                        <FileText className="h-4 w-4 text-gray-400" />
-                                        <div>
-                                            <p className="text-sm text-gray-500">No. Pembelian</p>
-                                            <p className="font-medium">{penerimaan.pembelian.nomor_po}</p>
-                                        </div>
-                                    </div>
-                                )}
-                                <div className="flex items-center gap-3">
-                                    <Calendar className="h-4 w-4 text-gray-400" />
-                                    <div>
-                                        <p className="text-sm text-gray-500">Tanggal Penerimaan</p>
-                                        <p className="font-medium">{formatDate(penerimaan.tanggal_penerimaan)}</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <User className="h-4 w-4 text-gray-400" />
-                                    <div>
-                                        <p className="text-sm text-gray-500">Diterima Oleh</p>
-                                        <p className="font-medium">{penerimaan.receivedBy?.nama_lengkap || '-'}</p>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* Informasi Pemasok */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <Building className="h-5 w-5" />
-                                    Informasi Pemasok
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div>
-                                    <p className="text-sm text-gray-500">Nama Pemasok</p>
-                                    <p className="font-medium">{penerimaan.pemasok?.nama_pemasok || '-'}</p>
-                                </div>
-                                {penerimaan.pemasok?.alamat && (
-                                    <div>
-                                        <p className="text-sm text-gray-500">Alamat</p>
-                                        <p className="font-medium">{penerimaan.pemasok.alamat}</p>
-                                    </div>
-                                )}
-                                {penerimaan.pemasok?.telepon && (
-                                    <div>
-                                        <p className="text-sm text-gray-500">Telepon</p>
-                                        <p className="font-medium">{penerimaan.pemasok.telepon}</p>
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
-                    </div>
-
-                    {/* Ringkasan */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Ringkasan Penerimaan</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
-                                <div className="text-center">
-                                    <p className="text-2xl font-bold text-blue-600">{penerimaan.total_item}</p>
-                                    <p className="text-sm text-gray-500">Total Item</p>
-                                </div>
-                                <div className="text-center">
-                                    <p className="text-2xl font-bold text-green-600">{penerimaan.total_qty_diterima}</p>
-                                    <p className="text-sm text-gray-500">Qty Diterima</p>
-                                </div>
-                                <div className="text-center">
-                                    <p className="text-2xl font-bold text-red-600">{penerimaan.total_qty_rejected}</p>
-                                    <p className="text-sm text-gray-500">Qty Ditolak</p>
-                                </div>
-                                <div className="text-center">
-                                    <p className="text-2xl font-bold text-gray-900">{formatCurrency(totalNilaiPenerimaan)}</p>
-                                    <p className="text-sm text-gray-500">Total Nilai</p>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    {/* Detail Items */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Detail Item Diterima</CardTitle>
-                            <CardDescription>Daftar bahan baku yang diterima dalam pengiriman ini</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="overflow-x-auto">
-                                <table className="w-full border-collapse">
-                                    <thead>
-                                        <tr className="border-b">
-                                            <th className="p-3 text-left font-medium">Bahan Baku</th>
-                                            <th className="p-3 text-left font-medium">Satuan</th>
-                                            <th className="p-3 text-right font-medium">Qty Dipesan</th>
-                                            <th className="p-3 text-right font-medium">Qty Diterima</th>
-                                            <th className="p-3 text-right font-medium">Qty Ditolak</th>
-                                            <th className="p-3 text-right font-medium">Harga Satuan</th>
-                                            <th className="p-3 text-right font-medium">Subtotal</th>
-                                            <th className="p-3 text-left font-medium">Catatan QC</th>
+                {/* Detail Items Table */}
+                {penerimaan.details && penerimaan.details.length > 0 && (
+                    <div className="space-y-4">
+                        <h2 className="text-xl font-semibold">Detail Item Diterima</h2>
+                        <div className="overflow-x-auto rounded-lg border bg-white dark:bg-gray-950">
+                            <table className="w-full border-collapse">
+                                <thead>
+                                    <tr className="border-b bg-gray-50 dark:bg-gray-900">
+                                        <th className="p-3 text-left font-medium">Bahan Baku</th>
+                                        <th className="p-3 text-left font-medium">Satuan</th>
+                                        <th className="p-3 text-right font-medium">Qty Dipesan</th>
+                                        <th className="p-3 text-right font-medium">Qty Diterima</th>
+                                        <th className="p-3 text-right font-medium">Qty Ditolak</th>
+                                        <th className="p-3 text-right font-medium">Harga Satuan</th>
+                                        <th className="p-3 text-right font-medium">Subtotal</th>
+                                        <th className="p-3 text-left font-medium">Catatan QC</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {penerimaan.details.map((detail) => (
+                                        <tr key={detail.penerimaan_detail_id} className="border-b hover:bg-gray-50 dark:hover:bg-gray-900">
+                                            <td className="p-3 font-medium">{detail.bahan_baku.nama}</td>
+                                            <td className="p-3">{detail.bahan_baku.satuan}</td>
+                                            <td className="p-3 text-right">{detail.qty_dipesan.toLocaleString()}</td>
+                                            <td className="p-3 text-right font-medium text-green-600">{detail.qty_received.toLocaleString()}</td>
+                                            <td className="p-3 text-right font-medium text-red-600">{detail.qty_rejected.toLocaleString()}</td>
+                                            <td className="p-3 text-right">{formatCurrency(detail.harga_satuan)}</td>
+                                            <td className="p-3 text-right font-medium">{formatCurrency(detail.subtotal)}</td>
+                                            <td className="p-3">
+                                                {detail.catatan_qc && (
+                                                    <div className="flex items-center gap-1">
+                                                        <AlertTriangle className="h-4 w-4 text-yellow-500" />
+                                                        <span className="text-sm">{detail.catatan_qc}</span>
+                                                    </div>
+                                                )}
+                                            </td>
                                         </tr>
-                                    </thead>
-                                    <tbody>
-                                        {penerimaan.details.map((detail) => (
-                                            <tr key={detail.penerimaan_detail_id} className="border-b">
-                                                <td className="p-3 font-medium">{detail.bahan_baku.nama}</td>
-                                                <td className="p-3">{detail.bahan_baku.satuan}</td>
-                                                <td className="p-3 text-right">{detail.qty_dipesan.toLocaleString()}</td>
-                                                <td className="p-3 text-right font-medium text-green-600">{detail.qty_received.toLocaleString()}</td>
-                                                <td className="p-3 text-right font-medium text-red-600">{detail.qty_rejected.toLocaleString()}</td>
-                                                <td className="p-3 text-right">{formatCurrency(detail.harga_satuan)}</td>
-                                                <td className="p-3 text-right font-medium">{formatCurrency(detail.subtotal)}</td>
-                                                <td className="p-3">
-                                                    {detail.catatan_qc && (
-                                                        <div className="flex items-center gap-1">
-                                                            <AlertTriangle className="h-4 w-4 text-yellow-500" />
-                                                            <span className="text-sm">{detail.catatan_qc}</span>
-                                                        </div>
-                                                    )}
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </CardContent>
-                    </Card>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
 
-                    {/* Catatan */}
-                    {penerimaan.catatan && (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Catatan</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-gray-700">{penerimaan.catatan}</p>
-                            </CardContent>
-                        </Card>
-                    )}
+                {/* Catatan */}
+                {penerimaan.catatan && (
+                    <div className="space-y-4">
+                        <h2 className="text-xl font-semibold">Catatan</h2>
+                        <div className="rounded-lg border bg-white p-6 dark:bg-gray-950">
+                            <p className="text-gray-700 dark:text-gray-300">{penerimaan.catatan}</p>
+                        </div>
+                    </div>
+                )}
 
-                    {/* Audit Trail */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Informasi Audit</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                <div>
-                                    <p className="text-sm text-gray-500">Dibuat pada</p>
-                                    <p className="font-medium">{formatDateTime(penerimaan.created_at)}</p>
-                                </div>
-                                <div>
-                                    <p className="text-sm text-gray-500">Terakhir diperbarui</p>
-                                    <p className="font-medium">{formatDateTime(penerimaan.updated_at)}</p>
-                                </div>
-                                {penerimaan.checkedBy && (
-                                    <div>
-                                        <p className="text-sm text-gray-500">Dicek oleh</p>
-                                        <p className="font-medium">{penerimaan.checkedBy.nama_lengkap}</p>
-                                    </div>
-                                )}
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
+                <TimestampSection
+                    createdAt={penerimaan.created_at}
+                    updatedAt={penerimaan.updated_at}
+                    createdBy={penerimaan.receivedBy?.nama_lengkap}
+                    updatedBy={penerimaan.checkedBy?.nama_lengkap}
+                />
             </div>
-        </AppLayout>
+        </ShowPageTemplate>
     );
 }

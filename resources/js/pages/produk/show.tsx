@@ -42,9 +42,13 @@ interface Produk {
 
 interface Props {
     produk: Produk;
+    permissions: {
+        canEdit?: boolean;
+        canDelete?: boolean;
+    };
 }
 
-export default function Show({ produk }: Props) {
+export default function Show({ produk, permissions }: Props) {
     const breadcrumbs: BreadcrumbItem[] = [
         {
             title: 'Produk',
@@ -75,9 +79,11 @@ export default function Show({ produk }: Props) {
                                 <p className={cn('mt-1', colors.text.secondary)}>Product ID: {produk.produk_id}</p>
                             </div>
                             <div className="flex gap-3">
-                                <Link href={`/produk/${produk.produk_id}/edit`}>
-                                    <Button variant="outline">Edit Produk</Button>
-                                </Link>
+                                {permissions.canEdit && (
+                                    <Link href={`/produk/${produk.produk_id}/edit`}>
+                                        <Button variant="outline">Edit Produk</Button>
+                                    </Link>
+                                )}
                                 <Link href="/produk">
                                     <Button variant="outline">Kembali</Button>
                                 </Link>

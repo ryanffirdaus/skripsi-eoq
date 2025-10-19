@@ -46,6 +46,11 @@ interface Filters {
 interface Props {
     pesanan: PaginatedPesanan;
     filters: Filters;
+    permissions: {
+        canCreate?: boolean;
+        canEdit?: boolean;
+        canDelete?: boolean;
+    };
     flash?: {
         message?: string;
         type?: 'success' | 'error' | 'warning' | 'info';
@@ -76,7 +81,7 @@ const statusLabels = {
     dibatalkan: 'Dibatalkan',
 };
 
-export default function Index({ pesanan, filters, flash }: Props) {
+export default function Index({ pesanan, filters, permissions, flash }: Props) {
     const columns = useMemo(
         () => [
             {
@@ -161,20 +166,27 @@ export default function Index({ pesanan, filters, flash }: Props) {
         [],
     );
 
+    // Actions - hanya tampil jika ada permission
     const actions = useMemo(
-        () => [
-            // createViewAction<Pesanan>((item) => `/pesanan/${item.pesanan_id}`),
-            createEditAction<Pesanan>((item) => `/pesanan/${item.pesanan_id}/edit`),
-            createDeleteAction<Pesanan>((item) => {
-                router.delete(`/pesanan/${item.pesanan_id}`, {
-                    preserveState: false,
-                    onError: (errors) => {
-                        console.error('Delete failed:', errors);
-                    },
-                });
-            }),
-        ],
-        [],
+        () =>
+            permissions.canEdit || permissions.canDelete
+                ? [
+                      ...(permissions.canEdit ? [createEditAction<Pesanan>((item) => `/pesanan/${item.pesanan_id}/edit`)] : []),
+                      ...(permissions.canDelete
+                          ? [
+                                createDeleteAction<Pesanan>((item) => {
+                                    router.delete(`/pesanan/${item.pesanan_id}`, {
+                                        preserveState: false,
+                                        onError: (errors) => {
+                                            console.error('Delete failed:', errors);
+                                        },
+                                    });
+                                }),
+                            ]
+                          : []),
+                  ]
+                : [],
+        [permissions.canEdit, permissions.canDelete],
     );
 
     return (
@@ -183,7 +195,7 @@ export default function Index({ pesanan, filters, flash }: Props) {
             breadcrumbs={breadcrumbs}
             data={pesanan}
             columns={columns}
-            createUrl="/pesanan/create"
+            createUrl={permissions.canCreate ? '/pesanan/create' : undefined}
             createButtonText="Tambah Pesanan"
             searchPlaceholder="Cari pesanan..."
             filters={filters}

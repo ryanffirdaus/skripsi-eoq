@@ -50,6 +50,11 @@ class BahanBakuController extends Controller
         // Paginate the results
         $bahanBakus = $query->paginate($perPage)->withQueryString();
 
+        // Check permissions
+        $canCreate = $this->hasRoles(['R01', 'R07']); // Admin, Manajer Gudang
+        $canEdit = $this->hasRoles(['R01', 'R07']);
+        $canDelete = $this->hasRoles(['R01', 'R07']);
+
         return Inertia::render('bahan-baku/index', [
             'bahanBaku' => $bahanBakus,
             'filters' => [
@@ -62,6 +67,11 @@ class BahanBakuController extends Controller
             ],
             'uniqueLokasi' => BahanBaku::select('lokasi_bahan')->distinct()->orderBy('lokasi_bahan')->pluck('lokasi_bahan'),
             'uniqueSatuan' => BahanBaku::select('satuan_bahan')->distinct()->orderBy('satuan_bahan')->pluck('satuan_bahan'),
+            'permissions' => [
+                'canCreate' => $canCreate,
+                'canEdit' => $canEdit,
+                'canDelete' => $canDelete,
+            ],
             'flash' => [
                 'message' => session('message'),
                 'type' => session('type', 'success'),
@@ -87,8 +97,16 @@ class BahanBakuController extends Controller
             'updatedBy:user_id,nama_lengkap'
         ]);
 
+        // Check permissions
+        $canEdit = $this->hasRoles(['R01', 'R07']); // Admin, Manajer Gudang
+        $canDelete = $this->hasRoles(['R01', 'R07']);
+
         return Inertia::render('bahan-baku/show', [
-            'bahanBaku' => $bahanBaku
+            'bahanBaku' => $bahanBaku,
+            'permissions' => [
+                'canEdit' => $canEdit,
+                'canDelete' => $canDelete,
+            ],
         ]);
     }
 

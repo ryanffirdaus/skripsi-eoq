@@ -48,6 +48,11 @@ interface Pesanan {
 
 interface Props {
     pesanan: Pesanan;
+    permissions?: {
+        canCreate?: boolean;
+        canEdit?: boolean;
+        canDelete?: boolean;
+    };
 }
 
 const statusColors = {
@@ -68,7 +73,7 @@ const statusLabels = {
     cancelled: 'Dibatalkan',
 };
 
-export default function Show({ pesanan }: Props) {
+export default function Show({ pesanan, permissions = {} }: Props) {
     const breadcrumbs: BreadcrumbItem[] = [
         {
             title: 'Pesanan',
@@ -94,9 +99,11 @@ export default function Show({ pesanan }: Props) {
                                 <p className={cn('mt-1', colors.text.secondary)}>Dibuat pada {formatDateTime(pesanan.created_at)}</p>
                             </div>
                             <div className="flex gap-3">
-                                <Link href={`/pesanan/${pesanan.pesanan_id}/edit`}>
-                                    <Button variant="outline">Edit Pesanan</Button>
-                                </Link>
+                                {permissions?.canEdit && (
+                                    <Link href={`/pesanan/${pesanan.pesanan_id}/edit`}>
+                                        <Button variant="outline">Edit Pesanan</Button>
+                                    </Link>
+                                )}
                                 <Link href="/pesanan">
                                     <Button variant="outline">Kembali</Button>
                                 </Link>

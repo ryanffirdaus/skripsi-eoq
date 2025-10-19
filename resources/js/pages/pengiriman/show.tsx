@@ -1,10 +1,8 @@
+import { InfoSection } from '@/components/info-section';
+import ShowPageTemplate from '@/components/templates/show-page-template';
 import TimestampSection from '@/components/timestamp-section';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import AppLayout from '@/layouts/app-layout';
 import { formatCurrency, formatDate } from '@/lib/formatters';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link } from '@inertiajs/react';
 
 interface Pelanggan {
     nama_pelanggan: string;
@@ -50,231 +48,187 @@ interface Pengiriman {
 
 interface Props {
     pengiriman: Pengiriman;
+    permissions?: {
+        canEdit?: boolean;
+        canDelete?: boolean;
+    };
 }
 
-export default function Show({ pengiriman }: Props) {
+const getStatusBadge = (status: string, status_label: string) => {
+    const colors = {
+        pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+        dikirim: 'bg-blue-100 text-blue-800 border-blue-200',
+        selesai: 'bg-green-100 text-green-800 border-green-200',
+        dibatalkan: 'bg-red-100 text-red-800 border-red-200',
+    };
+    return {
+        label: status_label,
+        color: colors[status as keyof typeof colors] || colors.pending,
+    };
+};
+
+export default function Show({ pengiriman, permissions = {} }: Props) {
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Pengiriman', href: '/pengiriman' },
-        { title: pengiriman.pengiriman_id, href: `/pengiriman/${pengiriman.pengiriman_id}` },
+        { title: `Detail ${pengiriman.pengiriman_id}`, href: `/pengiriman/${pengiriman.pengiriman_id}` },
     ];
 
-    const getStatusColor = (status: string) => {
-        const colors = {
-            pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-            shipped: 'bg-blue-100 text-blue-800 border-blue-200',
-            delivered: 'bg-green-100 text-green-800 border-green-200',
-            cancelled: 'bg-red-100 text-red-800 border-red-200',
-        };
-        return colors[status as keyof typeof colors] || colors.pending;
-    };
+    // Actions - hanya tampil jika ada permission
+    const actions = [
+        ...(permissions.canEdit
+            ? [
+                  {
+                      label: 'Edit Pengiriman',
+                      href: `/pengiriman/${pengiriman.pengiriman_id}/edit`,
+                      variant: 'outline' as const,
+                  },
+              ]
+            : []),
+        {
+            label: 'Kembali',
+            href: '/pengiriman',
+            variant: 'outline' as const,
+        },
+    ];
+
+    const pengirimanInfo = [
+        {
+            label: 'ID Pengiriman',
+            value: pengiriman.pengiriman_id,
+        },
+        {
+            label: 'Status',
+            value: (
+                <span
+                    className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${getStatusBadge(pengiriman.status, pengiriman.status_label).color}`}
+                >
+                    {pengiriman.status_label}
+                </span>
+            ),
+        },
+        {
+            label: 'Kurir',
+            value: pengiriman.kurir,
+        },
+        {
+            label: 'Jenis Layanan',
+            value: pengiriman.jenis_layanan,
+        },
+        ...(pengiriman.nomor_resi
+            ? [
+                  {
+                      label: 'Nomor Resi',
+                      value: <span className="font-mono font-semibold">{pengiriman.nomor_resi}</span>,
+                  },
+              ]
+            : []),
+        {
+            label: 'Biaya Pengiriman',
+            value: <span className="text-lg font-semibold text-green-600">{formatCurrency(pengiriman.biaya_pengiriman)}</span>,
+        },
+        {
+            label: 'Estimasi Pengiriman',
+            value: `${pengiriman.estimasi_hari} hari`,
+        },
+        ...(pengiriman.catatan
+            ? [
+                  {
+                      label: 'Catatan',
+                      value: pengiriman.catatan,
+                  },
+              ]
+            : []),
+    ];
+
+    const pesananInfo = [
+        {
+            label: 'ID Pesanan',
+            value: pengiriman.pesanan.pesanan_id,
+        },
+        {
+            label: 'Tanggal Pesanan',
+            value: formatDate(pengiriman.pesanan.tanggal_pesanan, {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+            }),
+        },
+        {
+            label: 'Total Harga',
+            value: <span className="text-lg font-semibold text-green-600">{formatCurrency(pengiriman.pesanan.total_harga)}</span>,
+        },
+        {
+            label: 'Nama Pelanggan',
+            value: pengiriman.pesanan.pelanggan.nama_pelanggan,
+        },
+        {
+            label: 'Alamat Pelanggan',
+            value: `${pengiriman.pesanan.pelanggan.alamat_pelanggan}, ${pengiriman.pesanan.pelanggan.kota_pelanggan}`,
+        },
+        {
+            label: 'Nomor Telepon',
+            value: pengiriman.pesanan.pelanggan.telepon_pelanggan,
+        },
+    ];
+
+    const timelineInfo = [
+        ...(pengiriman.tanggal_diterima
+            ? [
+                  {
+                      label: 'Tanggal Diterima',
+                      value: formatDate(pengiriman.tanggal_diterima, {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                      }),
+                  },
+              ]
+            : []),
+        ...(pengiriman.tanggal_kirim
+            ? [
+                  {
+                      label: 'Tanggal Kirim',
+                      value: formatDate(pengiriman.tanggal_kirim, {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                      }),
+                  },
+              ]
+            : []),
+        {
+            label: 'Pengiriman Dibuat',
+            value: formatDate(pengiriman.created_at!, {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+            }),
+        },
+    ];
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`Pengiriman ${pengiriman.pengiriman_id}`} />
+        <ShowPageTemplate
+            title={pengiriman.pengiriman_id}
+            pageTitle={`Detail Pengiriman ${pengiriman.pengiriman_id}`}
+            breadcrumbs={breadcrumbs}
+            subtitle={`Kurir: ${pengiriman.kurir}`}
+            badge={getStatusBadge(pengiriman.status, pengiriman.status_label)}
+            actions={actions}
+        >
+            <div className="space-y-8">
+                <InfoSection title="Informasi Pengiriman" items={pengirimanInfo} />
 
-            <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h1 className="text-3xl font-bold tracking-tight">Detail Pengiriman</h1>
-                        <p className="text-muted-foreground">Informasi lengkap pengiriman {pengiriman.pengiriman_id}</p>
-                    </div>
-                    <div className="flex space-x-2">
-                        <Button variant="outline" asChild>
-                            <Link href={`/pengiriman/${pengiriman.pengiriman_id}/edit`}>Edit</Link>
-                        </Button>
-                        <Button variant="outline" asChild>
-                            <Link href="/pengiriman">Kembali</Link>
-                        </Button>
-                    </div>
-                </div>
+                <InfoSection title="Informasi Pesanan" items={pesananInfo} />
 
-                <div className="grid gap-6 lg:grid-cols-2">
-                    {/* Informasi Pengiriman */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Informasi Pengiriman</CardTitle>
-                            <CardDescription>Detail informasi pengiriman dan tracking</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <div className="text-sm font-medium text-muted-foreground">ID Pengiriman</div>
-                                    <div className="mt-1 font-mono">{pengiriman.pengiriman_id}</div>
-                                </div>
-                                <div>
-                                    <div className="text-sm font-medium text-muted-foreground">Status</div>
-                                    <div className="mt-1">
-                                        <span
-                                            className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${getStatusColor(pengiriman.status)}`}
-                                        >
-                                            {pengiriman.status_label}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
+                <InfoSection title="Timeline Pengiriman" items={timelineInfo} />
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <div className="text-sm font-medium text-muted-foreground">Kurir</div>
-                                    <div className="mt-1">{pengiriman.kurir}</div>
-                                </div>
-                                <div>
-                                    <div className="text-sm font-medium text-muted-foreground">Jenis Layanan</div>
-                                    <div className="mt-1">{pengiriman.jenis_layanan}</div>
-                                </div>
-                            </div>
-
-                            {pengiriman.nomor_resi && (
-                                <div>
-                                    <div className="text-sm font-medium text-muted-foreground">Nomor Resi</div>
-                                    <div className="mt-1 font-mono text-lg font-semibold">{pengiriman.nomor_resi}</div>
-                                </div>
-                            )}
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <div className="text-sm font-medium text-muted-foreground">Biaya Pengiriman</div>
-                                    <div className="mt-1 text-lg font-semibold text-green-600">{formatCurrency(pengiriman.biaya_pengiriman)}</div>
-                                </div>
-                                <div>
-                                    <div className="text-sm font-medium text-muted-foreground">Estimasi</div>
-                                    <div className="mt-1">{pengiriman.estimasi_hari} hari</div>
-                                </div>
-                            </div>
-
-                            {pengiriman.catatan && (
-                                <div>
-                                    <div className="text-sm font-medium text-muted-foreground">Catatan</div>
-                                    <div className="mt-1 text-sm text-gray-600">{pengiriman.catatan}</div>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
-
-                    {/* Informasi Pesanan */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Informasi Pesanan</CardTitle>
-                            <CardDescription>Detail pesanan yang dikirim</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div>
-                                <div className="text-sm font-medium text-muted-foreground">ID Pesanan</div>
-                                <div className="mt-1">
-                                    <Link
-                                        href={`/pesanan/${pengiriman.pesanan.pesanan_id}`}
-                                        className="font-mono text-blue-600 hover:text-blue-800 hover:underline"
-                                    >
-                                        {pengiriman.pesanan.pesanan_id}
-                                    </Link>
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <div className="text-sm font-medium text-muted-foreground">Tanggal Pesanan</div>
-                                    <div className="mt-1">
-                                        {formatDate(pengiriman.pesanan.tanggal_pesanan, {
-                                            year: 'numeric',
-                                            month: 'long',
-                                            day: 'numeric',
-                                        })}
-                                    </div>
-                                </div>
-                                <div>
-                                    <div className="text-sm font-medium text-muted-foreground">Total Harga</div>
-                                    <div className="mt-1 text-lg font-semibold text-green-600">{formatCurrency(pengiriman.pesanan.total_harga)}</div>
-                                </div>
-                            </div>
-
-                            <div>
-                                <div className="text-sm font-medium text-muted-foreground">Pelanggan</div>
-                                <div className="mt-1">
-                                    <div className="font-medium">{pengiriman.pesanan.pelanggan.nama_pelanggan}</div>
-                                    <div className="mt-1 text-sm text-gray-600">{pengiriman.pesanan.pelanggan.alamat_pelanggan}</div>
-                                    <div className="text-sm text-gray-600">{pengiriman.pesanan.pelanggan.kota_pelanggan}</div>
-                                    <div className="text-sm text-gray-600">{pengiriman.pesanan.pelanggan.telepon_pelanggan}</div>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    {/* Timeline Pengiriman */}
-                    <Card className="lg:col-span-2">
-                        <CardHeader>
-                            <CardTitle>Timeline Pengiriman</CardTitle>
-                            <CardDescription>Riwayat status pengiriman</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-4">
-                                {pengiriman.tanggal_diterima && (
-                                    <div className="flex items-center space-x-4">
-                                        <div className="flex-shrink-0">
-                                            <div className="h-3 w-3 rounded-full bg-green-500"></div>
-                                        </div>
-                                        <div className="flex-1">
-                                            <div className="font-medium">Paket Diterima</div>
-                                            <div className="text-sm text-gray-600">
-                                                {formatDate(pengiriman.tanggal_diterima, {
-                                                    year: 'numeric',
-                                                    month: 'long',
-                                                    day: 'numeric',
-                                                })}
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {pengiriman.tanggal_kirim && (
-                                    <div className="flex items-center space-x-4">
-                                        <div className="flex-shrink-0">
-                                            <div className="h-3 w-3 rounded-full bg-blue-500"></div>
-                                        </div>
-                                        <div className="flex-1">
-                                            <div className="font-medium">Paket Dikirim</div>
-                                            <div className="text-sm text-gray-600">
-                                                {formatDate(pengiriman.tanggal_kirim, {
-                                                    year: 'numeric',
-                                                    month: 'long',
-                                                    day: 'numeric',
-                                                })}
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-
-                                <div className="flex items-center space-x-4">
-                                    <div className="flex-shrink-0">
-                                        <div className="h-3 w-3 rounded-full bg-gray-300"></div>
-                                    </div>
-                                    <div className="flex-1">
-                                        <div className="font-medium">Pengiriman Dibuat</div>
-                                        <div className="text-sm text-gray-600">
-                                            {formatDate(pengiriman.created_at!, {
-                                                year: 'numeric',
-                                                month: 'long',
-                                                day: 'numeric',
-                                            })}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    {/* Timestamp Information */}
-                    <Card className="lg:col-span-2">
-                        <CardContent className="pt-6">
-                            <TimestampSection
-                                createdAt={pengiriman.created_at || ''}
-                                updatedAt={pengiriman.updated_at || ''}
-                                createdBy={pengiriman.createdBy?.nama_lengkap}
-                                updatedBy={pengiriman.updatedBy?.nama_lengkap}
-                            />
-                        </CardContent>
-                    </Card>
-                </div>
+                <TimestampSection
+                    createdAt={pengiriman.created_at || ''}
+                    updatedAt={pengiriman.updated_at || ''}
+                    createdBy={pengiriman.createdBy?.nama_lengkap}
+                    updatedBy={pengiriman.updatedBy?.nama_lengkap}
+                />
             </div>
-        </AppLayout>
+        </ShowPageTemplate>
     );
 }

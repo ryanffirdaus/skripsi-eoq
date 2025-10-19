@@ -57,6 +57,11 @@ interface Props {
     filters: Filters;
     uniqueLokasi: string[];
     uniqueSatuan: string[];
+    permissions: {
+        canCreate?: boolean;
+        canEdit?: boolean;
+        canDelete?: boolean;
+    };
     flash?: {
         message?: string;
         type?: 'success' | 'error' | 'warning' | 'info';
@@ -70,7 +75,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function Index({ produk, filters, uniqueLokasi, uniqueSatuan, flash }: Props) {
+export default function Index({ produk, filters, uniqueLokasi, uniqueSatuan, permissions, flash }: Props) {
     const columns = [
         {
             key: 'produk_id',
@@ -173,19 +178,25 @@ export default function Index({ produk, filters, uniqueLokasi, uniqueSatuan, fla
         },
     ];
 
-    // Actions using action templates
-    const actions = [
-        // createViewAction<Produk>((item) => `/produk/${item.produk_id}`),
-        createEditAction<Produk>((item) => `/produk/${item.produk_id}/edit`),
-        createDeleteAction<Produk>((item) => {
-            router.delete(`/produk/${item.produk_id}`, {
-                preserveState: false,
-                onError: (errors) => {
-                    console.error('Delete failed:', errors);
-                },
-            });
-        }),
-    ];
+    // Actions - hanya tampil jika ada permission
+    const actions =
+        permissions.canEdit || permissions.canDelete
+            ? [
+                  ...(permissions.canEdit ? [createEditAction<Produk>((item) => `/produk/${item.produk_id}/edit`)] : []),
+                  ...(permissions.canDelete
+                      ? [
+                            createDeleteAction<Produk>((item) => {
+                                router.delete(`/produk/${item.produk_id}`, {
+                                    preserveState: false,
+                                    onError: (errors) => {
+                                        console.error('Delete failed:', errors);
+                                    },
+                                });
+                            }),
+                        ]
+                      : []),
+              ]
+            : [];
 
     return (
         <TableTemplate<Produk>
@@ -193,7 +204,7 @@ export default function Index({ produk, filters, uniqueLokasi, uniqueSatuan, fla
             breadcrumbs={breadcrumbs}
             data={produk}
             columns={columns}
-            createUrl="/produk/create"
+            createUrl={permissions.canCreate ? '/produk/create' : undefined}
             createButtonText="Add Produk"
             searchPlaceholder="Search by product name or location..."
             filters={filters}

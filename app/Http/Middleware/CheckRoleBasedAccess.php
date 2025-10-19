@@ -10,60 +10,42 @@ use Symfony\Component\HttpFoundation\Response;
 class CheckRoleBasedAccess
 {
     /**
-     * Define allowed routes per role
+     * Define allowed routes and actions per role
+     * Format: role_id => ['route' => ['action1', 'action2', ...]]
+     * Jika tidak ada aksi spesifik, semua aksi diizinkan untuk route tersebut
      */
     private static array $roleBasedRoutes = [
-        'R05' => [ // Staf Penjualan
-            'pelanggan',
-            'pesanan',
-        ],
-        'R04' => [ // Staf Pengadaan
-            'pengadaan',
-            'pembelian',
-            'pemasok',
-            'penerimaan-bahan-baku',
-        ],
+        'R01' => [], // Admin - akses semua
         'R02' => [ // Staf Gudang
-            'bahan-baku',
-            'pengiriman',
+            'bahan-baku' => ['index', 'show'], // Hanya view
+            'produk' => ['index', 'show'], // Hanya view
+            'pengiriman' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'],
+            'penerimaan-bahan-baku' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'],
         ],
-    ];
-
-    /**
-     * Deny routes yang tidak boleh diakses per role
-     */
-    private static array $deniedRoutes = [
-        'R05' => [ // Staf Penjualan tidak bisa akses:
-            'bahan-baku',
-            'produk',
-            'pemasok',
-            'pengiriman',
-            'pengadaan',
-            'pembelian',
-            'penerimaan-bahan-baku',
-            'transaksi-pembayaran',
-            'penugasan-produksi',
-            'users',
+        'R03' => [], // Staf RnD
+        'R04' => [ // Staf Pengadaan
+            'pengadaan' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'],
+            'pembelian' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'],
+            'pemasok' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'],
+            'penerimaan-bahan-baku' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'],
         ],
-        'R04' => [ // Staf Pengadaan tidak bisa akses:
-            'bahan-baku',
-            'produk',
-            'pelanggan',
-            'pesanan',
-            'pengiriman',
-            'penugasan-produksi',
-            'users',
+        'R05' => [ // Staf Penjualan
+            'produk' => ['index', 'show'], // Hanya view produk
+            'pelanggan' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'],
+            'pesanan' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'],
         ],
-        'R02' => [ // Staf Gudang tidak bisa akses:
-            'pelanggan',
-            'pemasok',
-            'pesanan',
-            'pengadaan',
-            'pembelian',
-            'transaksi-pembayaran',
-            'penugasan-produksi',
-            'users',
+        'R06' => [ // Staf Keuangan
+            'transaksi-pembayaran' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'],
         ],
+        'R07' => [ // Manajer Gudang
+            'bahan-baku' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'],
+            'produk' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'],
+            'pengiriman' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'],
+            'penerimaan-bahan-baku' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'],
+        ],
+        'R08' => [], // Manajer RnD
+        'R9' => [], // Manajer Pengadaan
+        'R10' => [], // Manajer Keuangan
     ];
 
     /**
@@ -71,45 +53,68 @@ class CheckRoleBasedAccess
      */
     private static array $publicRoutes = [
         'dashboard',
+        'profile',
+        'settings',
+        'logout',
     ];
 
-    public function handle(Request $request): Response
+    /**
+     * Handle the incoming request.
+     */
+    public function handle(Request $request, Closure $next): Response
     {
         // Jika belum login, lanjutkan (handle oleh auth middleware)
         if (!Auth::check()) {
-            return $this->next($request);
+            return $next($request);
         }
 
         $user = Auth::user();
         $roleId = $user->role_id;
 
-        // Admin (R01) dan manager bisa akses semua route
-        if (in_array($roleId, ['R01', 'R08', 'R09', 'R10', 'R11'])) {
-            return $this->next($request);
+        // Admin (R01) bisa akses semua route
+        if ($roleId === 'R01') {
+            return $next($request);
         }
 
-        // Cek current route
+        // Cek current route dan action
         $currentRoute = $this->getCurrentRoute($request);
+        $currentAction = $this->getCurrentAction($request);
 
         // Public routes bisa diakses semua role
         if (in_array($currentRoute, self::$publicRoutes)) {
-            return $this->next($request);
+            return $next($request);
         }
 
-        // Cek denied routes untuk role ini
-        if (isset(self::$deniedRoutes[$roleId])) {
-            foreach (self::$deniedRoutes[$roleId] as $deniedRoute) {
-                if ($this->routeMatches($currentRoute, $deniedRoute)) {
-                    return $this->deny();
-                }
-            }
+        // Cek apakah role memiliki akses ke route ini
+        if (!isset(self::$roleBasedRoutes[$roleId])) {
+            // Role tidak terdaftar atau tidak memiliki akses apapun (kecuali public routes)
+            return $this->deny($request);
         }
 
-        return $this->next($request);
+        $allowedRoutes = self::$roleBasedRoutes[$roleId];
+
+        // Jika allowedRoutes kosong, berarti role ini perlu akses terbatas
+        if (empty($allowedRoutes)) {
+            // Untuk role yang belum dikonfigurasi, deny akses
+            return $this->deny($request);
+        }
+
+        // Cek apakah current route ada di allowed routes
+        if (!isset($allowedRoutes[$currentRoute])) {
+            return $this->deny($request);
+        }
+
+        // Cek apakah action diizinkan untuk route ini
+        $allowedActions = $allowedRoutes[$currentRoute];
+        if (!empty($allowedActions) && !in_array($currentAction, $allowedActions)) {
+            return $this->deny($request);
+        }
+
+        return $next($request);
     }
 
     /**
-     * Get current route prefix
+     * Get current route prefix (first segment of path)
      */
     private function getCurrentRoute(Request $request): string
     {
@@ -118,40 +123,67 @@ class CheckRoleBasedAccess
     }
 
     /**
-     * Check if current route matches denied/allowed route
+     * Get current action/method berdasarkan HTTP method dan route
      */
-    private function routeMatches(string $currentRoute, string $pattern): bool
+    private function getCurrentAction(Request $request): string
     {
-        // Exact match
-        if ($currentRoute === $pattern) {
-            return true;
+        $method = $request->getMethod();
+        $pathSegments = explode('/', trim($request->path(), '/'));
+
+        // GET request
+        if ($method === 'GET') {
+            // /resource - index
+            if (count($pathSegments) === 1) {
+                return 'index';
+            }
+            // /resource/{id} - show
+            if (count($pathSegments) === 2) {
+                return 'show';
+            }
+            // /resource/create atau /resource/{id}/edit
+            if (count($pathSegments) >= 2) {
+                $lastSegment = end($pathSegments);
+                if ($lastSegment === 'create') {
+                    return 'create';
+                }
+                if ($lastSegment === 'edit') {
+                    return 'edit';
+                }
+            }
         }
 
-        // Prefix match (e.g., 'penerimaan-bahan-baku' matches 'penerimaan')
-        if (str_starts_with($pattern, $currentRoute)) {
-            return true;
+        // POST request - store
+        if ($method === 'POST') {
+            return 'store';
         }
 
-        return false;
+        // PUT/PATCH request - update
+        if (in_array($method, ['PUT', 'PATCH'])) {
+            return 'update';
+        }
+
+        // DELETE request - destroy
+        if ($method === 'DELETE') {
+            return 'destroy';
+        }
+
+        return 'unknown';
     }
 
     /**
-     * Deny access and redirect
+     * Deny access
      */
-    private function deny(): Response
+    private function deny(Request $request): Response
     {
-        return response()->json([
-            'message' => 'Unauthorized access. Your role does not have permission to access this resource.',
-        ], 403);
-    }
+        // Jika JSON request, return JSON response
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Akses ditolak. Role Anda tidak memiliki izin untuk mengakses resource ini.',
+                'status' => 'error',
+            ], 403);
+        }
 
-    /**
-     * Continue to next middleware
-     */
-    private function next(Request $request): Response
-    {
-        // This is a placeholder - in real implementation, you'd call the actual next middleware
-        // For now, we're just returning a continue signal
-        return response('continue', 200);
+        // Redirect ke dashboard dengan pesan error
+        return redirect('/dashboard')->with('error', 'Akses ditolak. Anda tidak memiliki izin untuk mengakses halaman ini.');
     }
 }

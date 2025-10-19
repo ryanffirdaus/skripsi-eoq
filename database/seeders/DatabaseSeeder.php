@@ -20,8 +20,8 @@ class DatabaseSeeder extends Seeder
         // First create roles to avoid foreign key constraint violations
         $this->call(RoleSeeder::class);
 
-        // Create users for each role from R01 to R11
-        for ($i = 1; $i <= 11; $i++) {
+        // Create users for each role from R01 to R10
+        for ($i = 1; $i <= 10; $i++) {
             $roleId = 'R' . str_pad($i, 2, '0', STR_PAD_LEFT); // Creates R01, R02, ..., R11
 
             User::factory()->create([

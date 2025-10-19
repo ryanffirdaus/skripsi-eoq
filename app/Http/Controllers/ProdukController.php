@@ -51,6 +51,11 @@ class ProdukController extends Controller
         // Paginate the results
         $produks = $query->paginate($perPage)->withQueryString();
 
+        // Check permissions
+        $canCreate = $this->hasRoles(['R01', 'R07']); // Admin, Manajer Gudang
+        $canEdit = $this->hasRoles(['R01', 'R07']);
+        $canDelete = $this->hasRoles(['R01', 'R07']);
+
         return Inertia::render('produk/index', [
             'produk' => $produks,
             'filters' => [
@@ -63,6 +68,11 @@ class ProdukController extends Controller
             ],
             'uniqueLokasi' => Produk::select('lokasi_produk')->distinct()->orderBy('lokasi_produk')->pluck('lokasi_produk'),
             'uniqueSatuan' => Produk::select('satuan_produk')->distinct()->orderBy('satuan_produk')->pluck('satuan_produk'),
+            'permissions' => [
+                'canCreate' => $canCreate,
+                'canEdit' => $canEdit,
+                'canDelete' => $canDelete,
+            ],
             'flash' => [
                 'message' => session('message'),
                 'type' => session('type', 'success'),
@@ -95,8 +105,16 @@ class ProdukController extends Controller
             'updatedBy:user_id,nama_lengkap'
         ]);
 
+        // Check permissions
+        $canEdit = $this->hasRoles(['R01', 'R07']); // Admin, Manajer Gudang
+        $canDelete = $this->hasRoles(['R01', 'R07']);
+
         return Inertia::render('produk/show', [
-            'produk' => $produk
+            'produk' => $produk,
+            'permissions' => [
+                'canEdit' => $canEdit,
+                'canDelete' => $canDelete,
+            ],
         ]);
     }
 

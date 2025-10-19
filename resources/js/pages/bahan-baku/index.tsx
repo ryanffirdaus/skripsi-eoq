@@ -56,6 +56,11 @@ interface Props {
     filters: Filters;
     uniqueLokasi: string[];
     uniqueSatuan: string[];
+    permissions: {
+        canCreate?: boolean;
+        canEdit?: boolean;
+        canDelete?: boolean;
+    };
     flash?: {
         message?: string;
         type?: 'success' | 'error' | 'warning' | 'info';
@@ -69,7 +74,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function Index({ bahanBaku, filters, uniqueLokasi, uniqueSatuan, flash }: Props) {
+export default function Index({ bahanBaku, filters, uniqueLokasi, uniqueSatuan, permissions, flash }: Props) {
     const columns = [
         {
             key: 'bahan_baku_id',
@@ -164,19 +169,25 @@ export default function Index({ bahanBaku, filters, uniqueLokasi, uniqueSatuan, 
         },
     ];
 
-    // Actions using action templates
-    const actions = [
-        // createViewAction<BahanBaku>((item) => `/bahan-baku/${item.bahan_baku_id}`),
-        createEditAction<BahanBaku>((item) => `/bahan-baku/${item.bahan_baku_id}/edit`),
-        createDeleteAction<BahanBaku>((item) => {
-            router.delete(`/bahan-baku/${item.bahan_baku_id}`, {
-                preserveState: false,
-                onError: (errors) => {
-                    console.error('Delete failed:', errors);
-                },
-            });
-        }),
-    ];
+    // Actions - hanya tampil jika ada permission
+    const actions =
+        permissions.canEdit || permissions.canDelete
+            ? [
+                  ...(permissions.canEdit ? [createEditAction<BahanBaku>((item) => `/bahan-baku/${item.bahan_baku_id}/edit`)] : []),
+                  ...(permissions.canDelete
+                      ? [
+                            createDeleteAction<BahanBaku>((item) => {
+                                router.delete(`/bahan-baku/${item.bahan_baku_id}`, {
+                                    preserveState: false,
+                                    onError: (errors) => {
+                                        console.error('Delete failed:', errors);
+                                    },
+                                });
+                            }),
+                        ]
+                      : []),
+              ]
+            : [];
 
     return (
         <TableTemplate<BahanBaku>
@@ -184,7 +195,7 @@ export default function Index({ bahanBaku, filters, uniqueLokasi, uniqueSatuan, 
             breadcrumbs={breadcrumbs}
             data={bahanBaku}
             columns={columns}
-            createUrl="/bahan-baku/create"
+            createUrl={permissions.canCreate ? '/bahan-baku/create' : undefined}
             createButtonText="Add Bahan Baku"
             searchPlaceholder="Search by material name or location..."
             filters={filters}
