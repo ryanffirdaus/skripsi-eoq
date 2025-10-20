@@ -205,16 +205,12 @@ export default function Index({ produk, filters, uniqueLokasi, uniqueSatuan, per
             data={produk}
             columns={columns}
             createUrl={permissions.canCreate ? '/produk/create' : undefined}
-            createButtonText="Add Produk"
             searchPlaceholder="Search by product name or location..."
             filters={filters}
             filterOptions={filterOptions}
             baseUrl="/produk"
             actions={actions}
             flash={flash}
-            deleteDialogTitle="Delete Produk"
-            deleteDialogMessage={(item) => `Are you sure you want to delete product "${item.nama_produk}"? This action cannot be undone.`}
-            getItemName={(item) => item.nama_produk}
         />
     );
 }

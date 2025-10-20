@@ -120,13 +120,13 @@ export default function Edit({ penugasan, workers, isWorker }: Props) {
                 </div>
 
                 {!isWorker && (
-                    <FormField id="user_id" label="Worker (Staf RnD)" error={errorRecord.user_id} required>
+                    <FormField id="user_id" label="Staf" error={errorRecord.user_id} required>
                         <Select
                             id="user_id"
                             value={data.user_id || ''}
                             onChange={(e) => setData('user_id', e.target.value)}
                             options={workerOptions}
-                            placeholder="Pilih Worker"
+                            placeholder="Pilih Staf"
                             error={errorRecord.user_id}
                         />
                     </FormField>

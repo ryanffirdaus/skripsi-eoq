@@ -88,7 +88,7 @@ export default function Edit({ user, roles }: Props) {
             backUrl="/users"
             onSubmit={handleSubmit}
             processing={processing}
-            submitText="Update User"
+            submitText="Simpan"
             processingText="Updating..."
             sections={[passwordSection]}
         >

@@ -124,20 +124,12 @@ export function AppSidebar() {
 
     // Untuk Admin - lihat semua
     if (userRole === 'R01') {
-        penugasanItems.push(
-            {
-                title: 'Penugasan Produksi',
-                href: '/penugasan-produksi',
-                icon: Briefcase,
-                roles: ['R01'], // Admin
-            },
-            {
-                title: 'Penugasan - Mode Assigned',
-                href: '/penugasan-produksi?mode=assigned',
-                icon: Briefcase,
-                roles: ['R01'], // Admin
-            },
-        );
+        penugasanItems.push({
+            title: 'Penugasan Produksi',
+            href: '/penugasan-produksi',
+            icon: Briefcase,
+            roles: ['R01'], // Admin
+        });
     }
 
     const allItems = [...mainNavItems, ...penugasanItems];

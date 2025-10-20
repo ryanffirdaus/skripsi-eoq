@@ -132,21 +132,19 @@ export default function Index({ users, roles, filters, flash }: Props) {
 
     return (
         <TableTemplate<User>
-            title="Users Management"
+            title="Manajemen Pengguna"
             breadcrumbs={breadcrumbs}
             data={users}
             columns={columns}
             createUrl="/users/create"
-            createButtonText="Add User"
+            createButtonText="Tambah"
             searchPlaceholder="Search by name or email..."
             filters={filters}
             filterOptions={filterOptions}
             actions={actions}
             baseUrl="/users"
             flash={flash}
-            deleteDialogTitle="Delete User"
-            deleteDialogMessage={(user) => `Are you sure you want to delete user "${user.nama_lengkap}"? This action cannot be undone.`}
-            getItemName={(user) => user.nama_lengkap}
+            deleteDialogTitle="Hapus Pengguna"
         />
     );
 }

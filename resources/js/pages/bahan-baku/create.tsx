@@ -154,13 +154,11 @@ export default function Create() {
 
     return (
         <FormTemplate
-            title="Create New Bahan Baku"
+            title="Tambah Bahan Baku"
             breadcrumbs={breadcrumbs}
             backUrl="/bahan-baku"
             onSubmit={handleSubmit}
             processing={processing}
-            submitText="Create Bahan Baku"
-            processingText="Creating..."
             sections={[demandSection, leadTimeSection, costSection]}
         >
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">

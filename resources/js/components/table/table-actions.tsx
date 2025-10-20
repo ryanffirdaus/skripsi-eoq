@@ -11,7 +11,7 @@ export interface ActionButton<T> {
 
 export function createEditAction<T>(getEditUrl: (item: T) => string, show?: (item: T) => boolean): ActionButton<T> {
     return {
-        label: 'Edit',
+        label: 'Ubah',
         icon: PencilIcon,
         variant: 'outline',
         onClick: (item) => router.visit(getEditUrl(item)),
@@ -21,7 +21,7 @@ export function createEditAction<T>(getEditUrl: (item: T) => string, show?: (ite
 
 export function createViewAction<T>(getViewUrl: (item: T) => string, show?: (item: T) => boolean): ActionButton<T> {
     return {
-        label: 'View',
+        label: 'Detail',
         icon: EyeIcon,
         variant: 'ghost',
         onClick: (item) => router.visit(getViewUrl(item)),
@@ -31,7 +31,7 @@ export function createViewAction<T>(getViewUrl: (item: T) => string, show?: (ite
 
 export function createDeleteAction<T>(onDelete: (item: T) => void, show?: (item: T) => boolean): ActionButton<T> {
     return {
-        label: 'Delete',
+        label: 'Hapus',
         icon: TrashIcon,
         variant: 'destructive',
         onClick: onDelete, // This will be intercepted by TableTemplate for confirmation

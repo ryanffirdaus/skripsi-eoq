@@ -83,13 +83,13 @@ export default function Create({ pengadaanDetails, workers }: Props) {
                     />
                 </FormField>
 
-                <FormField id="user_id" label="Worker (Staf RnD)" error={errors.user_id} required>
+                <FormField id="user_id" label="Staf" error={errors.user_id} required>
                     <Select
                         id="user_id"
                         value={data.user_id}
                         onChange={(e) => setData('user_id', e.target.value)}
                         options={workerOptions}
-                        placeholder="Pilih Worker"
+                        placeholder="Pilih Staf"
                         error={errors.user_id}
                     />
                 </FormField>

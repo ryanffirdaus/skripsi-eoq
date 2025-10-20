@@ -191,12 +191,11 @@ export default function Index({ bahanBaku, filters, uniqueLokasi, uniqueSatuan, 
 
     return (
         <TableTemplate<BahanBaku>
-            title="Bahan Baku Management"
+            title="Manajemen Bahan Baku"
             breadcrumbs={breadcrumbs}
             data={bahanBaku}
             columns={columns}
             createUrl={permissions.canCreate ? '/bahan-baku/create' : undefined}
-            createButtonText="Add Bahan Baku"
             searchPlaceholder="Search by material name or location..."
             filters={filters}
             filterOptions={filterOptions}
@@ -204,8 +203,6 @@ export default function Index({ bahanBaku, filters, uniqueLokasi, uniqueSatuan, 
             actions={actions}
             flash={flash}
             deleteDialogTitle="Delete Bahan Baku"
-            deleteDialogMessage={(item) => `Are you sure you want to delete material "${item.nama_bahan}"? This action cannot be undone.`}
-            getItemName={(item) => item.nama_bahan}
         />
     );
 }

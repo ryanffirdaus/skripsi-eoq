@@ -93,9 +93,9 @@ class PembelianController extends Controller
 
         // Tentukan permissions berdasarkan role
         $permissions = [
-            'canCreate' => $this->hasRoles(['R04', 'R09', 'R10']), // Staf Pengadaan, Manajer Pengadaan, Manajer Keuangan
-            'canEdit' => $this->hasRoles(['R04', 'R09', 'R10']), // Staf Pengadaan, Manajer Pengadaan, Manajer Keuangan
-            'canDelete' => $this->hasRoles(['R04', 'R09', 'R10']), // Staf Pengadaan, Manajer Pengadaan, Manajer Keuangan
+            'canCreate' => $this->hasRoles(['R01', 'R04', 'R09', 'R10']), // Admin, Staf Pengadaan, Manajer Pengadaan, Manajer Keuangan
+            'canEdit' => $this->hasRoles(['R01', 'R04', 'R09', 'R10']), // Admin, Staf Pengadaan, Manajer Pengadaan, Manajer Keuangan
+            'canDelete' => $this->hasRoles(['R01', 'R04', 'R09', 'R10']), // Admin, Staf Pengadaan, Manajer Pengadaan, Manajer Keuangan
         ];
 
         return Inertia::render('pembelian/index', [

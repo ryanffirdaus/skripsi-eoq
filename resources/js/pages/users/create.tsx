@@ -19,7 +19,7 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: '/users',
     },
     {
-        title: 'Create User',
+        title: 'Tambah Pengguna',
         href: '#',
     },
 ];
@@ -74,13 +74,11 @@ export default function Create({ roles }: CreateProps) {
 
     return (
         <FormTemplate
-            title="Create New User"
+            title="Tambah Pengguna"
             breadcrumbs={breadcrumbs}
             backUrl="/users"
             onSubmit={handleSubmit}
             processing={processing}
-            submitText="Create User"
-            processingText="Creating..."
             sections={[passwordSection]}
         >
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">

@@ -139,7 +139,7 @@ export default function Index({ pelanggan, filters, flash }: Props) {
             data={pelanggan}
             columns={columns}
             createUrl="/pelanggan/create"
-            createButtonText="Add Pelanggan"
+            createButtonText="Tambah"
             searchPlaceholder="Search by name, email, or phone..."
             filters={filters}
             baseUrl="/pelanggan"

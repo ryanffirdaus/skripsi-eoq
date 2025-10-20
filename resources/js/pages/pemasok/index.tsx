@@ -178,7 +178,7 @@ export default function Index({ pemasok, filters, flash }: Props) {
             data={pemasok}
             columns={columns}
             createUrl="/pemasok/create"
-            createButtonText="Tambah Pemasok"
+            createButtonText="Tambah"
             searchPlaceholder="Cari berdasarkan nama atau email..."
             filters={filters}
             filterOptions={filterOptions}

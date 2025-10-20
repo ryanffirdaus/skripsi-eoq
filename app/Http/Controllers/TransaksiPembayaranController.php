@@ -102,9 +102,9 @@ class TransaksiPembayaranController extends Controller
 
         // Tentukan permissions berdasarkan role
         $permissions = [
-            'canCreate' => $this->hasRoles(['R06', 'R10']), // Staf Keuangan, Manajer Keuangan
-            'canEdit' => $this->hasRoles(['R06', 'R10']), // Staf Keuangan, Manajer Keuangan
-            'canDelete' => $this->hasRoles(['R06', 'R10']), // Staf Keuangan, Manajer Keuangan
+            'canCreate' => $this->hasRoles(['R01', 'R06', 'R10']), // Admin, Staf Keuangan, Manajer Keuangan
+            'canEdit' => $this->hasRoles(['R01', 'R06', 'R10']), // Admin, Staf Keuangan, Manajer Keuangan
+            'canDelete' => $this->hasRoles(['R01', 'R06', 'R10']), // Admin, Staf Keuangan, Manajer Keuangan
         ];
 
         return Inertia::render('transaksi-pembayaran/index', [

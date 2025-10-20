@@ -122,7 +122,7 @@ export default function Index({ penugasan, filters, userRole, flash }: Props) {
     const columns = [
         {
             key: 'pengadaan_detail_id',
-            label: 'Item Produksi',
+            label: 'Produk',
             sortable: true,
             hideable: true,
             defaultVisible: true,
@@ -154,7 +154,7 @@ export default function Index({ penugasan, filters, userRole, flash }: Props) {
             label: 'Supervisor',
             sortable: false,
             hideable: true,
-            defaultVisible: true,
+            defaultVisible: false,
             render: (item: Penugasan) => {
                 // Handle multiple possible field names due to snake_case/camelCase conversion
                 const createdByUser = item.createdBy || item.created_by_user || (typeof item.created_by === 'object' ? item.created_by : null);
@@ -166,7 +166,7 @@ export default function Index({ penugasan, filters, userRole, flash }: Props) {
             label: 'Jumlah Produksi',
             sortable: true,
             hideable: true,
-            defaultVisible: true,
+            defaultVisible: false,
         },
         {
             key: 'deadline',
@@ -253,7 +253,7 @@ export default function Index({ penugasan, filters, userRole, flash }: Props) {
             actions={actions}
             flash={flash}
             createUrl={isAdmin ? '/penugasan-produksi/create' : undefined}
-            createButtonText="Buat Penugasan"
+            createButtonText="Tambah"
         />
     );
 }

@@ -182,8 +182,6 @@ export default function Edit({ bahanBaku }: Props) {
             backUrl="/bahan-baku"
             onSubmit={handleSubmit}
             processing={processing}
-            submitText="Update Bahan Baku"
-            processingText="Updating..."
             sections={[demandSection, leadTimeSection, costSection]}
         >
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">

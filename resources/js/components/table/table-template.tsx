@@ -91,16 +91,16 @@ export default function TableTemplate<T extends Record<string, unknown>>({
     data,
     columns,
     createUrl,
-    createButtonText = 'Add Item',
-    searchPlaceholder = 'Search...',
+    createButtonText = 'Tambah',
+    searchPlaceholder = 'Cari...',
     filters,
     filterOptions = EMPTY_FILTER_OPTIONS,
     baseUrl,
     actions = EMPTY_ACTIONS,
     flash,
     onDelete,
-    deleteDialogTitle = 'Delete Confirmation',
-    deleteDialogMessage = () => 'Are you sure you want to delete this item? This action cannot be undone.',
+    deleteDialogTitle = 'Konfirmasi Penghapusan',
+    deleteDialogMessage = () => 'Apakah Anda yakin ingin menghapus item ini?',
     getItemName = () => '',
 }: TableTemplateProps<T>) {
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -731,10 +731,10 @@ export default function TableTemplate<T extends Record<string, unknown>>({
                                 onClick={() => setIsDeleteDialogOpen(false)}
                                 className={cn(colors.background.primary, colors.border.secondary, colors.text.secondary, colors.hover.primary)}
                             >
-                                Cancel
+                                Batal
                             </Button>
                             <Button variant="destructive" onClick={handleDelete}>
-                                Delete
+                                Hapus
                             </Button>
                         </div>
                     </div>

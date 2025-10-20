@@ -30,8 +30,8 @@ export default function FormTemplate({
     backUrl,
     onSubmit,
     processing = false,
-    submitText = 'Save',
-    processingText = 'Saving...',
+    submitText = 'Simpan',
+    processingText = 'Menyimpan...',
     children,
     sections,
     className,
@@ -50,7 +50,7 @@ export default function FormTemplate({
                             className={cn('flex items-center gap-2', colors.background.primary, colors.border.primary, colors.hover.primary)}
                         >
                             <XMarkIcon className="h-4 w-4" />
-                            <span>Cancel</span>
+                            <span>Batal</span>
                         </Button>
                     </Link>
                 </div>
@@ -84,7 +84,7 @@ export default function FormTemplate({
                                             colors.hover.primary,
                                         )}
                                     >
-                                        Cancel
+                                        Batal
                                     </Button>
                                 </Link>
                                 <Button type="submit" disabled={processing} className="flex items-center gap-2">
