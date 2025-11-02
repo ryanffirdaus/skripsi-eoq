@@ -115,7 +115,7 @@ class PembelianSeeder extends Seeder
                     ]);
                 }
 
-                $this->command->line("  > PO {$pembelian->nomor_po} untuk Pemasok ID {$pemasokId} berhasil dibuat dari Pengadaan {$pengadaan->pengadaan_id} (Status: {$status}, Payment: {$metodePembayaran}).");
+                $this->command->line("  > PO {$pembelian->pembelian_id} untuk Pemasok ID {$pemasokId} berhasil dibuat dari Pengadaan {$pengadaan->pengadaan_id} (Status: {$status}, Payment: {$metodePembayaran}).");
             }
         }
 

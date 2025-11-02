@@ -69,7 +69,6 @@ interface Pengadaan {
     status_label: string;
     prioritas: string;
     prioritas_label: string;
-    nomor_po?: string;
     alasan_pengadaan?: string;
     catatan?: string;
     pemasok: Pemasok;
@@ -151,7 +150,7 @@ export default function Show({ pengadaan }: Props) {
             href: '/pengadaan',
             variant: 'outline' as const,
         },
-        ...(pengadaan.status === 'approved' && !pengadaan.nomor_po
+        ...(pengadaan.status === 'approved'
             ? [
                   {
                       label: 'Buat Purchase Order',
@@ -272,16 +271,6 @@ export default function Show({ pengadaan }: Props) {
                                         {pengadaan.jenis_pengadaan.toUpperCase()}
                                     </Badge>
                                 </div>
-
-                                {pengadaan.nomor_po && (
-                                    <div className="space-y-2">
-                                        <div className="flex items-center text-sm font-medium text-gray-600">
-                                            <FileText className="mr-2 h-4 w-4" />
-                                            Nomor PO
-                                        </div>
-                                        <p className="text-sm font-medium">{pengadaan.nomor_po}</p>
-                                    </div>
-                                )}
 
                                 {pengadaan.tanggal_delivery && (
                                     <div className="space-y-2">

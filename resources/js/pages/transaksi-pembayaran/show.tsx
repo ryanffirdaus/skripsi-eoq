@@ -23,7 +23,6 @@ interface Transaksi {
     transaksi_pembayaran_id: string;
     pembelian: {
         pembelian_id: string;
-        nomor_po: string;
         tanggal_pembelian: string;
         total_biaya: number;
         status: string;
@@ -159,7 +158,7 @@ export default function Show({ transaksi }: Props) {
                         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
                             <div>
                                 <p className="text-sm text-gray-600">No. PO</p>
-                                <p className="font-medium">{transaksi.pembelian.nomor_po}</p>
+                                <p className="font-medium">{transaksi.pembelian.pembelian_id}</p>
                             </div>
                             <div>
                                 <p className="text-sm text-gray-600">Tanggal PO</p>

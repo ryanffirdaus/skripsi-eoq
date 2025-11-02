@@ -12,7 +12,6 @@ import React from 'react';
 // --- INTERFACES ---
 interface Pembelian {
     pembelian_id: string;
-    nomor_po: string;
     pemasok_nama: string;
     total_biaya: number;
     tanggal_pembelian: string;
@@ -125,7 +124,7 @@ export default function Create({ pembelians }: Props) {
                             <div className="grid grid-cols-2 gap-3 text-sm md:grid-cols-4">
                                 <div>
                                     <span className="text-gray-600">No. PO:</span>
-                                    <p className="font-medium">{selectedPembelian.nomor_po}</p>
+                                    <p className="font-medium">{selectedPembelian.pembelian_id}</p>
                                 </div>
                                 <div>
                                     <span className="text-gray-600">Pemasok:</span>

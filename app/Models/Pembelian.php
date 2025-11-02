@@ -45,17 +45,11 @@ class Pembelian extends Model
 
         static::creating(function ($model) {
             if (!$model->pembelian_id) {
-                // Membuat ID unik untuk pembelian
-                $latest = static::withTrashed()->orderBy('pembelian_id', 'desc')->first();
-                $nextNumber = $latest ? (int)substr($latest->pembelian_id, 3) + 1 : 1;
-                $model->pembelian_id = 'PBL' . str_pad($nextNumber, 7, '0', STR_PAD_LEFT);
-            }
-            if (!$model->nomor_po) {
-                // Membuat Nomor Purchase Order (PO) yang lebih formal
+                // Membuat ID pembelian dengan format PO: PO-YYYYMM-XXXX
                 $yearMonth = date('Ym');
-                $latestInMonth = static::withTrashed()->where('nomor_po', 'like', "PO-{$yearMonth}-%")->count();
+                $latestInMonth = static::withTrashed()->where('pembelian_id', 'like', "PO-{$yearMonth}-%")->count();
                 $nextPoNumber = $latestInMonth + 1;
-                $model->nomor_po = "PO-" . $yearMonth . "-" . str_pad($nextPoNumber, 4, '0', STR_PAD_LEFT);
+                $model->pembelian_id = "PO-" . $yearMonth . "-" . str_pad($nextPoNumber, 4, '0', STR_PAD_LEFT);
             }
 
             if (Auth::check()) {

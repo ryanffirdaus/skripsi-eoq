@@ -82,7 +82,7 @@ class TransaksiPembayaranSeeder extends Seeder
                     $pembelian,
                     'pelunasan',
                     $totalBiaya,
-                    'Pembayaran tunai untuk PO ' . $pembelian->nomor_po
+                    'Pembayaran tunai untuk PO ' . $pembelian->pembelian_id
                 );
                 $paymentStats['tunai']++;
             } elseif ($pembelian->metode_pembayaran === 'transfer') {
@@ -91,7 +91,7 @@ class TransaksiPembayaranSeeder extends Seeder
                     $pembelian,
                     'pelunasan',
                     $totalBiaya,
-                    'Pembayaran transfer untuk PO ' . $pembelian->nomor_po
+                    'Pembayaran transfer untuk PO ' . $pembelian->pembelian_id
                 );
                 $paymentStats['transfer']++;
             } elseif ($pembelian->metode_pembayaran === 'termin') {
@@ -103,7 +103,7 @@ class TransaksiPembayaranSeeder extends Seeder
                     $pembelian,
                     'dp',
                     $jumlahDp,
-                    'Down Payment (30%) untuk PO ' . $pembelian->nomor_po,
+                    'Down Payment (30%) untuk PO ' . $pembelian->pembelian_id,
                     now()->subDays(rand(15, 20))
                 );
 
@@ -159,7 +159,7 @@ class TransaksiPembayaranSeeder extends Seeder
             'deskripsi' => $deskripsi,
         ]);
 
-        $this->command->line("  > Transaksi Pembayaran {$jenisPembayaran} untuk PO {$pembelian->nomor_po} berhasil dibuat (Rp " . number_format($totalPembayaran, 0, ',', '.') . ").");
+        $this->command->line("  > Transaksi Pembayaran {$jenisPembayaran} untuk PO {$pembelian->pembelian_id} berhasil dibuat (Rp " . number_format($totalPembayaran, 0, ',', '.') . ").");
 
         return $transaksi;
     }

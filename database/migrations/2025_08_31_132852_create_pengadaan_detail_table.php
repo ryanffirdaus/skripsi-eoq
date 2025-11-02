@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('pengadaan_detail', function (Blueprint $table) {
-            $table->string('pengadaan_detail_id', 10)->primary();
+            $table->string('pengadaan_detail_id', 20)->primary();
             $table->string('pengadaan_id', 10);
             $table->string('pemasok_id', 10)->nullable();
             $table->enum('jenis_barang', ['bahan_baku', 'produk']); // Type of item being procured

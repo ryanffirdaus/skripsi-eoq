@@ -34,7 +34,6 @@ class PembelianController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('pembelian_id', 'like', "%{$search}%")
-                    ->orWhere('nomor_po', 'like', "%{$search}%")
                     ->orWhereHas('pemasok', function ($subq) use ($search) {
                         $subq->where('nama_pemasok', 'like', "%{$search}%");
                     });
@@ -64,7 +63,6 @@ class PembelianController extends Controller
         $pembelian->getCollection()->transform(function ($item) {
             return [
                 'pembelian_id'      => $item->pembelian_id,
-                'nomor_po'          => $item->nomor_po,
                 'pengadaan_id'      => $item->pengadaan_id,
                 'pemasok_nama'      => $item->pemasok->nama_pemasok ?? 'N/A',
                 'tanggal_pembelian' => $item->tanggal_pembelian?->format('d M Y'),
@@ -162,7 +160,6 @@ class PembelianController extends Controller
             'pengadaan_id' => 'required|exists:pengadaan,pengadaan_id',
             'pemasok_id' => 'required|exists:pemasok,pemasok_id',
             'tanggal_pembelian' => 'required|date',
-            'nomor_po' => 'nullable|string|max:50|unique:pembelian,nomor_po',
             'tanggal_kirim_diharapkan' => 'nullable|date|after_or_equal:tanggal_pembelian',
             'catatan' => 'nullable|string',
             'metode_pembayaran' => 'required|in:tunai,transfer,termin',
@@ -183,7 +180,6 @@ class PembelianController extends Controller
             $pembelian = Pembelian::create([
                 'pengadaan_id' => $request->pengadaan_id,
                 'pemasok_id' => $request->pemasok_id,
-                'nomor_po' => $request->nomor_po, // Model akan generate otomatis jika kosong
                 'tanggal_pembelian' => $request->tanggal_pembelian,
                 'tanggal_kirim_diharapkan' => $request->tanggal_kirim_diharapkan,
                 'catatan' => $request->catatan,
@@ -242,7 +238,6 @@ class PembelianController extends Controller
         return Inertia::render('pembelian/show', [
             'pembelian' => [
                 'pembelian_id' => $pembelian->pembelian_id,
-                'nomor_po' => $pembelian->nomor_po,
                 'pengadaan_id' => $pembelian->pengadaan_id,
                 'pemasok' => $pembelian->pemasok,
                 'tanggal_pembelian' => $pembelian->tanggal_pembelian,
@@ -320,7 +315,6 @@ class PembelianController extends Controller
         $pembelianData = [
             'pembelian_id' => $pembelian->pembelian_id,
             'pengadaan_id' => $pembelian->pengadaan_id,
-            'nomor_po' => $pembelian->nomor_po,
             'pemasok_id' => $pembelian->pemasok_id,
             'tanggal_pembelian' => $pembelian->tanggal_pembelian ? \Carbon\Carbon::parse($pembelian->tanggal_pembelian)->format('Y-m-d') : '',
             'tanggal_kirim_diharapkan' => $pembelian->tanggal_kirim_diharapkan ? \Carbon\Carbon::parse($pembelian->tanggal_kirim_diharapkan)->format('Y-m-d') : '',

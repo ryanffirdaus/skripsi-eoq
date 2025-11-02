@@ -18,7 +18,7 @@ return new class extends Migration
 
             // Informasi Pengiriman
             $table->string('nomor_resi', 50)->unique()->nullable();
-            $table->string('kurir', 10); // JNE, J&T, TIKI, POS Indonesia, dll
+            $table->string('kurir', 20); // JNE, J&T, TIKI, POS Indonesia, dll
             $table->decimal('biaya_pengiriman', 15, 2);
             $table->integer('estimasi_hari')->default(1); // estimasi pengiriman dalam hari
 

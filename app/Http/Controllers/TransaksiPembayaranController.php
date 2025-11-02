@@ -21,7 +21,7 @@ class TransaksiPembayaranController extends Controller
     {
         $query = TransaksiPembayaran::with([
             'pembelian.pemasok:pemasok_id,nama_pemasok',
-            'pembelian:pembelian_id,nomor_po,pemasok_id,total_biaya',
+            'pembelian:pembelian_id,pemasok_id,total_biaya',
         ]);
 
         // Terapkan filter pencarian
@@ -30,7 +30,7 @@ class TransaksiPembayaranController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('transaksi_pembayaran_id', 'like', "%{$search}%")
                     ->orWhereHas('pembelian', function ($subq) use ($search) {
-                        $subq->where('nomor_po', 'like', "%{$search}%")
+                        $subq->where('pembelian_id', 'like', "%{$search}%")
                             ->orWhereHas('pemasok', function ($subq2) use ($search) {
                                 $subq2->where('nama_pemasok', 'like', "%{$search}%");
                             });
@@ -65,7 +65,6 @@ class TransaksiPembayaranController extends Controller
             return [
                 'transaksi_pembayaran_id' => $item->transaksi_pembayaran_id,
                 'pembelian_id'            => $item->pembelian_id,
-                'nomor_po'                => $item->pembelian->nomor_po ?? 'N/A',
                 'pemasok_nama'            => $item->pembelian->pemasok->nama_pemasok ?? 'N/A',
                 'tanggal_pembayaran'      => $item->tanggal_pembayaran?->format('d M Y'),
                 'jenis_pembayaran'        => $item->jenis_pembayaran,
@@ -78,14 +77,13 @@ class TransaksiPembayaranController extends Controller
 
         // Data untuk filter di frontend
         $pembelians = Pembelian::with('pemasok:pemasok_id,nama_pemasok')
-            ->select('pembelian_id', 'nomor_po', 'pemasok_id')
+            ->select('pembelian_id', 'pemasok_id')
             ->whereIn('status', ['confirmed', 'partially_received', 'fully_received'])
-            ->orderBy('nomor_po')
+            ->orderBy('pembelian_id')
             ->get()
             ->map(function ($item) {
                 return [
                     'pembelian_id' => $item->pembelian_id,
-                    'nomor_po'     => $item->nomor_po,
                     'pemasok_nama' => $item->pemasok->nama_pemasok ?? 'N/A',
                 ];
             });
@@ -123,13 +121,12 @@ class TransaksiPembayaranController extends Controller
         // Ambil pembelian yang sudah dikonfirmasi (bisa dibayar)
         $pembelians = Pembelian::with('pemasok:pemasok_id,nama_pemasok')
             ->whereIn('status', ['confirmed', 'partially_received', 'fully_received'])
-            ->select('pembelian_id', 'nomor_po', 'pemasok_id', 'total_biaya', 'tanggal_pembelian', 'metode_pembayaran', 'termin_pembayaran', 'jumlah_dp')
+            ->select('pembelian_id', 'pemasok_id', 'total_biaya', 'tanggal_pembelian', 'metode_pembayaran', 'termin_pembayaran', 'jumlah_dp')
             ->orderBy('tanggal_pembelian', 'desc')
             ->get()
             ->map(function ($item) {
                 return [
                     'pembelian_id'       => $item->pembelian_id,
-                    'nomor_po'           => $item->nomor_po,
                     'pemasok_nama'       => $item->pemasok->nama_pemasok ?? 'N/A',
                     'total_biaya'        => (float) $item->total_biaya,
                     'tanggal_pembelian'  => $item->tanggal_pembelian,
@@ -140,7 +137,7 @@ class TransaksiPembayaranController extends Controller
                     'sisa_pembayaran'    => (float) $item->sisa_pembayaran,
                     'is_dp_paid'         => $item->isDpPaid(),
                     'is_fully_paid'      => $item->isFullyPaid(),
-                    'display_text'       => "{$item->nomor_po} - {$item->pemasok->nama_pemasok} - Rp " . number_format((float) $item->total_biaya, 0, ',', '.'),
+                    'display_text'       => "{$item->pembelian_id} - {$item->pemasok->nama_pemasok} - Rp " . number_format((float) $item->total_biaya, 0, ',', '.'),
                 ];
             });
 
@@ -263,7 +260,6 @@ class TransaksiPembayaranController extends Controller
             'transaksi_pembayaran_id' => $transaksiPembayaran->transaksi_pembayaran_id,
             'pembelian'               => [
                 'pembelian_id'       => $transaksiPembayaran->pembelian->pembelian_id,
-                'nomor_po'           => $transaksiPembayaran->pembelian->nomor_po,
                 'tanggal_pembelian'  => $transaksiPembayaran->pembelian->tanggal_pembelian,
                 'total_biaya'        => (float) $transaksiPembayaran->pembelian->total_biaya,
                 'metode_pembayaran'  => $transaksiPembayaran->pembelian->metode_pembayaran,
@@ -316,23 +312,21 @@ class TransaksiPembayaranController extends Controller
 
         $pembelians = Pembelian::with('pemasok:pemasok_id,nama_pemasok')
             ->whereIn('status', ['confirmed', 'partially_received', 'fully_received'])
-            ->select('pembelian_id', 'nomor_po', 'pemasok_id', 'total_biaya')
-            ->orderBy('nomor_po')
+            ->select('pembelian_id', 'pemasok_id', 'total_biaya')
+            ->orderBy('pembelian_id')
             ->get()
             ->map(function ($item) {
                 return [
                     'pembelian_id' => $item->pembelian_id,
-                    'nomor_po'     => $item->nomor_po,
                     'pemasok_nama' => $item->pemasok->nama_pemasok ?? 'N/A',
                     'total_biaya'  => (float) $item->total_biaya,
-                    'display_text' => "{$item->nomor_po} - {$item->pemasok->nama_pemasok}",
+                    'display_text' => "{$item->pembelian_id} - {$item->pemasok->nama_pemasok}",
                 ];
             });
 
         $data = [
             'transaksi_pembayaran_id' => $transaksiPembayaran->transaksi_pembayaran_id,
             'pembelian_id'            => $transaksiPembayaran->pembelian_id,
-            'nomor_po'                => $transaksiPembayaran->pembelian->nomor_po ?? 'N/A',
             'pemasok_nama'            => $transaksiPembayaran->pembelian->pemasok->nama_pemasok ?? 'N/A',
             'jenis_pembayaran'        => $transaksiPembayaran->jenis_pembayaran,
             'tanggal_pembayaran'      => $transaksiPembayaran->tanggal_pembayaran,

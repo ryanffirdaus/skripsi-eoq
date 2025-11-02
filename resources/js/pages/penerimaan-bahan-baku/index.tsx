@@ -34,7 +34,7 @@ interface Penerimaan extends Record<string, unknown> {
     tanggal_penerimaan: string;
     status: string;
     pembelian: {
-        nomor_po: string;
+        pembelian_id: string;
     };
     pemasok: {
         nama_pemasok: string;
@@ -83,10 +83,10 @@ export default function Index({ penerimaan, filters, flash }: Props) {
                 sortable: false,
             },
             {
-                key: 'nomor_po',
+                key: 'pembelian_id',
                 label: 'No. PO Terkait',
                 sortable: false,
-                render: (item: Penerimaan) => item.pembelian?.nomor_po || '-',
+                render: (item: Penerimaan) => item.pembelian?.pembelian_id || '-',
             },
             {
                 key: 'pemasok',

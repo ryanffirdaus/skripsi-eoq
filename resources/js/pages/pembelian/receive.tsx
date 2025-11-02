@@ -25,7 +25,6 @@ interface PembelianDetail {
 
 interface Pembelian extends Record<string, unknown> {
     pembelian_id: string;
-    nomor_po: string;
     pemasok: {
         nama_pemasok: string;
     };
@@ -54,7 +53,7 @@ export default function Receive({ pembelian, flash }: Props) {
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },
         { title: 'Pembelian', href: '/pembelian' },
-        { title: pembelian.nomor_po, href: `/pembelian/${pembelian.pembelian_id}` },
+        { title: pembelian.pembelian_id as string, href: `/pembelian/${pembelian.pembelian_id}` },
         { title: 'Terima Barang', href: `/pembelian/${pembelian.pembelian_id}/receive` },
     ];
 
@@ -111,7 +110,7 @@ export default function Receive({ pembelian, flash }: Props) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`Terima Barang - ${pembelian.nomor_po}`} />
+            <Head title={`Terima Barang - ${pembelian.pembelian_id}`} />
 
             <div className="space-y-6">
                 {flash?.message && (
@@ -124,7 +123,7 @@ export default function Receive({ pembelian, flash }: Props) {
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">Penerimaan Barang</h1>
                         <p className="text-gray-600">
-                            {pembelian.nomor_po} - {pembelian.pemasok.nama_pemasok}
+                            {pembelian.pembelian_id as string} - {pembelian.pemasok.nama_pemasok}
                         </p>
                     </div>
                 </div>
@@ -183,7 +182,7 @@ export default function Receive({ pembelian, flash }: Props) {
                             <div className="mb-4 grid grid-cols-2 gap-4 md:grid-cols-4">
                                 <div>
                                     <p className="text-sm font-medium text-gray-500">Nomor PO</p>
-                                    <p className="font-semibold">{pembelian.nomor_po}</p>
+                                    <p className="font-semibold">{pembelian.pembelian_id as string}</p>
                                 </div>
                                 <div>
                                     <p className="text-sm font-medium text-gray-500">Pemasok</p>

@@ -65,7 +65,6 @@ export default function Create({ pengadaans, pemasoks }: Props) {
     const { data, setData, post, processing, errors, reset, clearErrors } = useForm({
         pengadaan_id: '',
         pemasok_id: '',
-        nomor_po: '',
         tanggal_pembelian: new Date().toISOString().split('T')[0],
         tanggal_kirim_diharapkan: '',
         metode_pembayaran: 'tunai' as 'tunai' | 'transfer' | 'termin',
@@ -208,18 +207,6 @@ export default function Create({ pengadaans, pemasoks }: Props) {
                         </SelectContent>
                     </Select>
                     {errors.pemasok_id && <p className="mt-1 text-sm text-red-600">{errors.pemasok_id}</p>}
-                </div>
-
-                <div>
-                    <Label htmlFor="nomor_po">Nomor PO (Opsional)</Label>
-                    <Input
-                        id="nomor_po"
-                        value={data.nomor_po}
-                        onChange={(e) => setData('nomor_po', e.target.value)}
-                        className="mt-1"
-                        placeholder="Otomatis jika kosong"
-                    />
-                    {errors.nomor_po && <p className="mt-1 text-sm text-red-600">{errors.nomor_po}</p>}
                 </div>
 
                 <div>

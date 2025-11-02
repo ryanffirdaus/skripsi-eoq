@@ -23,7 +23,7 @@ class PenerimaanBahanBakuController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('penerimaan_id', 'like', "%{$search}%")
-                    ->orWhereHas('pembelianDetail.pembelian', fn($subq) => $subq->where('nomor_po', 'like', "%{$search}%"));
+                    ->orWhereHas('pembelianDetail.pembelian', fn($subq) => $subq->where('pembelian_id', 'like', "%{$search}%"));
             });
         }
 
@@ -44,7 +44,7 @@ class PenerimaanBahanBakuController extends Controller
                 'qty_diterima' => $item->qty_diterima,
                 'nama_item' => $pengadaanDetail?->nama_item ?? '-',
                 'pembelian' => [
-                    'nomor_po' => $pembelian?->nomor_po ?? '-',
+                    'pembelian_id' => $pembelian?->pembelian_id ?? '-',
                 ],
                 'pemasok' => [
                     'nama_pemasok' => $pemasok?->nama_pemasok ?? '-',
@@ -67,9 +67,8 @@ class PenerimaanBahanBakuController extends Controller
             ->get()
             ->map(fn($pembelian) => [
                 'pembelian_id' => $pembelian->pembelian_id,
-                'nomor_po' => $pembelian->nomor_po,
                 'pemasok_nama' => $pembelian->pemasok->nama_pemasok ?? 'N/A',
-                'display_text' => $pembelian->nomor_po . ' - ' . ($pembelian->pemasok->nama_pemasok ?? 'N/A'),
+                'display_text' => $pembelian->pembelian_id . ' - ' . ($pembelian->pemasok->nama_pemasok ?? 'N/A'),
                 'details' => $pembelian->detail->map(function ($detail) {
                     $pengadaanDetail = $detail->pengadaanDetail;
                     if (!$pengadaanDetail) return null;
@@ -160,7 +159,7 @@ class PenerimaanBahanBakuController extends Controller
                 'pembelian_detail_id' => $penerimaanBahanBaku->pembelian_detail_id,
                 'qty_diterima' => $penerimaanBahanBaku->qty_diterima,
                 'pembelian' => [
-                    'nomor_po' => $penerimaanBahanBaku->pembelianDetail->pembelian->nomor_po ?? 'N/A',
+                    'pembelian_id' => $penerimaanBahanBaku->pembelianDetail->pembelian->pembelian_id ?? 'N/A',
                     'tanggal_pembelian' => $penerimaanBahanBaku->pembelianDetail->pembelian->tanggal_pembelian,
                     'pemasok' => $penerimaanBahanBaku->pembelianDetail->pembelian->pemasok,
                 ],

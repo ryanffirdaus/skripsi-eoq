@@ -28,7 +28,6 @@ interface PembelianDetail {
 interface Pembelian {
     pembelian_id: string;
     pengadaan_id?: string;
-    nomor_po: string;
     pemasok_id: string;
     tanggal_pembelian: string;
     tanggal_kirim_diharapkan?: string;
@@ -99,7 +98,7 @@ export default function Edit({ pembelian, pemasoks, statusOptions }: Props) {
             processing={processing}
             processingText="Menyimpan..."
         >
-            <Head title={`Edit PO ${pembelian.nomor_po}`} />
+            <Head title={`Edit PO ${pembelian.pembelian_id}`} />
 
             {!pembelian.can_be_edited && (
                 <div className="mb-6 flex items-start gap-3 rounded-lg border border-yellow-200 bg-yellow-50 p-4">
@@ -117,7 +116,7 @@ export default function Edit({ pembelian, pemasoks, statusOptions }: Props) {
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div>
                     <Label>Nomor PO</Label>
-                    <Input value={pembelian.nomor_po} disabled className="mt-1 bg-gray-100" />
+                    <Input value={pembelian.pembelian_id} disabled className="mt-1 bg-gray-100" />
                 </div>
                 <div>
                     <Label>Berdasarkan Pengadaan</Label>

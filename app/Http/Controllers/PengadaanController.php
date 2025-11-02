@@ -63,8 +63,7 @@ class PengadaanController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
-                $q->where('pengadaan_id', 'like', "%{$search}%")
-                    ->orWhere('nomor_po', 'like', "%{$search}%");
+                $q->where('pengadaan_id', 'like', "%{$search}%");
             });
         }
 
@@ -98,7 +97,6 @@ class PengadaanController extends Controller
                 'total_biaya' => $item->total_biaya,
                 'status' => $item->status,
                 'status_label' => $this->getStatusLabel($item->status),
-                'nomor_po' => $item->nomor_po,
                 'can_edit' => $item->canBeEdited(),
                 'can_cancel' => $item->canBeCancelled(),
                 'created_at' => $item->created_at?->format('Y-m-d H:i:s'),
@@ -671,7 +669,6 @@ class PengadaanController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'status' => 'required|in:pending,disetujui_procurement,disetujui_finance,diproses,diterima,dibatalkan',
-            'nomor_po' => 'nullable|string|max:255',
             'tanggal_delivery' => 'nullable|date',
         ]);
 
@@ -679,7 +676,7 @@ class PengadaanController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $pengadaan->update($request->only(['status', 'nomor_po', 'tanggal_delivery']));
+        $pengadaan->update($request->only(['status', 'tanggal_delivery']));
 
         return response()->json([
             'message' => 'Status pengadaan berhasil diperbarui!',

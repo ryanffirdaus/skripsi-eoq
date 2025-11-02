@@ -9,7 +9,6 @@ import { useMemo } from 'react';
 // 1. Interface disesuaikan untuk data Pembelian
 interface Pembelian extends Record<string, unknown> {
     pembelian_id: string;
-    nomor_po: string;
     pengadaan_id: string;
     pemasok_nama: string;
     tanggal_pembelian: string;
@@ -107,7 +106,7 @@ export default function Index({ pembelian, filters, pemasoks, permissions, flash
     const columns = useMemo(
         () => [
             {
-                key: 'nomor_po',
+                key: 'pembelian_id',
                 label: 'No. PO',
                 sortable: true,
                 defaultVisible: true,
@@ -223,7 +222,7 @@ export default function Index({ pembelian, filters, pemasoks, permissions, flash
             actions={actions}
             flash={flash}
             deleteDialogTitle="Hapus Pembelian"
-            deleteDialogMessage={(item) => `Apakah Anda yakin ingin menghapus pembelian dengan No. PO "${item.nomor_po}"?`}
+            deleteDialogMessage={(item) => `Apakah Anda yakin ingin menghapus pembelian dengan No. PO "${item.pembelian_id}"?`}
         />
     );
 }

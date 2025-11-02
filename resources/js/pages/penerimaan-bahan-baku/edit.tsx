@@ -24,7 +24,6 @@ interface Pemasok {
 
 interface Pembelian {
     pembelian_id: string;
-    nomor_po: string;
     pemasok: Pemasok;
 }
 
@@ -274,7 +273,7 @@ export default function Edit({ penerimaan, flash }: EditProps) {
                                 {penerimaan.pembelian && (
                                     <div>
                                         <Label>Nomor PO</Label>
-                                        <p className="font-medium">{penerimaan.pembelian.nomor_po}</p>
+                                        <p className="font-medium">{penerimaan.pembelian.pembelian_id}</p>
                                     </div>
                                 )}
                             </CardContent>

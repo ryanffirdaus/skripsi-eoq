@@ -9,7 +9,6 @@ import { useMemo } from 'react';
 interface TransaksiPembayaran extends Record<string, unknown> {
     transaksi_pembayaran_id: string;
     pembelian_id: string;
-    nomor_po: string;
     pemasok_nama: string;
     tanggal_pembayaran: string;
     total_pembayaran: number;
@@ -20,7 +19,6 @@ interface TransaksiPembayaran extends Record<string, unknown> {
 
 interface Pembelian {
     pembelian_id: string;
-    nomor_po: string;
     pemasok_nama: string;
 }
 
@@ -85,7 +83,7 @@ export default function Index({ transaksiPembayaran, filters, pembelians, permis
                 defaultVisible: true,
             },
             {
-                key: 'nomor_po',
+                key: 'pembelian_id',
                 label: 'No. PO',
                 sortable: true,
                 defaultVisible: true,
@@ -132,7 +130,7 @@ export default function Index({ transaksiPembayaran, filters, pembelians, permis
                     { value: '', label: 'Semua PO' },
                     ...pembelians.map((p) => ({
                         value: p.pembelian_id,
-                        label: `${p.nomor_po} - ${p.pemasok_nama}`,
+                        label: `${p.pembelian_id} - ${p.pemasok_nama}`,
                     })),
                 ],
             },

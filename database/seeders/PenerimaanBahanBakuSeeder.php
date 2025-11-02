@@ -113,7 +113,7 @@ class PenerimaanBahanBakuSeeder extends Seeder
                         $totalReceived += $qtyDiterima;
                     }
 
-                    $this->command->line("  > Penerimaan LENGKAP untuk PO {$pembelian->nomor_po} item {$pembelianDetail->pembelian_detail_id} berhasil dibuat ({$totalReceived}/{$qtyDipesan}).");
+                    $this->command->line("  > Penerimaan LENGKAP untuk PO {$pembelian->pembelian_id} item {$pembelianDetail->pembelian_detail_id} berhasil dibuat ({$totalReceived}/{$qtyDipesan}).");
                     $receiptStatusCount['full_receipt']++;
                 } else {
                     // Partial receipt: 30-70% of ordered quantity
@@ -124,7 +124,7 @@ class PenerimaanBahanBakuSeeder extends Seeder
                         'qty_diterima' => $qtyDiterima,
                     ]);
 
-                    $this->command->line("  > Penerimaan SEBAGIAN untuk PO {$pembelian->nomor_po} item {$pembelianDetail->pembelian_detail_id} berhasil dibuat ({$qtyDiterima}/{$qtyDipesan}).");
+                    $this->command->line("  > Penerimaan SEBAGIAN untuk PO {$pembelian->pembelian_id} item {$pembelianDetail->pembelian_detail_id} berhasil dibuat ({$qtyDiterima}/{$qtyDipesan}).");
                     $receiptStatusCount['partial_receipt']++;
                 }
             }

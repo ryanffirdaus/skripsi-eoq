@@ -16,7 +16,6 @@ interface Pengadaan extends Record<string, unknown> {
     total_biaya: number;
     status: string;
     status_label: string;
-    nomor_po?: string;
     can_edit: boolean;
     can_cancel: boolean;
     created_at: string;
@@ -230,17 +229,6 @@ export default function Index({ pengadaan, filters, flash }: Props) {
                 render: (item: Record<string, unknown>) => {
                     const pengadaan = item as Pengadaan;
                     return getStatusBadge(pengadaan.status);
-                },
-            },
-            {
-                key: 'nomor_po',
-                label: 'No. PO',
-                sortable: false,
-                hideable: true,
-                defaultVisible: false,
-                render: (item: Record<string, unknown>) => {
-                    const pengadaan = item as Pengadaan;
-                    return pengadaan.nomor_po || '-';
                 },
             },
         ],

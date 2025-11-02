@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('pembelian', function (Blueprint $table) {
-            $table->string('pembelian_id', 10)->primary();
+            $table->string('pembelian_id', 20)->primary();
 
             // Foreign key ke tabel pengadaan (permintaan internal)
             $table->string('pengadaan_id', 10)->index();
@@ -21,8 +21,6 @@ return new class extends Migration
             // Foreign key ke tabel pemasok
             $table->string('pemasok_id', 10)->index();
             $table->foreign('pemasok_id')->references('pemasok_id')->on('pemasok')->onDelete('restrict');
-
-            $table->string('nomor_po', 20)->unique()->nullable()->comment('Nomor Purchase Order yang formal, cth: PO-202309-0001');
             $table->date('tanggal_pembelian');
             $table->date('tanggal_kirim_diharapkan')->nullable();
             $table->decimal('total_biaya', 15, 2)->default(0);

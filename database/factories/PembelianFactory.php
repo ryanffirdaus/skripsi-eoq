@@ -33,7 +33,7 @@ class PembelianFactory extends Factory
         $metodePembayaran = $this->faker->randomElement(['tunai', 'transfer', 'termin']);
 
         return [
-            // pembelian_id dan nomor_po akan di-generate oleh boot method di model
+            // pembelian_id akan di-generate oleh boot method di model
             'pengadaan_id' => $pengadaan ? $pengadaan->pengadaan_id : null,
             'pemasok_id' => $pemasok ? $pemasok->pemasok_id : null,
             'tanggal_pembelian' => $this->faker->dateTimeBetween('-1 month', 'now'),

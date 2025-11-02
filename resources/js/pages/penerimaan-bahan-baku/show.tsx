@@ -20,7 +20,6 @@ interface BahanBaku {
 
 interface Pembelian {
     pembelian_id: string;
-    nomor_po: string;
     pemasok: Pemasok;
 }
 
@@ -131,7 +130,7 @@ export default function Show({ penerimaan, permissions = {} }: ShowProps) {
             ? [
                   {
                       label: 'No. Pembelian',
-                      value: penerimaan.pembelian.nomor_po,
+                      value: penerimaan.pembelian.pembelian_id,
                   },
               ]
             : []),

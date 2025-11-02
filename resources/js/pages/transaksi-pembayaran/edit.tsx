@@ -13,7 +13,6 @@ import React from 'react';
 // --- INTERFACES ---
 interface Pembelian {
     pembelian_id: string;
-    nomor_po: string;
     pemasok_nama: string;
     total_biaya: number;
     display_text: string;
@@ -22,7 +21,6 @@ interface Pembelian {
 interface Transaksi {
     transaksi_pembayaran_id: string;
     pembelian_id: string;
-    nomor_po: string;
     pemasok_nama: string;
     jenis_pembayaran: string;
     tanggal_pembayaran: string;
@@ -87,7 +85,7 @@ export default function Edit({ transaksi }: Props) {
                         <div className="grid grid-cols-2 gap-3 text-sm">
                             <div>
                                 <span className="text-gray-600">No. PO:</span>
-                                <span className="ml-2 font-medium">{transaksi.nomor_po}</span>
+                                <span className="ml-2 font-medium">{transaksi.pembelian_id}</span>
                             </div>
                             <div>
                                 <span className="text-gray-600">Pemasok:</span>

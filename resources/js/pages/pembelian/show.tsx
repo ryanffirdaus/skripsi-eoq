@@ -16,7 +16,6 @@ interface Pemasok {
 
 interface Pengadaan {
     pengadaan_id: string;
-    nomor_po?: string;
 }
 
 interface PembelianDetail {
@@ -46,7 +45,6 @@ interface TransaksiPembayaran {
 interface Pembelian extends Record<string, unknown> {
     pembelian_id: string;
     pengadaan?: Pengadaan;
-    nomor_po: string;
     pemasok: Pemasok;
     tanggal_pembelian: string;
     tanggal_kirim_diharapkan?: string;
@@ -135,8 +133,8 @@ export default function Show({ pembelian }: Props) {
 
     return (
         <ShowPageTemplate
-            title={`PO - ${pembelian.nomor_po}`}
-            pageTitle={`Detail Purchase Order ${pembelian.nomor_po}`}
+            title={`PO - ${pembelian.pembelian_id}`}
+            pageTitle={`Detail Purchase Order ${pembelian.pembelian_id}`}
             breadcrumbs={breadcrumbs}
             subtitle={`Pemasok: ${pembelian.pemasok.nama_pemasok}`}
             badge={{
