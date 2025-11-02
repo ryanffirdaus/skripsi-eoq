@@ -196,13 +196,14 @@ export default function Index({ bahanBaku, filters, uniqueLokasi, uniqueSatuan, 
             data={bahanBaku}
             columns={columns}
             createUrl={permissions.canCreate ? '/bahan-baku/create' : undefined}
-            searchPlaceholder="Search by material name or location..."
+            searchPlaceholder="Cari bahan baku..."
             filters={filters}
             filterOptions={filterOptions}
             baseUrl="/bahan-baku"
             actions={actions}
             flash={flash}
-            deleteDialogTitle="Delete Bahan Baku"
+            deleteDialogTitle="Hapus Bahan Baku"
+            deleteDialogMessage={() => 'Apakah Anda yakin ingin menghapus bahan baku ini? Tindakan ini tidak dapat dibatalkan.'}
         />
     );
 }

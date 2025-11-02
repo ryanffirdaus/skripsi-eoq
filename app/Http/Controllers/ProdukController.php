@@ -295,11 +295,11 @@ class ProdukController extends Controller
             });
 
             return redirect()->route('produk.index')
-                ->with('message', "Produk '{$namaProduk}' (ID: {$produkId}) has been successfully deleted.")
+                ->with('message', "Produk '{$namaProduk}' (ID: {$produkId}) telah dihapus.")
                 ->with('type', 'success');
         } catch (\Exception $e) {
             return redirect()->route('produk.index')
-                ->with('message', 'Failed to delete produk. Please try again.')
+                ->with('message', 'Gagal menghapus produk. Silakan coba lagi.')
                 ->with('type', 'error');
         }
     }

@@ -165,11 +165,11 @@ class PelangganController extends Controller
             $pelanggan->delete();
 
             return redirect()->route('pelanggan.index')
-                ->with('message', "Pelanggan '{$namaPelanggan}' (ID: {$pelangganId}) has been successfully deleted.")
+                ->with('message', "Pelanggan '{$namaPelanggan}' (ID: {$pelangganId}) telah dihapus.")
                 ->with('type', 'success');
         } catch (\Exception $e) {
             return redirect()->route('pelanggan.index')
-                ->with('message', 'Failed to delete pelanggan. Please try again.')
+                ->with('message', 'Gagal menghapus pelanggan. Silakan coba lagi.')
                 ->with('type', 'error');
         }
     }

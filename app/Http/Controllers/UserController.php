@@ -155,11 +155,11 @@ class UserController extends Controller
             $user->delete();
 
             return redirect()->route('users.index')
-                ->with('message', "User '{$userName}' (ID: {$userId}) has been successfully deleted.")
+                ->with('message', "User '{$userName}' (ID: {$userId}) telah dihapus.")
                 ->with('type', 'success');
         } catch (\Exception $e) {
             return redirect()->route('users.index')
-                ->with('message', 'Failed to delete user. Please try again.')
+                ->with('message', 'Gagal menghapus user. Silakan coba lagi.')
                 ->with('type', 'error');
         }
     }

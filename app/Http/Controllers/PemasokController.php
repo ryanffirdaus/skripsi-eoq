@@ -150,12 +150,12 @@ class PemasokController extends Controller
             $pemasok->delete();
 
             return redirect()->route('pemasok.index')
-                ->with('message', "Pemasok '{$namaPemasok}' (ID: {$pemasokId}) has been successfully deleted.")
+                ->with('message', "Pemasok '{$namaPemasok}' (ID: {$pemasokId}) telah dihapus.")
                 ->with('type', 'success');
         } catch (\Exception $e) {
             // Generic error message for security
             return redirect()->route('pemasok.index')
-                ->with('message', 'Failed to delete the pemasok. It might be associated with other data.')
+                ->with('message', 'Gagal menghapus pemasok. Mungkin pemasok ini terkait dengan data lain.')
                 ->with('type', 'error');
         }
     }

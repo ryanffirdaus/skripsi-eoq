@@ -230,11 +230,11 @@ class BahanBakuController extends Controller
             $bahanBaku->delete();
 
             return redirect()->route('bahan-baku.index')
-                ->with('message', "Bahan Baku '{$namaBahan}' (ID: {$bahanBakuId}) has been successfully deleted.")
+                ->with('message', "Bahan Baku '{$namaBahan}' (ID: {$bahanBakuId}) telah dihapus.")
                 ->with('type', 'success');
         } catch (\Exception $e) {
             return redirect()->route('bahan-baku.index')
-                ->with('message', 'Failed to delete bahan baku. Please try again.')
+                ->with('message', 'Gagal menghapus bahan baku. Silakan coba lagi.')
                 ->with('type', 'error');
         }
     }
