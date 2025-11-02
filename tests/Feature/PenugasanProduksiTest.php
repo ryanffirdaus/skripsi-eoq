@@ -44,7 +44,7 @@ class PenugasanProduksiTest extends TestCase
         $response->assertRedirect(route('penugasan-produksi.index'));
         $this->assertCount(1, PenugasanProduksi::all());
         $penugasan = PenugasanProduksi::first();
-        $this->assertEquals('assigned', $penugasan->status);
+        $this->assertEquals('ditugaskan', $penugasan->status);
         $this->assertEquals($this->supervisor->user_id, $penugasan->created_by);
     }
 
@@ -96,18 +96,18 @@ class PenugasanProduksiTest extends TestCase
         $penugasan = PenugasanProduksi::factory()->create([
             'user_id' => $this->worker->user_id,
             'created_by' => $this->supervisor->user_id,
-            'status' => 'assigned',
+            'status' => 'ditugaskan',
         ]);
 
         $this->actingAs($this->worker);
 
         $response = $this->patch(route('penugasan-produksi.update-status', $penugasan), [
-            'status' => 'in_progress',
+            'status' => 'proses',
         ]);
 
         $response->assertOk();
         $penugasan->refresh();
-        $this->assertEquals('in_progress', $penugasan->status);
+        $this->assertEquals('proses', $penugasan->status);
     }
 
     /** @test */
@@ -116,19 +116,19 @@ class PenugasanProduksiTest extends TestCase
         $penugasan = PenugasanProduksi::factory()->create([
             'user_id' => $this->worker->user_id,
             'created_by' => $this->supervisor->user_id,
-            'status' => 'completed',
+            'status' => 'selesai',
         ]);
 
         $this->actingAs($this->worker);
 
         $response = $this->patch(route('penugasan-produksi.update-status', $penugasan), [
-            'status' => 'assigned',
+            'status' => 'ditugaskan',
         ]);
 
         // Should fail
         $this->assertTrue($response->getStatusCode() >= 400);
         $penugasan->refresh();
-        $this->assertEquals('completed', $penugasan->status);
+        $this->assertEquals('selesai', $penugasan->status);
     }
 
     /** @test */
@@ -167,7 +167,7 @@ class PenugasanProduksiTest extends TestCase
         $penugasan = PenugasanProduksi::factory()->create([
             'user_id' => $this->worker->user_id,
             'created_by' => $this->supervisor->user_id,
-            'status' => 'assigned',
+            'status' => 'ditugaskan',
         ]);
 
         $this->actingAs($this->supervisor);
@@ -186,7 +186,7 @@ class PenugasanProduksiTest extends TestCase
         $penugasan = PenugasanProduksi::factory()->create([
             'user_id' => $this->worker->user_id,
             'created_by' => $this->supervisor->user_id,
-            'status' => 'completed',
+            'status' => 'selesai',
         ]);
 
         $this->actingAs($this->supervisor);
@@ -199,25 +199,25 @@ class PenugasanProduksiTest extends TestCase
     public function valid_status_transitions()
     {
         $penugasan = PenugasanProduksi::factory()->create([
-            'status' => 'assigned',
+            'status' => 'ditugaskan',
         ]);
 
-        // assigned -> in_progress should be valid
-        $this->assertTrue($penugasan->isValidStatusTransition('in_progress'));
+        // ditugaskan -> proses should be valid
+        $this->assertTrue($penugasan->isValidStatusTransition('proses'));
 
-        // assigned -> completed should be invalid (must go through in_progress)
-        $this->assertFalse($penugasan->isValidStatusTransition('completed'));
+        // ditugaskan -> selesai should be invalid (must go through proses)
+        $this->assertFalse($penugasan->isValidStatusTransition('selesai'));
 
-        // assigned -> cancelled should be valid
-        $this->assertTrue($penugasan->isValidStatusTransition('cancelled'));
+        // ditugaskan -> dibatalkan should be valid
+        $this->assertTrue($penugasan->isValidStatusTransition('dibatalkan'));
 
-        // in_progress -> completed should be valid
-        $penugasan->status = 'in_progress';
-        $this->assertTrue($penugasan->isValidStatusTransition('completed'));
+        // proses -> selesai should be valid
+        $penugasan->status = 'proses';
+        $this->assertTrue($penugasan->isValidStatusTransition('selesai'));
 
-        // completed -> anything should be invalid
-        $penugasan->status = 'completed';
-        $this->assertFalse($penugasan->isValidStatusTransition('in_progress'));
+        // selesai -> anything should be invalid
+        $penugasan->status = 'selesai';
+        $this->assertFalse($penugasan->isValidStatusTransition('proses'));
     }
 
     /** @test */
@@ -243,17 +243,17 @@ class PenugasanProduksiTest extends TestCase
         // Create multiple assignments
         $penugasan1 = PenugasanProduksi::factory()->create([
             'pengadaan_detail_id' => $this->pengadaanDetail->pengadaan_detail_id,
-            'status' => 'assigned',
+            'status' => 'ditugaskan',
         ]);
 
         $penugasan2 = PenugasanProduksi::factory()->create([
             'pengadaan_detail_id' => $this->pengadaanDetail->pengadaan_detail_id,
-            'status' => 'in_progress',
+            'status' => 'proses',
         ]);
 
         $penugasan3 = PenugasanProduksi::factory()->create([
             'pengadaan_detail_id' => $this->pengadaanDetail->pengadaan_detail_id,
-            'status' => 'completed',
+            'status' => 'selesai',
         ]);
 
         $outstanding = PenugasanProduksi::byPengadaanDetail($this->pengadaanDetail->pengadaan_detail_id)
@@ -270,9 +270,9 @@ class PenugasanProduksiTest extends TestCase
     public function supervisor_can_get_statistics()
     {
         // Create assignments
-        PenugasanProduksi::factory(3)->create(['created_by' => $this->supervisor->user_id, 'status' => 'assigned']);
-        PenugasanProduksi::factory(2)->create(['created_by' => $this->supervisor->user_id, 'status' => 'in_progress']);
-        PenugasanProduksi::factory(2)->create(['created_by' => $this->supervisor->user_id, 'status' => 'completed']);
+        PenugasanProduksi::factory(3)->create(['created_by' => $this->supervisor->user_id, 'status' => 'ditugaskan']);
+        PenugasanProduksi::factory(2)->create(['created_by' => $this->supervisor->user_id, 'status' => 'proses']);
+        PenugasanProduksi::factory(2)->create(['created_by' => $this->supervisor->user_id, 'status' => 'selesai']);
 
         $this->actingAs($this->supervisor);
 
@@ -280,8 +280,8 @@ class PenugasanProduksiTest extends TestCase
 
         $response->assertOk();
         $data = $response->json();
-        $this->assertEquals(3, $data['assigned']);
-        $this->assertEquals(2, $data['in_progress']);
-        $this->assertEquals(2, $data['completed']);
+        $this->assertEquals(3, $data['ditugaskan']);
+        $this->assertEquals(2, $data['proses']);
+        $this->assertEquals(2, $data['selesai']);
     }
 }

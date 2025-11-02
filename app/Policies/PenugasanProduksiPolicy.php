@@ -47,8 +47,8 @@ class PenugasanProduksiPolicy
      */
     public function update(User $user, PenugasanProduksi $penugasan): bool
     {
-        // Tidak bisa update penugasan yang sudah final (completed, cancelled)
-        if (in_array($penugasan->status, ['completed', 'cancelled'])) {
+        // Tidak bisa update penugasan yang sudah final (selesai, dibatalkan)
+        if (in_array($penugasan->status, ['selesai', 'dibatalkan'])) {
             return false;
         }
 
@@ -66,8 +66,8 @@ class PenugasanProduksiPolicy
      */
     public function delete(User $user, PenugasanProduksi $penugasan): bool
     {
-        // Tidak bisa delete penugasan yang sudah completed
-        if ($penugasan->status === 'completed') {
+        // Tidak bisa delete penugasan yang sudah selesai
+        if ($penugasan->status === 'selesai') {
             return false;
         }
 
@@ -102,7 +102,7 @@ class PenugasanProduksiPolicy
     public function updateStatus(User $user, PenugasanProduksi $penugasan): bool
     {
         // Tidak bisa update status jika sudah final
-        if (in_array($penugasan->status, ['completed', 'cancelled'])) {
+        if (in_array($penugasan->status, ['selesai', 'dibatalkan'])) {
             return false;
         }
 

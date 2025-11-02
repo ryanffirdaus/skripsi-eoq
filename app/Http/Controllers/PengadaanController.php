@@ -9,6 +9,8 @@ use App\Models\BahanBaku;
 use App\Models\Pesanan;
 use App\Models\Produk;
 use App\Services\PengadaanService;
+use App\Http\Traits\RoleAccess;
+use App\Http\Traits\PengadaanAuthorization;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Validator;
@@ -17,6 +19,8 @@ use Illuminate\Support\Facades\Auth;
 
 class PengadaanController extends Controller
 {
+    use RoleAccess, PengadaanAuthorization;
+
     protected $pengadaanService;
 
     public function __construct(PengadaanService $pengadaanService)
@@ -124,6 +128,15 @@ class PengadaanController extends Controller
      */
     public function create()
     {
+        // Authorization: hanya R01, R02, R07 yang bisa create
+        if (!$this->canCreatePengadaan()) {
+            return redirect()->route('pengadaan.index')
+                ->with('flash', [
+                    'message' => 'Anda tidak memiliki izin untuk membuat pengadaan.',
+                    'type' => 'error'
+                ]);
+        }
+
         $pemasok = Pemasok::active()
             ->select('pemasok_id', 'nama_pemasok', 'narahubung', 'nomor_telepon')
             ->orderBy('nama_pemasok')
@@ -474,6 +487,15 @@ class PengadaanController extends Controller
      */
     public function edit(Pengadaan $pengadaan)
     {
+        // Authorization check: dapat edit detail atau perubahan status
+        if (!$this->canEditPengadaanDetail($pengadaan) && !$this->canApprovePengadaan($pengadaan)) {
+            return redirect()->route('pengadaan.index')
+                ->with('flash', [
+                    'message' => 'Anda tidak memiliki izin untuk mengedit pengadaan ini.',
+                    'type' => 'error'
+                ]);
+        }
+
         if (!$pengadaan->canBeEdited()) {
             return redirect()->route('pengadaan.index')
                 ->with('flash', [
@@ -535,6 +557,18 @@ class PengadaanController extends Controller
     {
         $user = Auth::user();
 
+        // Authorization check
+        $canEditDetail = $this->canEditPengadaanDetail($pengadaan);
+        $canApprove = $this->canApprovePengadaan($pengadaan);
+
+        if (!$canEditDetail && !$canApprove) {
+            return redirect()->route('pengadaan.index')
+                ->with('flash', [
+                    'message' => 'Anda tidak memiliki izin untuk mengubah pengadaan ini.',
+                    'type' => 'error'
+                ]);
+        }
+
         if (!$pengadaan->canBeEdited()) {
             return redirect()->route('pengadaan.index')
                 ->with('flash', [
@@ -560,6 +594,16 @@ class PengadaanController extends Controller
 
         // Validasi status transition dan role permission
         if ($request->has('status') && $request->status !== $pengadaan->status) {
+            // Check if user dapat melakukan approval ini
+            if (!$canApprove) {
+                return redirect()->back()
+                    ->with('flash', [
+                        'message' => 'Anda tidak memiliki izin untuk mengubah status pengadaan ini.',
+                        'type' => 'error'
+                    ])
+                    ->withInput();
+            }
+
             // Cek apakah status transition valid
             if (!$pengadaan->isValidStatusTransition($request->status)) {
                 return redirect()->back()
@@ -571,8 +615,8 @@ class PengadaanController extends Controller
             }
 
             // Cek role permission untuk status tertentu
-            // Only Manajer Gudang (R07) bisa approve ke pending_approval_gudang
-            if ($request->status === 'pending_approval_gudang' && $user->role_id !== 'R07') {
+            // Only Manajer Gudang (R07) bisa approve ke disetujui_gudang
+            if ($request->status === 'disetujui_gudang' && $user->role_id !== 'R07') {
                 return redirect()->back()
                     ->with('flash', [
                         'message' => 'Hanya Manajer Gudang yang bisa menyetujui pengadaan di tahap ini.',
@@ -581,8 +625,8 @@ class PengadaanController extends Controller
                     ->withInput();
             }
 
-            // Only Manajer Pengadaan (R09) bisa approve ke pending_approval_pengadaan (setelah pemasok dialokasikan)
-            if ($request->status === 'pending_approval_pengadaan' && $user->role_id !== 'R09') {
+            // Only Manajer Pengadaan (R09) bisa approve ke disetujui_pengadaan (setelah pemasok dialokasikan)
+            if ($request->status === 'disetujui_pengadaan' && $user->role_id !== 'R09') {
                 return redirect()->back()
                     ->with('flash', [
                         'message' => 'Hanya Manajer Pengadaan yang bisa menyetujui pengadaan di tahap ini.',
@@ -591,8 +635,8 @@ class PengadaanController extends Controller
                     ->withInput();
             }
 
-            // Only Manajer Keuangan (R10) bisa approve ke pending_approval_keuangan
-            if ($request->status === 'pending_approval_keuangan' && $user->role_id !== 'R10') {
+            // Only Manajer Keuangan (R10) bisa approve ke disetujui_keuangan
+            if ($request->status === 'disetujui_keuangan' && $user->role_id !== 'R10') {
                 return redirect()->back()
                     ->with('flash', [
                         'message' => 'Hanya Manajer Keuangan yang bisa menyetujui pengadaan di tahap ini.',
@@ -601,8 +645,8 @@ class PengadaanController extends Controller
                     ->withInput();
             }
 
-            // Only Manajer Gudang (R07) bisa approve ke processed (setelah keuangan approve)
-            if ($request->status === 'processed' && $user->role_id !== 'R07') {
+            // Only Manajer Gudang (R07) bisa approve ke diproses (setelah keuangan approve)
+            if ($request->status === 'diproses' && $user->role_id !== 'R07') {
                 return redirect()->back()
                     ->with('flash', [
                         'message' => 'Hanya Manajer Gudang yang bisa memproses pengadaan setelah disetujui keuangan.',
@@ -619,18 +663,26 @@ class PengadaanController extends Controller
         }
         $pengadaan->update($updateData);
 
-        // Update each detail's pemasok_id dan harga_satuan
-        foreach ($request->details as $detailData) {
-            $updateDetailData = ['pemasok_id' => $detailData['pemasok_id']];
+        // Update each detail's pemasok_id dan harga_satuan (hanya jika allowed)
+        if ($canEditDetail) {
+            foreach ($request->details as $detailData) {
+                $updateDetailData = [];
 
-            // Hanya update harga jika masih draft atau pending_approval_gudang (sebelum approval dari Pengadaan)
-            $canEditPrice = in_array($pengadaan->status, ['draft', 'pending_approval_gudang']);
-            if ($canEditPrice && isset($detailData['harga_satuan'])) {
-                $updateDetailData['harga_satuan'] = $detailData['harga_satuan'];
+                if (isset($detailData['pemasok_id'])) {
+                    $updateDetailData['pemasok_id'] = $detailData['pemasok_id'];
+                }
+
+                // Hanya update harga jika masih draft atau disetujui_gudang (sebelum approval dari Pengadaan)
+                $canEditPrice = in_array($pengadaan->status, ['draft', 'disetujui_gudang']);
+                if ($canEditPrice && isset($detailData['harga_satuan'])) {
+                    $updateDetailData['harga_satuan'] = $detailData['harga_satuan'];
+                }
+
+                if (!empty($updateDetailData)) {
+                    PengadaanDetail::where('pengadaan_detail_id', $detailData['pengadaan_detail_id'])
+                        ->update($updateDetailData);
+                }
             }
-
-            PengadaanDetail::where('pengadaan_detail_id', $detailData['pengadaan_detail_id'])
-                ->update($updateDetailData);
         }
 
         return redirect()->route('pengadaan.index')
@@ -645,6 +697,15 @@ class PengadaanController extends Controller
      */
     public function destroy(Pengadaan $pengadaan)
     {
+        // Authorization check
+        if (!$this->canDeletePengadaan($pengadaan)) {
+            return redirect()->route('pengadaan.index')
+                ->with('flash', [
+                    'message' => 'Anda tidak memiliki izin untuk menghapus pengadaan ini.',
+                    'type' => 'error'
+                ]);
+        }
+
         if (!$pengadaan->canBeCancelled()) {
             return redirect()->route('pengadaan.index')
                 ->with('flash', [
@@ -668,7 +729,7 @@ class PengadaanController extends Controller
     public function updateStatus(Request $request, Pengadaan $pengadaan)
     {
         $validator = Validator::make($request->all(), [
-            'status' => 'required|in:pending,disetujui_procurement,disetujui_finance,diproses,diterima,dibatalkan',
+            'status' => 'required|in:pending,disetujui_pengadaan,disetujui_keuangan,diproses,diterima,dibatalkan',
             'tanggal_delivery' => 'nullable|date',
         ]);
 

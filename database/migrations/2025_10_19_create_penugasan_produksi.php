@@ -25,8 +25,8 @@ return new class extends Migration
             // Jumlah yang harus diproduksi
             $table->integer('jumlah_produksi');
 
-            // Status: assigned, in_progress, completed, cancelled
-            $table->enum('status', ['assigned', 'in_progress', 'completed', 'cancelled'])->default('assigned');
+            // Status: ditugaskan, dalam_proses, selesai, dibatalkan
+            $table->enum('status', ['ditugaskan', 'proses', 'selesai', 'dibatalkan'])->default('ditugaskan');
 
             $table->date('deadline');
             $table->text('catatan')->nullable();

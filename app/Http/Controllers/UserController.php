@@ -4,18 +4,31 @@ namespace App\Http\Controllers;
 
 use App\Models\Role;
 use App\Models\User;
+use App\Http\Traits\RoleAccess;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
+    use RoleAccess;
+
     /**
      * Display a listing of the users.
      */
     public function index(Request $request)
     {
+        // Authorization: hanya Admin (R01) yang bisa akses
+        if (!$this->isAdmin()) {
+            return redirect()->route('dashboard')
+                ->with('flash', [
+                    'message' => 'Anda tidak memiliki izin untuk mengakses daftar pengguna.',
+                    'type' => 'error'
+                ]);
+        }
+
         // Get query parameters with default values
         $search = $request->input('search');
         $sortBy = $request->input('sort_by', 'user_id');
@@ -64,6 +77,15 @@ class UserController extends Controller
      */
     public function create()
     {
+        // Authorization: hanya Admin (R01) yang bisa create
+        if (!$this->isAdmin()) {
+            return redirect()->route('dashboard')
+                ->with('flash', [
+                    'message' => 'Anda tidak memiliki izin untuk membuat pengguna baru.',
+                    'type' => 'error'
+                ]);
+        }
+
         return Inertia::render('users/create', [
             'roles' => Role::all()
         ]);
@@ -74,6 +96,15 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
+        // Authorization: hanya Admin (R01) yang bisa lihat detail
+        if (!$this->isAdmin()) {
+            return redirect()->route('dashboard')
+                ->with('flash', [
+                    'message' => 'Anda tidak memiliki izin untuk melihat detail pengguna.',
+                    'type' => 'error'
+                ]);
+        }
+
         $user->load([
             'role',
             'createdBy:user_id,nama_lengkap',
@@ -90,6 +121,15 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
+        // Authorization: hanya Admin (R01) yang bisa store
+        if (!$this->isAdmin()) {
+            return redirect()->back()
+                ->with('flash', [
+                    'message' => 'Anda tidak memiliki izin untuk membuat pengguna baru.',
+                    'type' => 'error'
+                ]);
+        }
+
         $validated = $request->validate([
             'nama_lengkap' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique(User::class)],
@@ -112,6 +152,15 @@ class UserController extends Controller
 
     public function edit(User $user)
     {
+        // Authorization: hanya Admin (R01) yang bisa edit
+        if (!$this->isAdmin()) {
+            return redirect()->route('dashboard')
+                ->with('flash', [
+                    'message' => 'Anda tidak memiliki izin untuk mengedit pengguna.',
+                    'type' => 'error'
+                ]);
+        }
+
         return Inertia::render('users/edit', [
             'user' => $user,
             'roles' => Role::all()
@@ -120,6 +169,15 @@ class UserController extends Controller
 
     public function update(Request $request, User $user)
     {
+        // Authorization: hanya Admin (R01) yang bisa update
+        if (!$this->isAdmin()) {
+            return redirect()->back()
+                ->with('flash', [
+                    'message' => 'Anda tidak memiliki izin untuk mengubah data pengguna.',
+                    'type' => 'error'
+                ]);
+        }
+
         $validated = $request->validate([
             'nama_lengkap' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->user_id, 'user_id')],
@@ -148,6 +206,15 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
+        // Authorization: hanya Admin (R01) yang bisa delete
+        if (!$this->isAdmin()) {
+            return redirect()->back()
+                ->with('flash', [
+                    'message' => 'Anda tidak memiliki izin untuk menghapus pengguna.',
+                    'type' => 'error'
+                ]);
+        }
+
         try {
             $userName = $user->nama_lengkap;
             $userId = $user->user_id;

@@ -26,7 +26,7 @@ class PenugasanProduksiSeeder extends Seeder
             return;
         }
 
-        $statuses = ['assigned', 'in_progress', 'completed'];
+        $statuses = ['ditugaskan', 'proses', 'selesai'];
         $counter = 0;
 
         foreach ($pengadaanDetails as $detail) {
@@ -46,7 +46,7 @@ class PenugasanProduksiSeeder extends Seeder
                     'deadline' => $deadline,
                     'catatan' => 'Penugasan produksi untuk item ' . $detail->nama_item,
                     'created_by' => $creator->user_id,
-                    'updated_by' => $status === 'in_progress' ? $user->user_id : null,
+                    'updated_by' => $status === 'proses' ? $user->user_id : null,
                     'deleted_by' => null,
                 ]);
 

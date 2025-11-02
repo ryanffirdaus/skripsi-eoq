@@ -110,8 +110,17 @@ class PembelianController extends Controller
      */
     public function create()
     {
+        // Authorization: hanya Staf Keuangan (R06) dan Manajer Keuangan (R10) yang bisa create
+        if (!$this->isKeuanganRelated()) {
+            return redirect()->route('pembelian.index')
+                ->with('flash', [
+                    'message' => 'Anda tidak memiliki izin untuk membuat pembelian baru.',
+                    'type' => 'error'
+                ]);
+        }
+
         // 1. Ambil data Pengadaan yang sudah disetujui keuangan dan belum diproses menjadi PO.
-        $pengadaans = Pengadaan::where('status', 'disetujui_finance')
+        $pengadaans = Pengadaan::where('status', 'disetujui_keuangan')
             ->with(['detail.pemasok:pemasok_id,nama_pemasok'])
             ->orderBy('created_at', 'desc')
             ->get()
@@ -155,6 +164,15 @@ class PembelianController extends Controller
      */
     public function store(Request $request)
     {
+        // Authorization: hanya Staf Keuangan (R06) dan Manajer Keuangan (R10) yang bisa store
+        if (!$this->isKeuanganRelated()) {
+            return redirect()->route('pembelian.index')
+                ->with('flash', [
+                    'message' => 'Anda tidak memiliki izin untuk membuat pembelian baru.',
+                    'type' => 'error'
+                ]);
+        }
+
         // 1. Validasi input dari user
         $validator = Validator::make($request->all(), [
             'pengadaan_id' => 'required|exists:pengadaan,pengadaan_id',
@@ -295,6 +313,15 @@ class PembelianController extends Controller
      */
     public function edit(Pembelian $pembelian)
     {
+        // Authorization: hanya Staf Keuangan (R06) dan Manajer Keuangan (R10) yang bisa edit
+        if (!$this->isKeuanganRelated()) {
+            return redirect()->route('pembelian.index')
+                ->with('flash', [
+                    'message' => 'Anda tidak memiliki izin untuk mengedit pembelian.',
+                    'type' => 'error'
+                ]);
+        }
+
         // 1. Eager load relasi yang dibutuhkan
         $pembelian->load(['pemasok', 'detail.pengadaanDetail']);
 
@@ -350,6 +377,15 @@ class PembelianController extends Controller
      */
     public function update(Request $request, Pembelian $pembelian)
     {
+        // Authorization: hanya Staf Keuangan (R06) dan Manajer Keuangan (R10) yang bisa update
+        if (!$this->isKeuanganRelated()) {
+            return redirect()->route('pembelian.index')
+                ->with('flash', [
+                    'message' => 'Anda tidak memiliki izin untuk mengubah pembelian.',
+                    'type' => 'error'
+                ]);
+        }
+
         if (!$pembelian->canBeEdited()) {
             return redirect()->back()->with('flash', [
                 'message' => 'Pembelian dengan status "' . $pembelian->status . '" tidak dapat diubah.',
@@ -426,6 +462,15 @@ class PembelianController extends Controller
      */
     public function destroy(Pembelian $pembelian)
     {
+        // Authorization: hanya Staf Keuangan (R06) dan Manajer Keuangan (R10) yang bisa destroy
+        if (!$this->isKeuanganRelated()) {
+            return redirect()->route('pembelian.index')
+                ->with('flash', [
+                    'message' => 'Anda tidak memiliki izin untuk menghapus pembelian.',
+                    'type' => 'error'
+                ]);
+        }
+
         if (!$pembelian->canBeCancelled()) {
             return redirect()->route('pembelian.index')
                 ->with('flash', ['message' => 'PO tidak dapat dibatalkan karena statusnya.', 'type' => 'error']);

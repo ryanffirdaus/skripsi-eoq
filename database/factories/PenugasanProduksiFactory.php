@@ -31,7 +31,7 @@ class PenugasanProduksiFactory extends Factory
             'pengadaan_detail_id' => PengadaanDetail::factory(),
             'user_id' => User::factory(['role_id' => 'ROLE003']), // Production worker
             'jumlah_produksi' => $this->faker->numberBetween(1, 100),
-            'status' => $this->faker->randomElement(['assigned', 'in_progress', 'completed', 'cancelled']),
+            'status' => $this->faker->randomElement(['ditugaskan', 'proses', 'selesai', 'dibatalkan']),
             'deadline' => Carbon::now()->addDays($this->faker->numberBetween(1, 30)),
             'catatan' => $this->faker->sentence(),
             'created_by' => User::factory(['role_id' => 'ROLE002']), // Supervisor
@@ -47,7 +47,7 @@ class PenugasanProduksiFactory extends Factory
     {
         return $this->state(function (array $attributes) {
             return [
-                'status' => 'assigned',
+                'status' => 'ditugaskan',
                 'updated_by' => null,
                 'deleted_by' => null,
             ];
@@ -61,7 +61,7 @@ class PenugasanProduksiFactory extends Factory
     {
         return $this->state(function (array $attributes) {
             return [
-                'status' => 'in_progress',
+                'status' => 'proses',
                 'updated_by' => $attributes['user_id'], // Worker yang update
             ];
         });
@@ -74,7 +74,7 @@ class PenugasanProduksiFactory extends Factory
     {
         return $this->state(function (array $attributes) {
             return [
-                'status' => 'completed',
+                'status' => 'selesai',
                 'updated_by' => $attributes['user_id'], // Worker yang complete
             ];
         });
@@ -87,7 +87,7 @@ class PenugasanProduksiFactory extends Factory
     {
         return $this->state(function (array $attributes) {
             return [
-                'status' => 'cancelled',
+                'status' => 'dibatalkan',
                 'updated_by' => $attributes['created_by'], // Supervisor yang cancel
             ];
         });
@@ -101,7 +101,7 @@ class PenugasanProduksiFactory extends Factory
         return $this->state(function (array $attributes) {
             return [
                 'deadline' => Carbon::now()->subDays($this->faker->numberBetween(1, 10)),
-                'status' => $this->faker->randomElement(['assigned', 'in_progress']),
+                'status' => $this->faker->randomElement(['ditugaskan', 'proses']),
             ];
         });
     }

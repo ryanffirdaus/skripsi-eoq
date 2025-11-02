@@ -10,12 +10,12 @@ class PenugasanProduksiObserver
     /**
      * Handle the PenugasanProduksi "updated" event.
      *
-     * Ketika status berubah menjadi 'completed', tambah stok produk
+     * Ketika status berubah menjadi 'selesai', tambah stok produk
      */
     public function updated(PenugasanProduksi $penugasan): void
     {
-        // Check if status changed to completed
-        if ($penugasan->isDirty('status') && $penugasan->status === 'completed') {
+        // Check if status changed to selesai
+        if ($penugasan->isDirty('status') && $penugasan->status === 'selesai') {
             $this->handleProductionCompletion($penugasan);
         }
     }

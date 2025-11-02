@@ -118,6 +118,15 @@ class TransaksiPembayaranController extends Controller
      */
     public function create()
     {
+        // Authorization: hanya Staf Keuangan (R06) dan Manajer Keuangan (R10) yang bisa create
+        if (!$this->isKeuanganRelated()) {
+            return redirect()->route('transaksi-pembayaran.index')
+                ->with('flash', [
+                    'message' => 'Anda tidak memiliki izin untuk membuat transaksi pembayaran baru.',
+                    'type' => 'error'
+                ]);
+        }
+
         // Ambil pembelian yang sudah dikonfirmasi (bisa dibayar)
         $pembelians = Pembelian::with('pemasok:pemasok_id,nama_pemasok')
             ->whereIn('status', ['confirmed', 'partially_received', 'fully_received'])
@@ -151,6 +160,15 @@ class TransaksiPembayaranController extends Controller
      */
     public function store(Request $request)
     {
+        // Authorization: hanya Staf Keuangan (R06) dan Manajer Keuangan (R10) yang bisa store
+        if (!$this->isKeuanganRelated()) {
+            return redirect()->route('transaksi-pembayaran.index')
+                ->with('flash', [
+                    'message' => 'Anda tidak memiliki izin untuk membuat transaksi pembayaran baru.',
+                    'type' => 'error'
+                ]);
+        }
+
         // Get pembelian to validate payment
         $pembelian = Pembelian::findOrFail($request->pembelian_id);
 
@@ -308,6 +326,15 @@ class TransaksiPembayaranController extends Controller
      */
     public function edit(TransaksiPembayaran $transaksiPembayaran)
     {
+        // Authorization: hanya Staf Keuangan (R06) dan Manajer Keuangan (R10) yang bisa edit
+        if (!$this->isKeuanganRelated()) {
+            return redirect()->route('transaksi-pembayaran.index')
+                ->with('flash', [
+                    'message' => 'Anda tidak memiliki izin untuk mengedit transaksi pembayaran.',
+                    'type' => 'error'
+                ]);
+        }
+
         $transaksiPembayaran->load('pembelian.pemasok:pemasok_id,nama_pemasok');
 
         $pembelians = Pembelian::with('pemasok:pemasok_id,nama_pemasok')
@@ -349,6 +376,15 @@ class TransaksiPembayaranController extends Controller
      */
     public function update(Request $request, TransaksiPembayaran $transaksiPembayaran)
     {
+        // Authorization: hanya Staf Keuangan (R06) dan Manajer Keuangan (R10) yang bisa update
+        if (!$this->isKeuanganRelated()) {
+            return redirect()->route('transaksi-pembayaran.index')
+                ->with('flash', [
+                    'message' => 'Anda tidak memiliki izin untuk mengubah transaksi pembayaran.',
+                    'type' => 'error'
+                ]);
+        }
+
         $validator = Validator::make($request->all(), [
             'jenis_pembayaran'   => 'required|in:dp,termin,pelunasan',
             'tanggal_pembayaran' => 'required|date',
@@ -399,6 +435,15 @@ class TransaksiPembayaranController extends Controller
      */
     public function destroy(TransaksiPembayaran $transaksiPembayaran)
     {
+        // Authorization: hanya Staf Keuangan (R06) dan Manajer Keuangan (R10) yang bisa destroy
+        if (!$this->isKeuanganRelated()) {
+            return redirect()->route('transaksi-pembayaran.index')
+                ->with('flash', [
+                    'message' => 'Anda tidak memiliki izin untuk menghapus transaksi pembayaran.',
+                    'type' => 'error'
+                ]);
+        }
+
         // Hapus bukti pembayaran
         if ($transaksiPembayaran->bukti_pembayaran) {
             Storage::disk('public')->delete($transaksiPembayaran->bukti_pembayaran);

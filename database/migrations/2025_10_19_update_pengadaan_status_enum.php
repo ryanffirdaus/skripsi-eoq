@@ -17,8 +17,8 @@ return new class extends Migration
         // Update existing data first
         // Map old status ke new status
         DB::table('pengadaan')->where('status', 'pending')->update(['status' => 'draft']);
-        DB::table('pengadaan')->where('status', 'disetujui_procurement')->update(['status' => 'pending_approval_gudang']);
-        DB::table('pengadaan')->where('status', 'disetujui_finance')->update(['status' => 'pending_approval_keuangan']);
+        DB::table('pengadaan')->where('status', 'disetujui_pengadaan')->update(['status' => 'pending_approval_gudang']);
+        DB::table('pengadaan')->where('status', 'disetujui_keuangan')->update(['status' => 'pending_approval_keuangan']);
 
         // Modify the column using raw SQL for MySQL compatibility
         Schema::table('pengadaan', function (Blueprint $table) {
@@ -37,13 +37,13 @@ return new class extends Migration
     {
         // Revert back to old enum values
         DB::table('pengadaan')->where('status', 'draft')->update(['status' => 'pending']);
-        DB::table('pengadaan')->where('status', 'pending_approval_gudang')->update(['status' => 'disetujui_procurement']);
-        DB::table('pengadaan')->where('status', 'pending_approval_keuangan')->update(['status' => 'disetujui_finance']);
+        DB::table('pengadaan')->where('status', 'pending_approval_gudang')->update(['status' => 'disetujui_pengadaan']);
+        DB::table('pengadaan')->where('status', 'pending_approval_keuangan')->update(['status' => 'disetujui_keuangan']);
 
         Schema::table('pengadaan', function (Blueprint $table) {
             $table->string('status')->change();
         });
 
-        DB::statement("ALTER TABLE pengadaan MODIFY status ENUM('pending', 'disetujui_procurement', 'disetujui_finance', 'diproses', 'diterima', 'dibatalkan') DEFAULT 'pending'");
+        DB::statement("ALTER TABLE pengadaan MODIFY status ENUM('pending', 'disetujui_pengadaan', 'disetujui_keuangan', 'diproses', 'diterima', 'dibatalkan') DEFAULT 'pending'");
     }
 };

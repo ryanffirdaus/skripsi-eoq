@@ -59,10 +59,10 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 const statusOptions = [
-    { value: 'assigned', label: 'Ditugaskan' },
-    { value: 'in_progress', label: 'Sedang Dikerjakan' },
-    { value: 'completed', label: 'Selesai' },
-    { value: 'cancelled', label: 'Dibatalkan' },
+    { value: 'ditugaskan', label: 'Ditugaskan' },
+    { value: 'proses', label: 'Sedang Dikerjakan' },
+    { value: 'selesai', label: 'Selesai' },
+    { value: 'dibatalkan', label: 'Dibatalkan' },
 ];
 
 export default function Edit({ penugasan, workers, isWorker }: Props) {

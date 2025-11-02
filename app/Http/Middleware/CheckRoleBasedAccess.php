@@ -13,58 +13,138 @@ class CheckRoleBasedAccess
      * Define allowed routes and actions per role
      * Format: role_id => ['route' => ['action1', 'action2', ...]]
      * Jika tidak ada aksi spesifik, semua aksi diizinkan untuk route tersebut
+     *
+     * REQUIREMENTS:
+     * 1. Admin - CRUD semuanya + CRUD pengguna hanya Admin
+     * 2. Staf Gudang & Manajer Gudang - CRUD bahan baku dan produk
+     * 3. Staf Penjualan - CRUD pelanggan dan pesanan
+     * 4. Staf & Manajer Pengadaan - CRUD pemasok
+     * 5. Staf & Manajer Gudang - CRUD pengiriman
+     * 6. Staf Gudang - tambah pengadaan, hapus status pending
+     * 7. Manajer Gudang - CRUD pending pengadaan, approve pending->disetujui_gudang
+     * 8. Staf & Manajer Pengadaan - isi detail pemasok/harga untuk status disetujui_gudang
+     * 9. Manajer Pengadaan - approve disetujui_gudang->disetujui_pengadaan
+     * 10. Manajer Keuangan - approve disetujui_pengadaan->disetujui_keuangan
+     * 11. Staf & Manajer Keuangan - CRUD pembelian
+     * 12. Staf Gudang - tambah & lihat detail penerimaan
+     * 13. Staf & Manajer Keuangan - CRUD transaksi pembayaran
      */
     private static array $roleBasedRoutes = [
         'R01' => [], // Admin - akses semua
         'R02' => [ // Staf Gudang
+            'users' => [], // Tidak akses
             'bahan-baku' => ['index', 'show'], // Hanya view
             'produk' => ['index', 'show'], // Hanya view
-            'pengadaan' => ['index', 'create', 'store', 'edit', 'update', 'show'], // Buat dan edit pengadaan
+            'pengadaan' => ['index', 'create', 'store', 'destroy', 'show'], // Tambah pengadaan, hapus pending
             'pengiriman' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'],
-            'penerimaan-bahan-baku' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'],
+            'penerimaan-bahan-baku' => ['index', 'create', 'store', 'show'], // Tambah & lihat detail
+            'pelanggan' => [], // Tidak akses
+            'pemasok' => [], // Tidak akses
+            'pesanan' => [], // Tidak akses
+            'pembelian' => [], // Tidak akses
+            'transaksi-pembayaran' => [], // Tidak akses
+            'penugasan-produksi' => [], // Tidak akses
         ],
         'R03' => [ // Staf RnD
             'penugasan-produksi' => ['index', 'show', 'edit', 'update'], // Bisa lihat dan edit penugasan mereka
         ],
         'R04' => [ // Staf Pengadaan
-            'pengadaan' => ['index', 'show'], // View pengadaan (tidak bisa buat/edit/hapus - hanya Manajer Pengadaan)
-            'pembelian' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'],
-            'pemasok' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'],
-            'penerimaan-bahan-baku' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'],
+            'pemasok' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'], // CRUD pemasok
+            'pengadaan' => ['index', 'show'], // Hanya view & isi detail disetujui_gudang
+            'pembelian' => [], // Tidak akses
+            'penerimaan-bahan-baku' => [], // Tidak akses
+            'users' => [], // Tidak akses
+            'bahan-baku' => [], // Tidak akses
+            'produk' => [], // Tidak akses
+            'pelanggan' => [], // Tidak akses
+            'pesanan' => [], // Tidak akses
+            'pengiriman' => [], // Tidak akses
+            'transaksi-pembayaran' => [], // Tidak akses
+            'penugasan-produksi' => [], // Tidak akses
         ],
         'R05' => [ // Staf Penjualan
+            'pelanggan' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'], // CRUD pelanggan
+            'pesanan' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'], // CRUD pesanan
             'produk' => ['index', 'show'], // Hanya view produk
-            'pelanggan' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'],
-            'pesanan' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'],
+            'users' => [], // Tidak akses
+            'bahan-baku' => [], // Tidak akses
+            'pemasok' => [], // Tidak akses
+            'pengadaan' => [], // Tidak akses
+            'pengiriman' => [], // Tidak akses
+            'penerimaan-bahan-baku' => [], // Tidak akses
+            'pembelian' => [], // Tidak akses
+            'transaksi-pembayaran' => [], // Tidak akses
+            'penugasan-produksi' => [], // Tidak akses
         ],
         'R06' => [ // Staf Keuangan
-            'pengadaan' => ['index', 'show'], // View pengadaan saja
-            'pembelian' => ['index', 'show'], // View pembelian saja
-            'transaksi-pembayaran' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'],
+            'pembelian' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'], // CRUD pembelian
+            'transaksi-pembayaran' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'], // CRUD transaksi
+            'pengadaan' => ['index', 'show'], // Hanya view pengadaan
+            'users' => [], // Tidak akses
+            'bahan-baku' => [], // Tidak akses
+            'produk' => [], // Tidak akses
+            'pelanggan' => [], // Tidak akses
+            'pemasok' => [], // Tidak akses
+            'pesanan' => [], // Tidak akses
+            'pengiriman' => [], // Tidak akses
+            'penerimaan-bahan-baku' => [], // Tidak akses
+            'penugasan-produksi' => [], // Tidak akses
         ],
         'R07' => [ // Manajer Gudang
-            'bahan-baku' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'],
-            'produk' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'],
-            'pengadaan' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'], // Full CRUD
-            'pengiriman' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'],
-            'penerimaan-bahan-baku' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'],
+            'bahan-baku' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'], // CRUD bahan baku
+            'produk' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'], // CRUD produk
+            'pengadaan' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'], // CRUD pending pengadaan
+            'pengiriman' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'], // CRUD pengiriman
+            'penerimaan-bahan-baku' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'], // Full CRUD
+            'users' => [], // Tidak akses
+            'pelanggan' => [], // Tidak akses
+            'pemasok' => [], // Tidak akses
+            'pesanan' => [], // Tidak akses
+            'pembelian' => [], // Tidak akses
+            'transaksi-pembayaran' => [], // Tidak akses
+            'penugasan-produksi' => [], // Tidak akses
         ],
         'R08' => [ // Manajer RnD
             'penugasan-produksi' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'], // CRUD penugasan
             'bahan-baku' => ['index', 'show'], // Hanya view
             'produk' => ['index', 'show'], // Hanya view
             'pengadaan' => ['index', 'show'], // Hanya view
+            'users' => [], // Tidak akses
+            'pelanggan' => [], // Tidak akses
+            'pemasok' => [], // Tidak akses
+            'pesanan' => [], // Tidak akses
+            'pengiriman' => [], // Tidak akses
+            'penerimaan-bahan-baku' => [], // Tidak akses
+            'pembelian' => [], // Tidak akses
+            'transaksi-pembayaran' => [], // Tidak akses
         ],
         'R09' => [ // Manajer Pengadaan
-            'pengadaan' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'],
-            'pembelian' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'],
-            'pemasok' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'],
-            'penerimaan-bahan-baku' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'],
+            'pemasok' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'], // CRUD pemasok
+            'pengadaan' => ['index', 'edit', 'update', 'show'], // Isi detail & approve status
+            'users' => [], // Tidak akses
+            'bahan-baku' => [], // Tidak akses
+            'produk' => [], // Tidak akses
+            'pelanggan' => [], // Tidak akses
+            'pesanan' => [], // Tidak akses
+            'pengiriman' => [], // Tidak akses
+            'penerimaan-bahan-baku' => [], // Tidak akses
+            'pembelian' => [], // Tidak akses
+            'transaksi-pembayaran' => [], // Tidak akses
+            'penugasan-produksi' => [], // Tidak akses
         ],
         'R10' => [ // Manajer Keuangan
-            'pengadaan' => ['index', 'show'], // View dan bisa edit status saja (di controller)
-            'pembelian' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'],
-            'transaksi-pembayaran' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'],
+            'pembelian' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'], // CRUD pembelian
+            'transaksi-pembayaran' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'], // CRUD transaksi
+            'pengadaan' => ['index', 'edit', 'update', 'show'], // View & update status to disetujui_keuangan
+            'users' => [], // Tidak akses
+            'bahan-baku' => [], // Tidak akses
+            'produk' => [], // Tidak akses
+            'pelanggan' => [], // Tidak akses
+            'pemasok' => [], // Tidak akses
+            'pesanan' => [], // Tidak akses
+            'pengiriman' => [], // Tidak akses
+            'penerimaan-bahan-baku' => [], // Tidak akses
+            'penugasan-produksi' => [], // Tidak akses
         ],
     ];
 
@@ -103,6 +183,11 @@ class CheckRoleBasedAccess
         // Public routes bisa diakses semua role
         if (in_array($currentRoute, self::$publicRoutes)) {
             return $next($request);
+        }
+
+        // Users route hanya untuk Admin
+        if ($currentRoute === 'users') {
+            return $this->deny($request);
         }
 
         // Cek apakah role memiliki akses ke route ini

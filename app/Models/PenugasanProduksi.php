@@ -93,24 +93,24 @@ class PenugasanProduksi extends Model
     }
 
     // Status Methods
-    public function isAssigned()
+    public function isDitugaskan()
     {
-        return $this->status === 'assigned';
+        return $this->status === 'ditugaskan';
     }
 
-    public function isInProgress()
+    public function isProses()
     {
-        return $this->status === 'in_progress';
+        return $this->status === 'proses';
     }
 
-    public function isCompleted()
+    public function isSelesai()
     {
-        return $this->status === 'completed';
+        return $this->status === 'selesai';
     }
 
-    public function isCancelled()
+    public function isDibatalkan()
     {
-        return $this->status === 'cancelled';
+        return $this->status === 'dibatalkan';
     }
 
     // Status Transition Validation
@@ -123,10 +123,10 @@ class PenugasanProduksi extends Model
         }
 
         $validTransitions = [
-            'assigned' => ['in_progress', 'cancelled'],
-            'in_progress' => ['completed', 'cancelled'],
-            'completed' => [],
-            'cancelled' => [],
+            'ditugaskan' => ['proses', 'dibatalkan'],
+            'proses' => ['selesai', 'dibatalkan'],
+            'selesai' => [],
+            'dibatalkan' => [],
         ];
 
         return isset($validTransitions[$currentStatus]) &&
@@ -151,7 +151,7 @@ class PenugasanProduksi extends Model
 
     public function scopeOutstanding($query)
     {
-        return $query->whereIn('status', ['assigned', 'in_progress']);
+        return $query->whereIn('status', ['ditugaskan', 'proses']);
     }
 
     // Accessor untuk memastikan created_by_user selalu tersedia

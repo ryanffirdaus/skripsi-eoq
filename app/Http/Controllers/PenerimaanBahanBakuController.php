@@ -7,6 +7,7 @@ use App\Models\PenerimaanBahanBakuDetail;
 use App\Models\Pembelian;
 use App\Models\PembelianDetail;
 use App\Models\BahanBaku;
+use App\Http\Traits\RoleAccess;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -15,6 +16,8 @@ use Illuminate\Validation\Rule;
 
 class PenerimaanBahanBakuController extends Controller
 {
+    use RoleAccess;
+
     public function index(Request $request)
     {
         $query = PenerimaanBahanBaku::with(['pembelianDetail.pembelian.pemasok', 'pembelianDetail.pengadaanDetail']);
@@ -61,6 +64,15 @@ class PenerimaanBahanBakuController extends Controller
 
     public function create()
     {
+        // Authorization: hanya Staf Gudang (R02) dan Manajer Gudang (R07) yang bisa create
+        if (!$this->isGudangRelated()) {
+            return redirect()->route('penerimaan-bahan-baku.index')
+                ->with('flash', [
+                    'message' => 'Anda tidak memiliki izin untuk membuat penerimaan bahan baku baru.',
+                    'type' => 'error'
+                ]);
+        }
+
         $pembelians = Pembelian::whereIn('status', ['confirmed', 'partially_received'])
             ->with(['pemasok:pemasok_id,nama_pemasok', 'detail.pengadaanDetail'])
             ->orderBy('tanggal_pembelian', 'desc')
@@ -94,6 +106,15 @@ class PenerimaanBahanBakuController extends Controller
 
     public function store(Request $request)
     {
+        // Authorization: hanya Staf Gudang (R02) dan Manajer Gudang (R07) yang bisa store
+        if (!$this->isGudangRelated()) {
+            return redirect()->route('penerimaan-bahan-baku.index')
+                ->with('flash', [
+                    'message' => 'Anda tidak memiliki izin untuk membuat penerimaan bahan baku baru.',
+                    'type' => 'error'
+                ]);
+        }
+
         $validator = Validator::make($request->all(), [
             'items' => 'required|array|min:1',
             'items.*.pembelian_detail_id' => 'required|exists:pembelian_detail,pembelian_detail_id',

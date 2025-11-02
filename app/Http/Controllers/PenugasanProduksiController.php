@@ -33,8 +33,8 @@ class PenugasanProduksiController extends Controller
         // Filter berdasarkan role dan mode
         if ($user->role_id === 'R01') {
             // Admin - lihat SEMUA penugasan
-            if ($mode === 'assigned') {
-                $query->where('status', '!=', 'cancelled');
+            if ($mode === 'ditugaskan') {
+                $query->where('status', '!=', 'dibatalkan');
             }
         } elseif ($user->role_id === 'R08') {
             // Manajer RnD - lihat penugasan yang dia buat (created_by = user_id)
@@ -101,7 +101,7 @@ class PenugasanProduksiController extends Controller
         $pengadaanDetails = PengadaanDetail::with(['pengadaan', 'produk'])
             ->where('jenis_barang', 'produk')
             ->whereHas('pengadaan', function ($query) {
-                $query->whereIn('status', ['disetujui_finance', 'diproses']);
+                $query->whereIn('status', ['disetujui_keuangan', 'diproses']);
             })
             ->get();
 
@@ -152,7 +152,7 @@ class PenugasanProduksiController extends Controller
             'jumlah_produksi' => $validated['jumlah_produksi'],
             'deadline' => $validated['deadline'],
             'catatan' => $validated['catatan'],
-            'status' => 'assigned',
+            'status' => 'ditugaskan',
         ]);
 
         return redirect()->route('penugasan-produksi.index')
@@ -194,7 +194,7 @@ class PenugasanProduksiController extends Controller
             abort(403, 'Unauthorized');
         }
 
-        if ($penugasan_produksi->status === 'completed' || $penugasan_produksi->status === 'cancelled') {
+        if ($penugasan_produksi->status === 'selesai' || $penugasan_produksi->status === 'dibatalkan') {
             return back()->with('error', 'Tidak dapat mengubah penugasan yang sudah final');
         }
 
@@ -228,7 +228,7 @@ class PenugasanProduksiController extends Controller
         $user = Auth::user();
 
         // Check if status is already final
-        if ($penugasan_produksi->status === 'completed' || $penugasan_produksi->status === 'cancelled') {
+        if ($penugasan_produksi->status === 'selesai' || $penugasan_produksi->status === 'dibatalkan') {
             return back()->with('error', 'Tidak dapat mengubah penugasan yang sudah final');
         }
 
@@ -239,7 +239,7 @@ class PenugasanProduksiController extends Controller
             }
 
             $validated = $request->validate([
-                'status' => 'required|in:assigned,in_progress,completed,cancelled',
+                'status' => 'required|in:ditugaskan,proses,selesai,dibatalkan',
             ]);
 
             // Validasi transition
@@ -258,7 +258,7 @@ class PenugasanProduksiController extends Controller
                 'user_id' => 'required|exists:users,user_id',
                 'jumlah_produksi' => 'required|integer|min:1',
                 'deadline' => 'required|date|after_or_equal:today',
-                'status' => 'required|in:assigned,in_progress,completed,cancelled',
+                'status' => 'required|in:ditugaskan,proses,selesai,dibatalkan',
                 'catatan' => 'nullable|string|max:500',
             ]);
 
@@ -298,7 +298,7 @@ class PenugasanProduksiController extends Controller
      */
     public function destroy(PenugasanProduksi $penugasan_produksi)
     {
-        if ($penugasan_produksi->status === 'completed') {
+        if ($penugasan_produksi->status === 'selesai') {
             return back()->with('error', 'Tidak dapat menghapus penugasan yang sudah selesai');
         }
 
@@ -323,7 +323,7 @@ class PenugasanProduksiController extends Controller
         }
 
         $validated = $request->validate([
-            'status' => 'required|in:assigned,in_progress,completed,cancelled',
+            'status' => 'required|in:ditugaskan,proses,selesai,dibatalkan',
         ]);
 
         // Validasi transition
@@ -392,13 +392,13 @@ class PenugasanProduksiController extends Controller
 
         $stats = [
             'total_created' => PenugasanProduksi::where('created_by', $user->user_id)->count(),
-            'assigned' => PenugasanProduksi::where('created_by', $user->user_id)->byStatus('assigned')->count(),
-            'in_progress' => PenugasanProduksi::where('created_by', $user->user_id)->byStatus('in_progress')->count(),
-            'completed' => PenugasanProduksi::where('created_by', $user->user_id)->byStatus('completed')->count(),
-            'cancelled' => PenugasanProduksi::where('created_by', $user->user_id)->byStatus('cancelled')->count(),
+            'ditugaskan' => PenugasanProduksi::where('created_by', $user->user_id)->byStatus('ditugaskan')->count(),
+            'proses' => PenugasanProduksi::where('created_by', $user->user_id)->byStatus('proses')->count(),
+            'selesai' => PenugasanProduksi::where('created_by', $user->user_id)->byStatus('selesai')->count(),
+            'dibatalkan' => PenugasanProduksi::where('created_by', $user->user_id)->byStatus('dibatalkan')->count(),
             'overdue' => PenugasanProduksi::where('created_by', $user->user_id)
                 ->whereDate('deadline', '<', Carbon::today())
-                ->whereIn('status', ['assigned', 'in_progress'])
+                ->whereIn('status', ['ditugaskan', 'proses'])
                 ->count(),
         ];
 
@@ -414,13 +414,13 @@ class PenugasanProduksiController extends Controller
 
         $stats = [
             'total' => PenugasanProduksi::where('user_id', $user->user_id)->count(),
-            'assigned' => PenugasanProduksi::where('user_id', $user->user_id)->byStatus('assigned')->count(),
-            'in_progress' => PenugasanProduksi::where('user_id', $user->user_id)->byStatus('in_progress')->count(),
-            'completed' => PenugasanProduksi::where('user_id', $user->user_id)->byStatus('completed')->count(),
-            'cancelled' => PenugasanProduksi::where('user_id', $user->user_id)->byStatus('cancelled')->count(),
+            'ditugaskan' => PenugasanProduksi::where('user_id', $user->user_id)->byStatus('ditugaskan')->count(),
+            'proses' => PenugasanProduksi::where('user_id', $user->user_id)->byStatus('proses')->count(),
+            'selesai' => PenugasanProduksi::where('user_id', $user->user_id)->byStatus('selesai')->count(),
+            'dibatalkan' => PenugasanProduksi::where('user_id', $user->user_id)->byStatus('dibatalkan')->count(),
             'overdue' => PenugasanProduksi::where('user_id', $user->user_id)
                 ->whereDate('deadline', '<', Carbon::today())
-                ->whereIn('status', ['assigned', 'in_progress'])
+                ->whereIn('status', ['ditugaskan', 'proses'])
                 ->count(),
         ];
 

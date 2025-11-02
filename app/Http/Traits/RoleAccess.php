@@ -80,19 +80,51 @@ trait RoleAccess
     }
 
     /**
-     * Get current user's role
+     * Check apakah user adalah Staf Keuangan (R06)
      */
-    public function getCurrentRole(): ?string
+    public function isStafKeuangan(): bool
     {
-        return Auth::check() ? Auth::user()->role_id : null;
+        return $this->hasRole('R06');
     }
 
     /**
-     * Get current user's role name
+     * Check apakah user adalah Manajer Keuangan (R10)
      */
-    public function getCurrentRoleName(): ?string
+    public function isManajerKeuangan(): bool
     {
-        return Auth::check() ? Auth::user()->role->name ?? null : null;
+        return $this->hasRole('R10');
+    }
+
+    /**
+     * Check apakah user adalah Staf atau Manajer Keuangan
+     */
+    public function isKeuanganRelated(): bool
+    {
+        return $this->hasRoles(['R06', 'R10']);
+    }
+
+    /**
+     * Check apakah user adalah Manajer Pengadaan (R09)
+     */
+    public function isManajerPengadaan(): bool
+    {
+        return $this->hasRole('R09');
+    }
+
+    /**
+     * Check apakah user adalah Staf atau Manajer Pengadaan
+     */
+    public function isPengadaanRelated(): bool
+    {
+        return $this->hasRoles(['R04', 'R09']);
+    }
+
+    /**
+     * Check apakah user adalah Staf atau Manajer RnD
+     */
+    public function isRnDRelated(): bool
+    {
+        return $this->hasRoles(['R03', 'R08']);
     }
 
     /**

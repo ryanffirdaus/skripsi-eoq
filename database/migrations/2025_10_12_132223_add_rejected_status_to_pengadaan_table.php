@@ -13,8 +13,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('pengadaan', function (Blueprint $table) {
-            // Modify status enum untuk menambahkan ditolak_procurement dan ditolak_finance
-            DB::statement("ALTER TABLE pengadaan MODIFY COLUMN status ENUM('pending', 'disetujui_procurement', 'ditolak_procurement', 'disetujui_finance', 'ditolak_finance', 'diproses', 'diterima', 'dibatalkan') DEFAULT 'pending'");
+            // Modify status enum untuk menambahkan ditolak_pengadaan dan ditolak_keuangan
+            DB::statement("ALTER TABLE pengadaan MODIFY COLUMN status ENUM('pending', 'disetujui_pengadaan', 'ditolak_pengadaan', 'disetujui_keuangan', 'ditolak_keuangan', 'diproses', 'diterima', 'dibatalkan') DEFAULT 'pending'");
         });
     }
 
@@ -25,7 +25,7 @@ return new class extends Migration
     {
         Schema::table('pengadaan', function (Blueprint $table) {
             // Kembalikan ke enum lama
-            DB::statement("ALTER TABLE pengadaan MODIFY COLUMN status ENUM('pending', 'disetujui_procurement', 'disetujui_finance', 'diproses', 'diterima', 'dibatalkan') DEFAULT 'pending'");
+            DB::statement("ALTER TABLE pengadaan MODIFY COLUMN status ENUM('pending', 'disetujui_pengadaan', 'disetujui_keuangan', 'diproses', 'diterima', 'dibatalkan') DEFAULT 'pending'");
         });
     }
 };

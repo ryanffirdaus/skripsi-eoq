@@ -1,0 +1,158 @@
+<?php
+
+namespace App\Http\Traits;
+
+use App\Models\Pengadaan;
+use Illuminate\Support\Facades\Auth;
+
+/**
+ * Trait untuk menangani authorization logic yang kompleks untuk Pengadaan
+ * berdasarkan status dan role pengguna
+ *
+ * Status Pengadaan:
+ * - draft: dibuat oleh staf gudang
+ * - pending_approval_gudang: menunggu approval dari manajer gudang
+ * - disetujui_gudang: sudah disetujui gudang, siap untuk isi detail pemasok
+ * - disetujui_pengadaan: sudah disetujui pengadaan, menunggu approval keuangan
+ * - disetujui_keuangan: sudah disetujui keuangan, siap buat pembelian
+ *
+ * Role Access Logic:
+ * - R02 (Staf Gudang): create draft, delete pending, view all
+ * - R07 (Manajer Gudang): CRUD pending, approve pending->disetujui_gudang
+ * - R04 (Staf Pengadaan): view disetujui_gudang, edit detail pemasok/harga
+ * - R09 (Manajer Pengadaan): edit detail pemasok/harga, approve->disetujui_pengadaan
+ * - R10 (Manajer Keuangan): view, approve->disetujui_keuangan
+ * - R06 (Staf Keuangan): view only
+ */
+trait PengadaanAuthorization
+{
+    /**
+     * Check if user can create pengadaan
+     * Only Staf Gudang (R02) can create
+     */
+    public function canCreatePengadaan(): bool
+    {
+        return Auth::check() && in_array(Auth::user()->role_id, ['R01', 'R02', 'R07']);
+    }
+
+    /**
+     * Check if user can delete pengadaan
+     * - Staf Gudang (R02): delete draft/pending_approval_gudang
+     * - Manajer Gudang (R07): delete any pending status
+     */
+    public function canDeletePengadaan(Pengadaan $pengadaan): bool
+    {
+        if (!Auth::check()) {
+            return false;
+        }
+
+        $roleId = Auth::user()->role_id;
+        $status = $pengadaan->status;
+
+        // Admin bisa delete semua
+        if ($roleId === 'R01') {
+            return true;
+        }
+
+        // Staf Gudang: delete draft/pending
+        if ($roleId === 'R02') {
+            return in_array($status, ['draft', 'pending_approval_gudang']);
+        }
+
+        // Manajer Gudang: delete pending
+        if ($roleId === 'R07') {
+            return in_array($status, ['draft', 'pending_approval_gudang']);
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if user can edit pengadaan status
+     */
+    public function canApprovePengadaan(Pengadaan $pengadaan): bool
+    {
+        if (!Auth::check()) {
+            return false;
+        }
+
+        $roleId = Auth::user()->role_id;
+        $status = $pengadaan->status;
+
+        // Admin bisa approve semua
+        if ($roleId === 'R01') {
+            return true;
+        }
+
+        // Manajer Gudang: approve pending->disetujui_gudang
+        if ($roleId === 'R07' && $status === 'pending_approval_gudang') {
+            return true;
+        }
+
+        // Manajer Pengadaan: approve disetujui_gudang->disetujui_pengadaan (hanya jika sudah isi detail)
+        if ($roleId === 'R09' && $status === 'disetujui_gudang') {
+            return $this->isPengadaanDetailFilled($pengadaan);
+        }
+
+        // Manajer Keuangan: approve disetujui_pengadaan->disetujui_keuangan
+        if ($roleId === 'R10' && $status === 'disetujui_pengadaan') {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if user can edit pengadaan detail (pemasok/harga)
+     * - Staf & Manajer Pengadaan: edit untuk status disetujui_gudang
+     */
+    public function canEditPengadaanDetail(Pengadaan $pengadaan): bool
+    {
+        if (!Auth::check()) {
+            return false;
+        }
+
+        $roleId = Auth::user()->role_id;
+        $status = $pengadaan->status;
+
+        // Admin bisa edit semua
+        if ($roleId === 'R01') {
+            return true;
+        }
+
+        // Staf & Manajer Pengadaan: edit detail untuk status disetujui_gudang
+        if (in_array($roleId, ['R04', 'R09']) && $status === 'disetujui_gudang') {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if pengadaan detail sudah lengkap (pemasok & harga satuan terisi)
+     */
+    protected function isPengadaanDetailFilled(Pengadaan $pengadaan): bool
+    {
+        return $pengadaan->details()
+            ->where(function ($query) {
+                $query->whereNull('pemasok_id')
+                    ->orWhereNull('harga_satuan');
+            })
+            ->doesntExist();
+    }
+
+    /**
+     * Check if user can view pengadaan
+     */
+    public function canViewPengadaan(Pengadaan $pengadaan): bool
+    {
+        if (!Auth::check()) {
+            return false;
+        }
+
+        $roleId = Auth::user()->role_id;
+
+        // Admin, Staf Gudang, Manajer Gudang, Staf Pengadaan, Manajer Pengadaan, Staf Keuangan, Manajer Keuangan
+        return in_array($roleId, ['R01', 'R02', 'R04', 'R06', 'R07', 'R09', 'R10']);
+    }
+}

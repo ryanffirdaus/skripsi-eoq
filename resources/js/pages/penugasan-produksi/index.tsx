@@ -90,10 +90,10 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 const statusOptions = [
-    { value: 'assigned', label: 'Ditugaskan' },
-    { value: 'in_progress', label: 'Sedang Dikerjakan' },
-    { value: 'completed', label: 'Selesai' },
-    { value: 'cancelled', label: 'Dibatalkan' },
+    { value: 'ditugaskan', label: 'Ditugaskan' },
+    { value: 'proses', label: 'Sedang Dikerjakan' },
+    { value: 'selesai', label: 'Selesai' },
+    { value: 'dibatalkan', label: 'Dibatalkan' },
 ];
 
 // Helper function to format deadline
@@ -117,7 +117,7 @@ const formatDeadline = (deadline: string): string => {
 
 export default function Index({ penugasan, filters, userRole, flash }: Props) {
     const isAdmin = ['R01', 'R08'].includes(userRole);
-    const mode = filters.mode === 'assigned' ? 'assigned' : 'all';
+    const mode = filters.mode === 'ditugaskan' ? 'ditugaskan' : 'all';
 
     const columns = [
         {
@@ -184,10 +184,10 @@ export default function Index({ penugasan, filters, userRole, flash }: Props) {
             defaultVisible: true,
             render: (item: Penugasan) => {
                 const statusMap: Record<string, string> = {
-                    assigned: 'Ditugaskan',
-                    in_progress: 'Sedang Dikerjakan',
-                    completed: 'Selesai',
-                    cancelled: 'Dibatalkan',
+                    ditugaskan: 'Ditugaskan',
+                    proses: 'Sedang Dikerjakan',
+                    selesai: 'Selesai',
+                    dibatalkan: 'Dibatalkan',
                 };
                 return statusMap[item.status] || item.status;
             },
@@ -207,7 +207,7 @@ export default function Index({ penugasan, filters, userRole, flash }: Props) {
     const actions = [
         createEditAction<Penugasan>(
             (item) => `/penugasan-produksi/${item.penugasan_id}/edit`,
-            (item) => item.status !== 'completed' && item.status !== 'cancelled',
+            (item) => item.status !== 'selesai' && item.status !== 'dibatalkan',
         ),
         ...(isAdmin
             ? [
@@ -224,10 +224,10 @@ export default function Index({ penugasan, filters, userRole, flash }: Props) {
     ];
 
     // Determine title and breadcrumb based on mode
-    const title = mode === 'assigned' ? 'Yang Ditugaskan ke Workers' : isAdmin ? 'Semua Penugasan Produksi' : 'Tugas Saya';
+    const title = mode === 'ditugaskan' ? 'Yang Ditugaskan ke Workers' : isAdmin ? 'Semua Penugasan Produksi' : 'Tugas Saya';
 
     const modeBreadcrumbs =
-        mode === 'assigned'
+        mode === 'ditugaskan'
             ? [
                   {
                       title: 'Penugasan Produksi',
@@ -235,7 +235,7 @@ export default function Index({ penugasan, filters, userRole, flash }: Props) {
                   },
                   {
                       title: 'Yang Ditugaskan',
-                      href: '/penugasan-produksi?mode=assigned',
+                      href: '/penugasan-produksi?mode=ditugaskan',
                   },
               ]
             : breadcrumbs;
