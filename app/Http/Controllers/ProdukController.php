@@ -85,6 +85,11 @@ class ProdukController extends Controller
      */
     public function create()
     {
+        // Authorization: Admin (R01), Manajer RnD (R08)
+        if (!$this->isAdmin() && !$this->hasRole('R08')) {
+            abort(403, 'Anda tidak memiliki izin untuk membuat produk baru.');
+        }
+
         $bahanBakus = BahanBaku::select('bahan_baku_id', 'nama_bahan', 'satuan_bahan')
             ->orderBy('nama_bahan')
             ->get();
@@ -123,6 +128,11 @@ class ProdukController extends Controller
      */
     public function store(Request $request)
     {
+        // Authorization: Admin (R01), Manajer RnD (R08)
+        if (!$this->isAdmin() && !$this->hasRole('R08')) {
+            abort(403, 'Anda tidak memiliki izin untuk menyimpan produk.');
+        }
+
         $validated = $request->validate([
             'nama_produk' => ['required', 'string', 'max:255'],
             'lokasi_produk' => ['required', 'string', 'max:255'],
@@ -196,6 +206,11 @@ class ProdukController extends Controller
      */
     public function edit(Produk $produk)
     {
+        // Authorization: Admin (R01), Manajer RnD (R08)
+        if (!$this->isAdmin() && !$this->hasRole('R08')) {
+            abort(403, 'Anda tidak memiliki izin untuk mengedit produk.');
+        }
+
         // Load bahan baku yang digunakan produk ini
         $bahanProduksi = DB::table('bahan_produksi')
             ->join('bahan_baku', 'bahan_produksi.bahan_baku_id', '=', 'bahan_baku.bahan_baku_id')
@@ -220,6 +235,11 @@ class ProdukController extends Controller
      */
     public function update(Request $request, Produk $produk)
     {
+        // Authorization: Admin (R01), Manajer RnD (R08)
+        if (!$this->isAdmin() && !$this->hasRole('R08')) {
+            abort(403, 'Anda tidak memiliki izin untuk mengubah produk.');
+        }
+
         $validated = $request->validate([
             'nama_produk' => ['required', 'string', 'max:255'],
             'lokasi_produk' => ['required', 'string', 'max:255'],
@@ -282,6 +302,11 @@ class ProdukController extends Controller
      */
     public function destroy(Produk $produk)
     {
+        // Authorization: Admin (R01), Manajer RnD (R08)
+        if (!$this->isAdmin() && !$this->hasRole('R08')) {
+            abort(403, 'Anda tidak memiliki izin untuk menghapus produk.');
+        }
+
         try {
             $namaProduk = $produk->nama_produk;
             $produkId = $produk->produk_id;

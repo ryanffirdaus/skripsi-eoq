@@ -97,6 +97,11 @@ class PenugasanProduksiController extends Controller
      */
     public function create()
     {
+        // Authorization: Admin (R01), Manajer RnD (R08) yang bisa create
+        if (!$this->isAdmin() && !$this->hasRole('R08')) {
+            abort(403, 'Anda tidak memiliki izin untuk membuat penugasan produksi baru.');
+        }
+
         // Get outstanding PengadaanDetails untuk PRODUK saja (yang belum selesai diproduksi)
         $pengadaanDetails = PengadaanDetail::with(['pengadaan', 'produk'])
             ->where('jenis_barang', 'produk')
@@ -121,6 +126,11 @@ class PenugasanProduksiController extends Controller
      */
     public function store(Request $request)
     {
+        // Authorization: Admin (R01), Manajer RnD (R08) yang bisa store
+        if (!$this->isAdmin() && !$this->hasRole('R08')) {
+            abort(403, 'Anda tidak memiliki izin untuk menyimpan penugasan produksi.');
+        }
+
         $validated = $request->validate([
             'pengadaan_detail_id' => 'required|exists:pengadaan_detail,pengadaan_detail_id',
             'user_id' => 'required|exists:users,user_id',
@@ -189,7 +199,12 @@ class PenugasanProduksiController extends Controller
     {
         $user = Auth::user();
 
-        // Staf RnD: hanya bisa edit tugas mereka sendiri
+        // Authorization: Admin (R01), Manajer RnD (R08), atau Staf RnD (R03) yang bisa edit
+        // Staf RnD hanya bisa edit tugas mereka sendiri
+        if (!$this->isAdmin() && !$this->hasRole('R08') && $user->role_id !== 'R03') {
+            abort(403, 'Anda tidak memiliki izin untuk mengedit penugasan produksi.');
+        }
+
         if ($user->role_id === 'R03' && $penugasan_produksi->user_id !== $user->user_id) {
             abort(403, 'Unauthorized');
         }
@@ -226,6 +241,11 @@ class PenugasanProduksiController extends Controller
     public function update(Request $request, PenugasanProduksi $penugasan_produksi)
     {
         $user = Auth::user();
+
+        // Authorization: Admin (R01), Manajer RnD (R08), atau Staf RnD (R03) untuk diri sendiri
+        if (!$this->isAdmin() && !$this->hasRole('R08') && $user->role_id !== 'R03') {
+            abort(403, 'Anda tidak memiliki izin untuk mengubah penugasan produksi.');
+        }
 
         // Check if status is already final
         if ($penugasan_produksi->status === 'selesai' || $penugasan_produksi->status === 'dibatalkan') {
@@ -298,6 +318,11 @@ class PenugasanProduksiController extends Controller
      */
     public function destroy(PenugasanProduksi $penugasan_produksi)
     {
+        // Authorization: Admin (R01) atau Manajer RnD (R08)
+        if (!$this->isAdmin() && !$this->hasRole('R08')) {
+            abort(403, 'Anda tidak memiliki izin untuk menghapus penugasan produksi.');
+        }
+
         if ($penugasan_produksi->status === 'selesai') {
             return back()->with('error', 'Tidak dapat menghapus penugasan yang sudah selesai');
         }

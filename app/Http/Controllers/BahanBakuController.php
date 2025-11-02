@@ -84,6 +84,11 @@ class BahanBakuController extends Controller
      */
     public function create()
     {
+        // Authorization: Admin (R01), Manajer Gudang (R07)
+        if (!$this->isAdmin() && !$this->isGudangRelated()) {
+            abort(403, 'Anda tidak memiliki izin untuk membuat bahan baku baru.');
+        }
+
         return Inertia::render('bahan-baku/create');
     }
 
@@ -115,6 +120,11 @@ class BahanBakuController extends Controller
      */
     public function store(Request $request)
     {
+        // Authorization: Admin (R01), Manajer Gudang (R07)
+        if (!$this->isAdmin() && !$this->isGudangRelated()) {
+            abort(403, 'Anda tidak memiliki izin untuk menyimpan bahan baku.');
+        }
+
         $validated = $request->validate([
             'nama_bahan' => ['required', 'string', 'max:255'],
             'lokasi_bahan' => ['required', 'string', 'max:255'],
@@ -169,6 +179,11 @@ class BahanBakuController extends Controller
      */
     public function edit(BahanBaku $bahanBaku)
     {
+        // Authorization: Admin (R01), Manajer Gudang (R07)
+        if (!$this->isAdmin() && !$this->isGudangRelated()) {
+            abort(403, 'Anda tidak memiliki izin untuk mengedit bahan baku.');
+        }
+
         return Inertia::render('bahan-baku/edit', [
             'bahanBaku' => $bahanBaku
         ]);
@@ -179,6 +194,11 @@ class BahanBakuController extends Controller
      */
     public function update(Request $request, BahanBaku $bahanBaku)
     {
+        // Authorization: Admin (R01), Manajer Gudang (R07)
+        if (!$this->isAdmin() && !$this->isGudangRelated()) {
+            abort(403, 'Anda tidak memiliki izin untuk mengubah bahan baku.');
+        }
+
         $validated = $request->validate([
             'nama_bahan' => ['required', 'string', 'max:255'],
             'lokasi_bahan' => ['required', 'string', 'max:255'],
@@ -223,6 +243,11 @@ class BahanBakuController extends Controller
      */
     public function destroy(BahanBaku $bahanBaku)
     {
+        // Authorization: Admin (R01), Manajer Gudang (R07)
+        if (!$this->isAdmin() && !$this->isGudangRelated()) {
+            abort(403, 'Anda tidak memiliki izin untuk menghapus bahan baku.');
+        }
+
         try {
             $namaBahan = $bahanBaku->nama_bahan;
             $bahanBakuId = $bahanBaku->bahan_baku_id;

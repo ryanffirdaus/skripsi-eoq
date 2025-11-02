@@ -45,6 +45,13 @@ interface Props {
     pengadaan: Pengadaan;
     pemasoks: Pemasok[];
     statusOptions: StatusOption[];
+    auth?: {
+        user: {
+            user_id: string;
+            nama_lengkap: string;
+            role_id: string;
+        };
+    };
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -53,7 +60,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Ubah Pengadaan', href: '#' },
 ];
 
-export default function Edit({ pengadaan, pemasoks, statusOptions }: Props) {
+export default function Edit({ pengadaan, pemasoks, statusOptions, auth }: Props) {
     const { data, setData, put, processing, errors } = useForm({
         status: pengadaan.status,
         catatan: pengadaan.catatan || '',
@@ -70,8 +77,34 @@ export default function Edit({ pengadaan, pemasoks, statusOptions }: Props) {
         setData('details', updatedDetails);
     };
 
+    // Authorization helper functions
+    const canEditSupplier = (): boolean => {
+        const userRole = auth?.user?.role_id;
+        // R01 (Admin) dapat edit status apapun
+        // R04 (Staf Pengadaan) and R09 (Manajer Pengadaan) hanya saat disetujui_gudang
+        if (userRole === 'R01') {
+            return true; // Admin bisa edit di status apapun
+        }
+        const isPengadaanStaff = userRole === 'R04' || userRole === 'R09';
+        const isCorrectStatus = pengadaan.status === 'disetujui_gudang';
+        return isPengadaanStaff && isCorrectStatus;
+    };
+
+    const canEditPrice = (): boolean => {
+        const userRole = auth?.user?.role_id;
+        // R01 (Admin) dapat edit status apapun
+        if (userRole === 'R01') {
+            return true; // Admin bisa edit di status apapun
+        }
+        // Staf/Manajer Gudang (R02, R07), Staf/Manajer Pengadaan (R04, R09)
+        const isAuthorizedRole = ['R02', 'R04', 'R07', 'R09'].includes(userRole || '');
+        // Only when status is pending or disetujui_gudang
+        const isEditableStatus = pengadaan.status === 'pending' || pengadaan.status === 'disetujui_gudang';
+        return isAuthorizedRole && isEditableStatus;
+    };
+
     // Check apakah harga masih bisa diedit (hanya untuk status pending, ditolak_procurement, ditolak_finance)
-    const isPriceEditable = ['pending', 'ditolak_procurement', 'ditolak_finance'].includes(pengadaan.status);
+    const isPriceEditable = canEditPrice();
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -172,25 +205,40 @@ export default function Edit({ pengadaan, pemasoks, statusOptions }: Props) {
                                     <Label className="text-sm font-medium text-gray-700">Pemasok</Label>
                                     {item.jenis_barang === 'bahan_baku' ? (
                                         <>
-                                            <Select
-                                                value={data.details[index].pemasok_id || ''}
-                                                onValueChange={(value) => handleDetailChange(index, 'pemasok_id', value)}
-                                            >
-                                                <SelectTrigger
-                                                    className={cn('mt-1 bg-white', errors[`details.${index}.pemasok_id`] && 'border-red-500')}
+                                            {canEditSupplier() ? (
+                                                <>
+                                                    <Select
+                                                        value={data.details[index].pemasok_id || ''}
+                                                        onValueChange={(value) => handleDetailChange(index, 'pemasok_id', value)}
+                                                    >
+                                                        <SelectTrigger
+                                                            className={cn('mt-1 bg-white', errors[`details.${index}.pemasok_id`] && 'border-red-500')}
+                                                        >
+                                                            <SelectValue placeholder="Pilih Pemasok" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {pemasoks.map((pemasok) => (
+                                                                <SelectItem key={pemasok.pemasok_id} value={pemasok.pemasok_id}>
+                                                                    {pemasok.nama_pemasok}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                    {errors[`details.${index}.pemasok_id`] && (
+                                                        <p className="mt-1 text-sm text-red-600">{errors[`details.${index}.pemasok_id`]}</p>
+                                                    )}
+                                                </>
+                                            ) : (
+                                                <div
+                                                    className={cn(
+                                                        'mt-1 rounded border p-2 text-sm',
+                                                        data.details[index].pemasok_id ? 'bg-white' : 'bg-gray-100 text-gray-600',
+                                                    )}
                                                 >
-                                                    <SelectValue placeholder="Pilih Pemasok" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {pemasoks.map((pemasok) => (
-                                                        <SelectItem key={pemasok.pemasok_id} value={pemasok.pemasok_id}>
-                                                            {pemasok.nama_pemasok}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                            {errors[`details.${index}.pemasok_id`] && (
-                                                <p className="mt-1 text-sm text-red-600">{errors[`details.${index}.pemasok_id`]}</p>
+                                                    {data.details[index].pemasok_id
+                                                        ? pemasoks.find((p) => p.pemasok_id === data.details[index].pemasok_id)?.nama_pemasok
+                                                        : '- (Menunggu alokasi)'}
+                                                </div>
                                             )}
                                         </>
                                     ) : (

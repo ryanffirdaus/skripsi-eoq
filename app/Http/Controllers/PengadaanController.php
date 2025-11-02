@@ -137,6 +137,8 @@ class PengadaanController extends Controller
                 ]);
         }
 
+        $user = Auth::user();
+
         $pemasok = Pemasok::active()
             ->select('pemasok_id', 'nama_pemasok', 'narahubung', 'nomor_telepon')
             ->orderBy('nama_pemasok')
@@ -219,6 +221,13 @@ class PengadaanController extends Controller
             'pesanan' => $pesanan,
             'bahanBaku' => $bahanBaku,
             'produk' => $produk,
+            'auth' => [
+                'user' => [
+                    'user_id' => $user->user_id,
+                    'nama_lengkap' => $user->nama_lengkap,
+                    'role_id' => $user->role_id,
+                ]
+            ]
         ]);
     }
 
@@ -334,6 +343,8 @@ class PengadaanController extends Controller
     {
         Log::info('Pengadaan Store - Request Data:', $request->all());
 
+        $user = Auth::user();
+
         // SOURCE OF TRUTH: Validation menggunakan field name dari database migration
         $validator = Validator::make($request->all(), [
             'pesanan_id'        => 'required|exists:pesanan,pesanan_id',
@@ -348,7 +359,7 @@ class PengadaanController extends Controller
         ]);
 
         // Custom validation for barang_id based on jenis_barang
-        $validator->after(function ($validator) use ($request) {
+        $validator->after(function ($validator) use ($request, $user) {
             if ($request->has('items')) {
                 foreach ($request->items as $index => $item) {
                     if (isset($item['jenis_barang']) && isset($item['barang_id'])) {
@@ -360,6 +371,19 @@ class PengadaanController extends Controller
                             if (!Produk::where('produk_id', $item['barang_id'])->exists()) {
                                 $validator->errors()->add("items.{$index}.barang_id", "Produk dengan ID {$item['barang_id']} tidak ditemukan.");
                             }
+                        }
+                    }
+
+                    // Authorization: Hanya R04 (Staf Pengadaan), R09 (Manajer Pengadaan), atau R01 (Admin) yang bisa input pemasok
+                    if (isset($item['pemasok_id']) && !empty($item['pemasok_id'])) {
+                        // Check role - Admin (R01) bisa input pemasok kapanpun
+                        if ($user->role_id !== 'R01' && !in_array($user->role_id, ['R04', 'R09'])) {
+                            $validator->errors()->add("items.{$index}.pemasok_id", "Hanya Staf/Manajer Pengadaan atau Admin yang dapat mengalokasikan pemasok.");
+                        }
+
+                        // Check jenis_barang (pemasok hanya untuk bahan_baku)
+                        if (isset($item['jenis_barang']) && $item['jenis_barang'] !== 'bahan_baku') {
+                            $validator->errors()->add("items.{$index}.pemasok_id", "Pemasok hanya dapat diinput untuk item bahan_baku.");
                         }
                     }
                 }
@@ -523,6 +547,8 @@ class PengadaanController extends Controller
             ['value' => 'dibatalkan', 'label' => 'Dibatalkan'],
         ];
 
+        $user = Auth::user();
+
         return Inertia::render('pengadaan/edit', [
             'pengadaan' => [
                 'pengadaan_id'      => $pengadaan->pengadaan_id,
@@ -547,6 +573,13 @@ class PengadaanController extends Controller
             ],
             'pemasoks' => $pemasok,
             'statusOptions' => $statusOptions,
+            'auth' => [
+                'user' => [
+                    'user_id' => $user->user_id,
+                    'nama_lengkap' => $user->nama_lengkap,
+                    'role_id' => $user->role_id,
+                ]
+            ]
         ]);
     }
 
@@ -615,41 +648,42 @@ class PengadaanController extends Controller
             }
 
             // Cek role permission untuk status tertentu
+            // Admin (R01) bisa change status ke manapun tanpa restriction
             // Only Manajer Gudang (R07) bisa approve ke disetujui_gudang
-            if ($request->status === 'disetujui_gudang' && $user->role_id !== 'R07') {
+            if ($request->status === 'disetujui_gudang' && $user->role_id !== 'R01' && $user->role_id !== 'R07') {
                 return redirect()->back()
                     ->with('flash', [
-                        'message' => 'Hanya Manajer Gudang yang bisa menyetujui pengadaan di tahap ini.',
+                        'message' => 'Hanya Manajer Gudang atau Admin yang bisa menyetujui pengadaan di tahap ini.',
                         'type' => 'error'
                     ])
                     ->withInput();
             }
 
             // Only Manajer Pengadaan (R09) bisa approve ke disetujui_pengadaan (setelah pemasok dialokasikan)
-            if ($request->status === 'disetujui_pengadaan' && $user->role_id !== 'R09') {
+            if ($request->status === 'disetujui_pengadaan' && $user->role_id !== 'R01' && $user->role_id !== 'R09') {
                 return redirect()->back()
                     ->with('flash', [
-                        'message' => 'Hanya Manajer Pengadaan yang bisa menyetujui pengadaan di tahap ini.',
+                        'message' => 'Hanya Manajer Pengadaan atau Admin yang bisa menyetujui pengadaan di tahap ini.',
                         'type' => 'error'
                     ])
                     ->withInput();
             }
 
             // Only Manajer Keuangan (R10) bisa approve ke disetujui_keuangan
-            if ($request->status === 'disetujui_keuangan' && $user->role_id !== 'R10') {
+            if ($request->status === 'disetujui_keuangan' && $user->role_id !== 'R01' && $user->role_id !== 'R10') {
                 return redirect()->back()
                     ->with('flash', [
-                        'message' => 'Hanya Manajer Keuangan yang bisa menyetujui pengadaan di tahap ini.',
+                        'message' => 'Hanya Manajer Keuangan atau Admin yang bisa menyetujui pengadaan di tahap ini.',
                         'type' => 'error'
                     ])
                     ->withInput();
             }
 
             // Only Manajer Gudang (R07) bisa approve ke diproses (setelah keuangan approve)
-            if ($request->status === 'diproses' && $user->role_id !== 'R07') {
+            if ($request->status === 'diproses' && $user->role_id !== 'R01' && $user->role_id !== 'R07') {
                 return redirect()->back()
                     ->with('flash', [
-                        'message' => 'Hanya Manajer Gudang yang bisa memproses pengadaan setelah disetujui keuangan.',
+                        'message' => 'Hanya Manajer Gudang atau Admin yang bisa memproses pengadaan setelah disetujui keuangan.',
                         'type' => 'error'
                     ])
                     ->withInput();
@@ -668,12 +702,45 @@ class PengadaanController extends Controller
             foreach ($request->details as $detailData) {
                 $updateDetailData = [];
 
+                // AUTHORIZATION: Pemasok input hanya boleh Staf/Manajer Pengadaan (R04, R09), atau Admin (R01)
+                // Admin bisa edit status apapun, tapi R04/R09 hanya saat status = 'disetujui_gudang'
                 if (isset($detailData['pemasok_id'])) {
+                    // Check role - Admin (R01) bisa selalu, R04/R09 restricted
+                    if ($user->role_id !== 'R01' && !in_array($user->role_id, ['R04', 'R09'])) {
+                        return redirect()->back()
+                            ->with('flash', [
+                                'message' => 'Hanya Staf/Manajer Pengadaan atau Admin yang bisa mengalokasikan pemasok.',
+                                'type' => 'error'
+                            ])
+                            ->withInput();
+                    }
+
+                    // Check status - Admin can edit any status, tapi R04/R09 hanya saat disetujui_gudang
+                    if ($user->role_id !== 'R01' && $pengadaan->status !== 'disetujui_gudang') {
+                        return redirect()->back()
+                            ->with('flash', [
+                                'message' => 'Pemasok hanya bisa dialokasikan saat status "Disetujui Gudang". Hubungi Admin jika perlu exception.',
+                                'type' => 'error'
+                            ])
+                            ->withInput();
+                    }
+
+                    // Check jenis_barang - hanya bahan_baku yang boleh input pemasok
+                    $detail = PengadaanDetail::find($detailData['pengadaan_detail_id']);
+                    if ($detail && $detail->jenis_barang !== 'bahan_baku') {
+                        return redirect()->back()
+                            ->with('flash', [
+                                'message' => 'Pemasok hanya dialokasikan untuk bahan baku. Produk langsung ke RnD.',
+                                'type' => 'error'
+                            ])
+                            ->withInput();
+                    }
+
                     $updateDetailData['pemasok_id'] = $detailData['pemasok_id'];
                 }
 
                 // Hanya update harga jika masih draft atau disetujui_gudang (sebelum approval dari Pengadaan)
-                $canEditPrice = in_array($pengadaan->status, ['draft', 'disetujui_gudang']);
+                $canEditPrice = in_array($pengadaan->status, ['pending', 'disetujui_gudang']);
                 if ($canEditPrice && isset($detailData['harga_satuan'])) {
                     $updateDetailData['harga_satuan'] = $detailData['harga_satuan'];
                 }

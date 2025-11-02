@@ -7,9 +7,11 @@ use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvid
 use App\Models\PenugasanProduksi;
 use App\Models\Pelanggan;
 use App\Models\Pesanan;
+use App\Models\Pengadaan;
 use App\Policies\PenugasanProduksiPolicy;
 use App\Policies\PelangganPolicy;
 use App\Policies\PesananPolicy;
+use App\Policies\PengadaanPolicy;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -22,6 +24,7 @@ class AuthServiceProvider extends ServiceProvider
         PenugasanProduksi::class => PenugasanProduksiPolicy::class,
         Pelanggan::class => PelangganPolicy::class,
         Pesanan::class => PesananPolicy::class,
+        Pengadaan::class => PengadaanPolicy::class,
     ];
 
     /**

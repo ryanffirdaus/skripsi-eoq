@@ -78,6 +78,11 @@ class PemasokController extends Controller
      */
     public function create()
     {
+        // Authorization: Admin (R01), Staf Pengadaan (R04), Manajer Pengadaan (R09)
+        if (!$this->isAdmin() && !$this->hasRoles(['R04', 'R09'])) {
+            abort(403, 'Anda tidak memiliki izin untuk membuat pemasok baru.');
+        }
+
         return Inertia::render('pemasok/create');
     }
 
@@ -86,6 +91,11 @@ class PemasokController extends Controller
      */
     public function store(Request $request)
     {
+        // Authorization: Admin (R01), Staf Pengadaan (R04), Manajer Pengadaan (R09)
+        if (!$this->isAdmin() && !$this->hasRoles(['R04', 'R09'])) {
+            abort(403, 'Anda tidak memiliki izin untuk menyimpan pemasok.');
+        }
+
         $validated = $request->validate([
             'nama_pemasok' => ['required', 'string', 'max:255'],
             'narahubung' => ['required', 'string', 'max:255'],
@@ -123,6 +133,11 @@ class PemasokController extends Controller
      */
     public function edit(Pemasok $pemasok)
     {
+        // Authorization: Admin (R01), Staf Pengadaan (R04), Manajer Pengadaan (R09)
+        if (!$this->isAdmin() && !$this->hasRoles(['R04', 'R09'])) {
+            abort(403, 'Anda tidak memiliki izin untuk mengedit pemasok.');
+        }
+
         return Inertia::render('pemasok/edit', [
             'pemasok' => $pemasok
         ]);
@@ -133,6 +148,11 @@ class PemasokController extends Controller
      */
     public function update(Request $request, Pemasok $pemasok)
     {
+        // Authorization: Admin (R01), Staf Pengadaan (R04), Manajer Pengadaan (R09)
+        if (!$this->isAdmin() && !$this->hasRoles(['R04', 'R09'])) {
+            abort(403, 'Anda tidak memiliki izin untuk mengubah pemasok.');
+        }
+
         $validated = $request->validate([
             'nama_pemasok' => ['required', 'string', 'max:255'],
             'narahubung' => ['required', 'string', 'max:255'],
@@ -154,6 +174,11 @@ class PemasokController extends Controller
      */
     public function destroy(Pemasok $pemasok)
     {
+        // Authorization: Admin (R01), Staf Pengadaan (R04), Manajer Pengadaan (R09)
+        if (!$this->isAdmin() && !$this->hasRoles(['R04', 'R09'])) {
+            abort(403, 'Anda tidak memiliki izin untuk menghapus pemasok.');
+        }
+
         try {
             $namaPemasok = $pemasok->nama_pemasok;
             $pemasokId = $pemasok->pemasok_id;

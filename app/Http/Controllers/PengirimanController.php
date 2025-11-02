@@ -98,6 +98,11 @@ class PengirimanController extends Controller
      */
     public function create()
     {
+        // Authorization: Admin (R01), Staf Gudang (R02), Manajer Gudang (R07)
+        if (!$this->isAdmin() && !$this->isGudangRelated()) {
+            abort(403, 'Anda tidak memiliki izin untuk membuat pengiriman baru.');
+        }
+
         $pesananList = Pesanan::with(['pelanggan', 'detail.produk'])
             ->whereIn('status', ['pending', 'diproses'])
             ->whereDoesntHave('pengiriman')
@@ -144,6 +149,11 @@ class PengirimanController extends Controller
      */
     public function store(Request $request)
     {
+        // Authorization: Admin (R01), Staf Gudang (R02), Manajer Gudang (R07)
+        if (!$this->isAdmin() && !$this->isGudangRelated()) {
+            abort(403, 'Anda tidak memiliki izin untuk menyimpan pengiriman.');
+        }
+
         $validator = Validator::make($request->all(), [
             'pesanan_id' => 'required|exists:pesanan,pesanan_id',
             'kurir' => 'required|string|max:255',
@@ -255,6 +265,11 @@ class PengirimanController extends Controller
      */
     public function edit(Pengiriman $pengiriman)
     {
+        // Authorization: Admin (R01), Staf Gudang (R02), Manajer Gudang (R07)
+        if (!$this->isAdmin() && !$this->isGudangRelated()) {
+            abort(403, 'Anda tidak memiliki izin untuk mengedit pengiriman.');
+        }
+
         return Inertia::render('pengiriman/edit', [
             'pengiriman' => [
                 'pengiriman_id' => $pengiriman->pengiriman_id,
@@ -276,6 +291,11 @@ class PengirimanController extends Controller
      */
     public function update(Request $request, Pengiriman $pengiriman)
     {
+        // Authorization: Admin (R01), Staf Gudang (R02), Manajer Gudang (R07)
+        if (!$this->isAdmin() && !$this->isGudangRelated()) {
+            abort(403, 'Anda tidak memiliki izin untuk mengubah pengiriman.');
+        }
+
         // Gunakan method validated() untuk mendapatkan data yang sudah lolos validasi
         $validatedData = $request->validate([
             'nomor_resi' => 'nullable|string|max:255|unique:pengiriman,nomor_resi,' . $pengiriman->pengiriman_id . ',pengiriman_id',
@@ -322,6 +342,11 @@ class PengirimanController extends Controller
      */
     public function destroy(Pengiriman $pengiriman)
     {
+        // Authorization: Admin (R01), Staf Gudang (R02), Manajer Gudang (R07)
+        if (!$this->isAdmin() && !$this->isGudangRelated()) {
+            abort(403, 'Anda tidak memiliki izin untuk menghapus pengiriman.');
+        }
+
         $pengiriman->delete();
 
         return redirect()->route('pengiriman.index')

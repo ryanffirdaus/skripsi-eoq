@@ -98,6 +98,13 @@ interface Props {
     pesanan: Pesanan[];
     bahanBaku: BahanBaku[];
     produk: Produk[];
+    auth?: {
+        user: {
+            user_id: string;
+            nama_lengkap: string;
+            role_id: string;
+        };
+    };
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -106,7 +113,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Tambah Pengadaan', href: '#' },
 ];
 
-export default function Create({ pemasoks, pesanan, bahanBaku, produk }: Props) {
+export default function Create({ pemasoks, pesanan, bahanBaku, produk, auth }: Props) {
     const [items, setItems] = useState<ItemDetail[]>([]);
     const [isCalculating, setIsCalculating] = useState(false);
     const [calculationResult, setCalculationResult] = useState<ProcurementCalculation | null>(null);
@@ -118,9 +125,16 @@ export default function Create({ pemasoks, pesanan, bahanBaku, produk }: Props) 
         items: items,
     });
 
+    // Authorization helper function
+    const canInputSupplier = (): boolean => {
+        const userRole = auth?.user?.role_id;
+        // R01 (Admin), R04 (Staf Pengadaan) and R09 (Manajer Pengadaan) can input supplier
+        return userRole === 'R01' || userRole === 'R04' || userRole === 'R09';
+    };
+
     useEffect(() => {
         setData('items', items);
-    }, [items]);
+    }, [items, setData]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -472,28 +486,41 @@ export default function Create({ pemasoks, pesanan, bahanBaku, produk }: Props) 
                                         <Label>Pemasok *</Label>
                                         {item.jenis_barang === 'bahan_baku' ? (
                                             <>
-                                                <Select
-                                                    value={item.pemasok_id || ''}
-                                                    onValueChange={(value) => updateItem(index, 'pemasok_id', value)}
-                                                >
-                                                    <SelectTrigger className={cn('mt-1', errors[`items.${index}.pemasok_id`] && 'border-red-500')}>
-                                                        <SelectValue placeholder="Pilih Pemasok" />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {pemasoks.map((pemasok) => (
-                                                            <SelectItem key={pemasok.pemasok_id} value={pemasok.pemasok_id}>
-                                                                {pemasok.nama_pemasok}
-                                                            </SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
-                                                {errors[`items.${index}.pemasok_id`] && (
-                                                    <p className="mt-1 text-sm text-red-600">{errors[`items.${index}.pemasok_id`]}</p>
+                                                {canInputSupplier() ? (
+                                                    <>
+                                                        <Select
+                                                            value={item.pemasok_id || ''}
+                                                            onValueChange={(value) => updateItem(index, 'pemasok_id', value)}
+                                                        >
+                                                            <SelectTrigger
+                                                                className={cn('mt-1', errors[`items.${index}.pemasok_id`] && 'border-red-500')}
+                                                            >
+                                                                <SelectValue placeholder="Pilih Pemasok" />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                {pemasoks.map((pemasok) => (
+                                                                    <SelectItem key={pemasok.pemasok_id} value={pemasok.pemasok_id}>
+                                                                        {pemasok.nama_pemasok}
+                                                                    </SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
+                                                        {errors[`items.${index}.pemasok_id`] && (
+                                                            <p className="mt-1 text-sm text-red-600">{errors[`items.${index}.pemasok_id`]}</p>
+                                                        )}
+                                                    </>
+                                                ) : (
+                                                    <div className="mt-1 rounded-md border border-yellow-300 bg-yellow-50 px-3 py-2 text-sm text-yellow-700">
+                                                        <p className="font-medium">⚠ Hanya Staf/Manajer Pengadaan yang dapat input pemasok</p>
+                                                        <p className="mt-1 text-xs">
+                                                            Hubungi Staf Pengadaan untuk mengalokasikan pemasok setelah pengadaan dibuat.
+                                                        </p>
+                                                    </div>
                                                 )}
                                             </>
                                         ) : (
                                             <div className="mt-1 rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-gray-500">
-                                                -
+                                                - (Produk Internal)
                                             </div>
                                         )}
                                     </div>

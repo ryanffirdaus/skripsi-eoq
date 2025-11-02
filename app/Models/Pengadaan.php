@@ -164,13 +164,53 @@ class Pengadaan extends Model
     // Business logic methods
     public function canBeEdited()
     {
-        // Bisa edit di tahap: draft, pending_approval_gudang, pending_supplier_allocation, pending_approval_pengadaan
-        return !in_array($this->status, ['pending_approval_keuangan', 'processed', 'received', 'cancelled']);
+        // Bisa edit di tahap: pending, disetujui_gudang
+        // Tidak bisa edit setelah disetujui_pengadaan, disetujui_keuangan, diproses, diterima, dibatalkan
+        return in_array($this->status, ['pending', 'disetujui_gudang']);
     }
 
     public function canBeCancelled()
     {
-        return !in_array($this->status, ['received', 'cancelled']);
+        return !in_array($this->status, ['diterima', 'dibatalkan']);
+    }
+
+    /**
+     * Check apakah pengadaan hanya berisi bahan_baku
+     */
+    public function hasBahanBakuOnly(): bool
+    {
+        $types = $this->detail->pluck('jenis_barang')->unique();
+        return $types->count() === 1 && $types->first() === 'bahan_baku';
+    }
+
+    /**
+     * Check apakah pengadaan hanya berisi produk
+     */
+    public function hasProdukOnly(): bool
+    {
+        $types = $this->detail->pluck('jenis_barang')->unique();
+        return $types->count() === 1 && $types->first() === 'produk';
+    }
+
+    /**
+     * Check apakah pengadaan mixed (bahan_baku + produk)
+     */
+    public function isMixed(): bool
+    {
+        $types = $this->detail->pluck('jenis_barang')->unique();
+        return $types->count() > 1;
+    }
+
+    /**
+     * Get jenis_barang items dalam pengadaan
+     */
+    public function getItemTypes(): array
+    {
+        return $this->detail
+            ->pluck('jenis_barang')
+            ->unique()
+            ->values()
+            ->toArray();
     }
 
     /**
