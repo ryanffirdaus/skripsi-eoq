@@ -58,7 +58,7 @@ interface Props {
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
     { title: 'Pembelian', href: '/pembelian' },
-    { title: 'Buat Purchase Order', href: '#' },
+    { title: 'Tambah Pembelian', href: '#' },
 ];
 
 export default function Create({ pengadaans, pemasoks }: Props) {
@@ -148,12 +148,11 @@ export default function Create({ pengadaans, pemasoks }: Props) {
 
     return (
         <FormTemplate
-            title="Buat Purchase Order (PO) Baru"
+            title="Tambah Pembelian"
             breadcrumbs={breadcrumbs}
             backUrl="/pembelian"
             onSubmit={handleSubmit}
             processing={processing}
-            submitText="Simpan Purchase Order"
             processingText="Menyimpan..."
         >
             <Head title="Buat PO Baru" />

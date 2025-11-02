@@ -216,14 +216,14 @@ export default function Index({ pembelian, filters, pemasoks, permissions, flash
             data={pembelian}
             columns={columns}
             createUrl={permissions?.canCreate ? '/pembelian/create' : undefined}
-            createButtonText="Buat Pembelian Baru"
             searchPlaceholder="Cari No. PO, pemasok..."
             filters={filters}
             filterOptions={filterOptions}
             baseUrl="/pembelian"
             actions={actions}
             flash={flash}
-            idField="pembelian_id"
+            deleteDialogTitle="Hapus Pembelian"
+            deleteDialogMessage={(item) => `Apakah Anda yakin ingin menghapus pembelian dengan No. PO "${item.nomor_po}"?`}
         />
     );
 }

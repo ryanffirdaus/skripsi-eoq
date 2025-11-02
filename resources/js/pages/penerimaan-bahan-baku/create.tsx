@@ -117,7 +117,6 @@ export default function Create({ pembelians = [] }: Props) {
             backUrl="/penerimaan-bahan-baku"
             onSubmit={handleSubmit}
             processing={processing}
-            submitText="Simpan Penerimaan"
             breadcrumbs={breadcrumbs}
             processingText="Menyimpan..."
         >

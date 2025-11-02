@@ -252,17 +252,15 @@ class PengadaanController extends Controller
 
                     if (!isset($bahanBakuNeeded[$bahanBakuId])) {
                         $bahanBakuNeeded[$bahanBakuId] = [
-                            'jenis_barang'     => 'bahan_baku',
-                            'barang_id'        => $bahanBaku->bahan_baku_id,
-                            'nama_item'        => $bahanBaku->nama_bahan,
-                            // PERBAIKAN: Gunakan nama properti yang benar
-                            'satuan'           => $bahanBaku->satuan,
-                            'stok_saat_ini'    => $bahanBaku->stok_saat_ini,
-                            'harga_satuan'     => $bahanBaku->harga_per_unit,
-                            'eoq'              => $bahanBaku->eoq,
-                            'rop'              => $bahanBaku->reorder_point,
-                            // Akhir Perbaikan
-                            'total_needed'     => 0,
+                            'jenis_barang'    => 'bahan_baku',
+                            'barang_id'       => $bahanBaku->bahan_baku_id,
+                            'nama_item'       => $bahanBaku->nama_bahan,
+                            'satuan'          => $bahanBaku->satuan_bahan,   // SEHARUSNYA: 'satuan_bahan'
+                            'stok_saat_ini'   => $bahanBaku->stok_bahan,     // SEHARUSNYA: 'stok_bahan'
+                            'harga_satuan'    => $bahanBaku->harga_bahan,    // SEHARUSNYA: 'harga_bahan'
+                            'eoq'             => $bahanBaku->eoq_bahan,      // SEHARUSNYA: 'eoq_bahan'
+                            'rop'             => $bahanBaku->rop_bahan,      // SEHARUSNYA: 'rop_bahan'
+                            'total_needed'    => 0,
                             'detail_kebutuhan' => []
                         ];
                     }

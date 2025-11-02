@@ -97,7 +97,6 @@ export default function Edit({ pembelian, pemasoks, statusOptions }: Props) {
             backUrl="/pembelian"
             onSubmit={handleSubmit}
             processing={processing}
-            submitText="Simpan Perubahan"
             processingText="Menyimpan..."
         >
             <Head title={`Edit PO ${pembelian.nomor_po}`} />

@@ -31,14 +31,7 @@ export default function Create() {
     };
 
     return (
-        <FormTemplate
-            title="Tambah Pemasok Baru"
-            breadcrumbs={breadcrumbs}
-            backUrl="/pemasok"
-            onSubmit={handleSubmit}
-            processing={processing}
-            submitText="Simpan Pemasok"
-        >
+        <FormTemplate title="Tambah Pemasok Baru" breadcrumbs={breadcrumbs} backUrl="/pemasok" onSubmit={handleSubmit} processing={processing}>
             {/* Informasi Pemasok */}
             <div className="space-y-6">
                 <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Informasi Pemasok</h3>

@@ -65,7 +65,6 @@ export default function Edit({ transaksi }: Props) {
             backUrl="/transaksi-pembayaran"
             onSubmit={handleSubmit}
             processing={processing}
-            submitText="Simpan Perubahan"
             processingText="Menyimpan..."
         >
             <Head title={`Edit Transaksi ${transaksi.transaksi_pembayaran_id}`} />

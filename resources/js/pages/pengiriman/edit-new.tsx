@@ -73,7 +73,6 @@ export default function Edit({ pengiriman }: Props) {
             backUrl="/pengiriman"
             onSubmit={handleSubmit}
             processing={processing}
-            submitText="Simpan Perubahan"
         >
             {/* Informasi Pengiriman */}
             <div className="space-y-6">

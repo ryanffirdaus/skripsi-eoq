@@ -90,7 +90,6 @@ export default function Create({ pembelians }: Props) {
             backUrl="/transaksi-pembayaran"
             onSubmit={handleSubmit}
             processing={processing}
-            submitText="Simpan Pembayaran"
             processingText="Menyimpan..."
         >
             <Head title="Catat Pembayaran" />
