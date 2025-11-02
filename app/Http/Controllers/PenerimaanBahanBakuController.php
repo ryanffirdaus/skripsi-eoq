@@ -64,13 +64,9 @@ class PenerimaanBahanBakuController extends Controller
 
     public function create()
     {
-        // Authorization: hanya Staf Gudang (R02) dan Manajer Gudang (R07) yang bisa create
-        if (!$this->isGudangRelated()) {
-            return redirect()->route('penerimaan-bahan-baku.index')
-                ->with('flash', [
-                    'message' => 'Anda tidak memiliki izin untuk membuat penerimaan bahan baku baru.',
-                    'type' => 'error'
-                ]);
+        // Authorization: Admin (R01), Staf Gudang (R02) dan Manajer Gudang (R07) yang bisa create
+        if (!$this->isAdmin() && !$this->isGudangRelated()) {
+            abort(403, 'Anda tidak memiliki izin untuk membuat penerimaan bahan baku baru.');
         }
 
         $pembelians = Pembelian::whereIn('status', ['confirmed', 'partially_received'])
@@ -106,13 +102,9 @@ class PenerimaanBahanBakuController extends Controller
 
     public function store(Request $request)
     {
-        // Authorization: hanya Staf Gudang (R02) dan Manajer Gudang (R07) yang bisa store
-        if (!$this->isGudangRelated()) {
-            return redirect()->route('penerimaan-bahan-baku.index')
-                ->with('flash', [
-                    'message' => 'Anda tidak memiliki izin untuk membuat penerimaan bahan baku baru.',
-                    'type' => 'error'
-                ]);
+        // Authorization: Admin (R01), Staf Gudang (R02) dan Manajer Gudang (R07) yang bisa store
+        if (!$this->isAdmin() && !$this->isGudangRelated()) {
+            abort(403, 'Anda tidak memiliki izin untuk membuat penerimaan bahan baku baru.');
         }
 
         $validator = Validator::make($request->all(), [
@@ -174,22 +166,29 @@ class PenerimaanBahanBakuController extends Controller
             'pembelianDetail.pengadaanDetail'
         ]);
 
+        $pembelianDetail = $penerimaanBahanBaku->pembelianDetail;
+        $pembelian = $pembelianDetail->pembelian;
+        $pengadaanDetail = $pembelianDetail->pengadaanDetail;
+
         return Inertia::render('penerimaan-bahan-baku/show', [
             'penerimaan' => [
                 'penerimaan_id' => $penerimaanBahanBaku->penerimaan_id,
                 'pembelian_detail_id' => $penerimaanBahanBaku->pembelian_detail_id,
                 'qty_diterima' => $penerimaanBahanBaku->qty_diterima,
                 'pembelian' => [
-                    'pembelian_id' => $penerimaanBahanBaku->pembelianDetail->pembelian->pembelian_id ?? 'N/A',
-                    'tanggal_pembelian' => $penerimaanBahanBaku->pembelianDetail->pembelian->tanggal_pembelian,
-                    'pemasok' => $penerimaanBahanBaku->pembelianDetail->pembelian->pemasok,
+                    'pembelian_id' => $pembelian?->pembelian_id ?? 'N/A',
+                    'tanggal_pembelian' => $pembelian ? \Carbon\Carbon::parse($pembelian->tanggal_pembelian)->format('Y-m-d') : '-',
+                    'pemasok_nama' => $pembelian?->pemasok?->nama_pemasok ?? '-',
                 ],
                 'item' => [
-                    'nama_item' => $penerimaanBahanBaku->pembelianDetail->pengadaanDetail->nama_item ?? 'N/A',
-                    'satuan' => $penerimaanBahanBaku->pembelianDetail->pengadaanDetail->satuan ?? '-',
-                    'qty_dipesan' => $penerimaanBahanBaku->pembelianDetail->pengadaanDetail->qty_diminta ?? 0,  // FIX: qty → qty_diminta
+                    'nama_item' => $pengadaanDetail?->nama_item ?? '-',
+                    'satuan' => $pengadaanDetail?->satuan ?? '-',
+                    'qty_dipesan' => $pengadaanDetail?->qty_diminta ?? 0,
+                    'harga_satuan' => $pengadaanDetail?->harga_satuan ?? 0,
+                    'total_harga' => $pengadaanDetail?->total_harga ?? 0,
                 ],
                 'created_at' => $penerimaanBahanBaku->created_at?->format('Y-m-d H:i:s'),
+                'updated_at' => $penerimaanBahanBaku->updated_at?->format('Y-m-d H:i:s'),
             ]
         ]);
     }

@@ -118,37 +118,39 @@ class TransaksiPembayaranController extends Controller
      */
     public function create()
     {
-        // Authorization: hanya Staf Keuangan (R06) dan Manajer Keuangan (R10) yang bisa create
-        if (!$this->isKeuanganRelated()) {
-            return redirect()->route('transaksi-pembayaran.index')
-                ->with('flash', [
-                    'message' => 'Anda tidak memiliki izin untuk membuat transaksi pembayaran baru.',
-                    'type' => 'error'
-                ]);
+        // Authorization: Admin (R01), Staf Keuangan (R06) dan Manajer Keuangan (R10) yang bisa create
+        if (!$this->isAdmin() && !$this->isKeuanganRelated()) {
+            abort(403, 'Anda tidak memiliki izin untuk membuat transaksi pembayaran baru.');
         }
 
-        // Ambil pembelian yang sudah dikonfirmasi (bisa dibayar)
-        $pembelians = Pembelian::with('pemasok:pemasok_id,nama_pemasok')
+        // Ambil pembelian yang sudah dikonfirmasi (semua dulu)
+        $allPembelians = Pembelian::with('pemasok:pemasok_id,nama_pemasok')
             ->whereIn('status', ['confirmed', 'partially_received', 'fully_received'])
             ->select('pembelian_id', 'pemasok_id', 'total_biaya', 'tanggal_pembelian', 'metode_pembayaran', 'termin_pembayaran', 'jumlah_dp')
             ->orderBy('tanggal_pembelian', 'desc')
-            ->get()
-            ->map(function ($item) {
-                return [
-                    'pembelian_id'       => $item->pembelian_id,
-                    'pemasok_nama'       => $item->pemasok->nama_pemasok ?? 'N/A',
-                    'total_biaya'        => (float) $item->total_biaya,
-                    'tanggal_pembelian'  => $item->tanggal_pembelian,
-                    'metode_pembayaran'  => $item->metode_pembayaran,
-                    'termin_pembayaran'  => $item->termin_pembayaran,
-                    'jumlah_dp'          => (float) $item->jumlah_dp,
-                    'total_dibayar'      => (float) $item->total_dibayar,
-                    'sisa_pembayaran'    => (float) $item->sisa_pembayaran,
-                    'is_dp_paid'         => $item->isDpPaid(),
-                    'is_fully_paid'      => $item->isFullyPaid(),
-                    'display_text'       => "{$item->pembelian_id} - {$item->pemasok->nama_pemasok} - Rp " . number_format((float) $item->total_biaya, 0, ',', '.'),
-                ];
-            });
+            ->get();
+
+        // Filter di PHP untuk yang belum lunas (sisa_pembayaran > 0)
+        $pembelians = $allPembelians->filter(function ($item) {
+            return (float) $item->sisa_pembayaran > 0;
+        })->values();
+
+        $pembelians = $pembelians->map(function ($item) {
+            return [
+                'pembelian_id'       => $item->pembelian_id,
+                'pemasok_nama'       => $item->pemasok->nama_pemasok ?? 'N/A',
+                'total_biaya'        => (float) $item->total_biaya,
+                'tanggal_pembelian'  => $item->tanggal_pembelian,
+                'metode_pembayaran'  => $item->metode_pembayaran,
+                'termin_pembayaran'  => $item->termin_pembayaran,
+                'jumlah_dp'          => (float) $item->jumlah_dp,
+                'total_dibayar'      => (float) $item->total_dibayar,
+                'sisa_pembayaran'    => (float) $item->sisa_pembayaran,
+                'is_dp_paid'         => $item->isDpPaid(),
+                'is_fully_paid'      => $item->isFullyPaid(),
+                'display_text'       => "{$item->pembelian_id} - {$item->pemasok->nama_pemasok} - Rp " . number_format((float) $item->total_biaya, 0, ',', '.'),
+            ];
+        });
 
         return Inertia::render('transaksi-pembayaran/create', [
             'pembelians' => $pembelians,
@@ -160,13 +162,9 @@ class TransaksiPembayaranController extends Controller
      */
     public function store(Request $request)
     {
-        // Authorization: hanya Staf Keuangan (R06) dan Manajer Keuangan (R10) yang bisa store
-        if (!$this->isKeuanganRelated()) {
-            return redirect()->route('transaksi-pembayaran.index')
-                ->with('flash', [
-                    'message' => 'Anda tidak memiliki izin untuk membuat transaksi pembayaran baru.',
-                    'type' => 'error'
-                ]);
+        // Authorization: Admin (R01), Staf Keuangan (R06) dan Manajer Keuangan (R10) yang bisa store
+        if (!$this->isAdmin() && !$this->isKeuanganRelated()) {
+            abort(403, 'Anda tidak memiliki izin untuk membuat transaksi pembayaran baru.');
         }
 
         // Get pembelian to validate payment
@@ -177,11 +175,11 @@ class TransaksiPembayaranController extends Controller
             'jenis_pembayaran'   => 'required|in:dp,termin,pelunasan',
             'tanggal_pembayaran' => 'required|date',
             'jumlah_pembayaran'  => 'required|numeric|min:0',
-            'metode_pembayaran'  => 'required|in:tunai,transfer',
+            'metode_pembayaran'  => 'required|in:tunai,transfer,cek,giro',
             'bukti_pembayaran'   => 'required|file|mimes:jpeg,png,jpg,pdf|max:2048',
             'catatan'          => 'nullable|string|max:1000',
         ], [
-            'bukti_pembayaran.required' => 'Bukti pembayaran wajib diunggah',
+            'bukti_pembayaran.required' => 'Bukti pembayaran WAJIB diunggah',
             'bukti_pembayaran.file' => 'Bukti pembayaran harus berupa file',
             'bukti_pembayaran.mimes' => 'Bukti pembayaran harus berformat: jpeg, png, jpg, atau pdf',
             'bukti_pembayaran.max' => 'Ukuran file maksimal 2MB',
@@ -331,13 +329,9 @@ class TransaksiPembayaranController extends Controller
      */
     public function edit(TransaksiPembayaran $transaksiPembayaran)
     {
-        // Authorization: hanya Staf Keuangan (R06) dan Manajer Keuangan (R10) yang bisa edit
-        if (!$this->isKeuanganRelated()) {
-            return redirect()->route('transaksi-pembayaran.index')
-                ->with('flash', [
-                    'message' => 'Anda tidak memiliki izin untuk mengedit transaksi pembayaran.',
-                    'type' => 'error'
-                ]);
+        // Authorization: Admin (R01), Staf Keuangan (R06) dan Manajer Keuangan (R10) yang bisa edit
+        if (!$this->isAdmin() && !$this->isKeuanganRelated()) {
+            abort(403, 'Anda tidak memiliki izin untuk mengedit transaksi pembayaran.');
         }
 
         $transaksiPembayaran->load('pembelian.pemasok:pemasok_id,nama_pemasok');
@@ -381,13 +375,9 @@ class TransaksiPembayaranController extends Controller
      */
     public function update(Request $request, TransaksiPembayaran $transaksiPembayaran)
     {
-        // Authorization: hanya Staf Keuangan (R06) dan Manajer Keuangan (R10) yang bisa update
-        if (!$this->isKeuanganRelated()) {
-            return redirect()->route('transaksi-pembayaran.index')
-                ->with('flash', [
-                    'message' => 'Anda tidak memiliki izin untuk mengubah transaksi pembayaran.',
-                    'type' => 'error'
-                ]);
+        // Authorization: Admin (R01), Staf Keuangan (R06) dan Manajer Keuangan (R10) yang bisa update
+        if (!$this->isAdmin() && !$this->isKeuanganRelated()) {
+            abort(403, 'Anda tidak memiliki izin untuk mengubah transaksi pembayaran.');
         }
 
         $validator = Validator::make($request->all(), [
@@ -454,13 +444,9 @@ class TransaksiPembayaranController extends Controller
      */
     public function destroy(TransaksiPembayaran $transaksiPembayaran)
     {
-        // Authorization: hanya Staf Keuangan (R06) dan Manajer Keuangan (R10) yang bisa destroy
-        if (!$this->isKeuanganRelated()) {
-            return redirect()->route('transaksi-pembayaran.index')
-                ->with('flash', [
-                    'message' => 'Anda tidak memiliki izin untuk menghapus transaksi pembayaran.',
-                    'type' => 'error'
-                ]);
+        // Authorization: Admin (R01), Staf Keuangan (R06) dan Manajer Keuangan (R10) yang bisa destroy
+        if (!$this->isAdmin() && !$this->isKeuanganRelated()) {
+            abort(403, 'Anda tidak memiliki izin untuk menghapus transaksi pembayaran.');
         }
 
         // Hapus bukti pembayaran

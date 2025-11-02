@@ -110,13 +110,9 @@ class PembelianController extends Controller
      */
     public function create()
     {
-        // Authorization: hanya Staf Keuangan (R06) dan Manajer Keuangan (R10) yang bisa create
-        if (!$this->isKeuanganRelated()) {
-            return redirect()->route('pembelian.index')
-                ->with('flash', [
-                    'message' => 'Anda tidak memiliki izin untuk membuat pembelian baru.',
-                    'type' => 'error'
-                ]);
+        // Authorization: Admin (R01), Staf Keuangan (R06) dan Manajer Keuangan (R10) yang bisa create
+        if (!$this->isAdmin() && !$this->isKeuanganRelated()) {
+            abort(403, 'Anda tidak memiliki izin untuk membuat pembelian baru.');
         }
 
         // 1. Ambil data Pengadaan yang sudah disetujui keuangan dan belum diproses menjadi PO.
@@ -164,13 +160,9 @@ class PembelianController extends Controller
      */
     public function store(Request $request)
     {
-        // Authorization: hanya Staf Keuangan (R06) dan Manajer Keuangan (R10) yang bisa store
-        if (!$this->isKeuanganRelated()) {
-            return redirect()->route('pembelian.index')
-                ->with('flash', [
-                    'message' => 'Anda tidak memiliki izin untuk membuat pembelian baru.',
-                    'type' => 'error'
-                ]);
+        // Authorization: Admin (R01), Staf Keuangan (R06) dan Manajer Keuangan (R10) yang bisa store
+        if (!$this->isAdmin() && !$this->isKeuanganRelated()) {
+            abort(403, 'Anda tidak memiliki izin untuk membuat pembelian baru.');
         }
 
         // 1. Validasi input dari user
@@ -313,13 +305,9 @@ class PembelianController extends Controller
      */
     public function edit(Pembelian $pembelian)
     {
-        // Authorization: hanya Staf Keuangan (R06) dan Manajer Keuangan (R10) yang bisa edit
-        if (!$this->isKeuanganRelated()) {
-            return redirect()->route('pembelian.index')
-                ->with('flash', [
-                    'message' => 'Anda tidak memiliki izin untuk mengedit pembelian.',
-                    'type' => 'error'
-                ]);
+        // Authorization: Admin (R01), Staf Keuangan (R06) dan Manajer Keuangan (R10) yang bisa edit
+        if (!$this->isAdmin() && !$this->isKeuanganRelated()) {
+            abort(403, 'Anda tidak memiliki izin untuk mengedit pembelian.');
         }
 
         // 1. Eager load relasi yang dibutuhkan
@@ -377,13 +365,9 @@ class PembelianController extends Controller
      */
     public function update(Request $request, Pembelian $pembelian)
     {
-        // Authorization: hanya Staf Keuangan (R06) dan Manajer Keuangan (R10) yang bisa update
-        if (!$this->isKeuanganRelated()) {
-            return redirect()->route('pembelian.index')
-                ->with('flash', [
-                    'message' => 'Anda tidak memiliki izin untuk mengubah pembelian.',
-                    'type' => 'error'
-                ]);
+        // Authorization: Admin (R01), Staf Keuangan (R06) dan Manajer Keuangan (R10) yang bisa update
+        if (!$this->isAdmin() && !$this->isKeuanganRelated()) {
+            abort(403, 'Anda tidak memiliki izin untuk mengubah pembelian.');
         }
 
         if (!$pembelian->canBeEdited()) {
@@ -462,13 +446,9 @@ class PembelianController extends Controller
      */
     public function destroy(Pembelian $pembelian)
     {
-        // Authorization: hanya Staf Keuangan (R06) dan Manajer Keuangan (R10) yang bisa destroy
-        if (!$this->isKeuanganRelated()) {
-            return redirect()->route('pembelian.index')
-                ->with('flash', [
-                    'message' => 'Anda tidak memiliki izin untuk menghapus pembelian.',
-                    'type' => 'error'
-                ]);
+        // Authorization: Admin (R01), Staf Keuangan (R06) dan Manajer Keuangan (R10) yang bisa destroy
+        if (!$this->isAdmin() && !$this->isKeuanganRelated()) {
+            abort(403, 'Anda tidak memiliki izin untuk menghapus pembelian.');
         }
 
         if (!$pembelian->canBeCancelled()) {

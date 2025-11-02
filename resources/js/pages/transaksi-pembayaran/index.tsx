@@ -163,7 +163,6 @@ export default function Index({ transaksiPembayaran, filters, pembelians, permis
             data={transaksiPembayaran}
             columns={columns}
             createUrl={permissions?.canCreate ? '/transaksi-pembayaran/create' : undefined}
-            createButtonText="Catat Pembayaran Baru"
             searchPlaceholder="Cari ID, No. PO, pemasok..."
             filters={filters}
             filterOptions={filterOptions}
@@ -171,6 +170,8 @@ export default function Index({ transaksiPembayaran, filters, pembelians, permis
             actions={actions}
             flash={flash}
             idField="transaksi_pembayaran_id"
+            deleteDialogTitle="Hapus Transaksi Pembayaran"
+            deleteDialogMessage={(item) => `Apakah Anda yakin ingin menghapus transaksi pembayaran dengan ID ${item.transaksi_pembayaran_id}?`}
         />
     );
 }

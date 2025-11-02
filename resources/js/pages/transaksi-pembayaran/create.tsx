@@ -31,7 +31,7 @@ interface Props {
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
     { title: 'Transaksi Pembayaran', href: '/transaksi-pembayaran' },
-    { title: 'Catat Pembayaran', href: '#' },
+    { title: 'Tambah Transaksi Pembayaran', href: '#' },
 ];
 
 export default function Create({ pembelians }: Props) {
@@ -73,7 +73,6 @@ export default function Create({ pembelians }: Props) {
     };
 
     const pembelianOptions = [
-        { value: '', label: 'Pilih Purchase Order...' },
         ...pembelians.map((p) => ({
             value: p.pembelian_id,
             label: p.display_text,
@@ -84,14 +83,14 @@ export default function Create({ pembelians }: Props) {
 
     return (
         <FormTemplate
-            title="Catat Pembayaran Baru"
+            title="Tambah Transaksi Pembayaran"
             breadcrumbs={breadcrumbs}
             backUrl="/transaksi-pembayaran"
             onSubmit={handleSubmit}
             processing={processing}
             processingText="Menyimpan..."
         >
-            <Head title="Catat Pembayaran" />
+            <Head title="Tambah Transaksi Pembayaran" />
 
             <div className="mb-6 flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 p-4">
                 <InformationCircleIcon className="h-5 w-5 flex-shrink-0 text-blue-400" />
@@ -152,12 +151,14 @@ export default function Create({ pembelians }: Props) {
                                     <span className="text-gray-600">Sisa:</span>
                                     <p className="font-semibold text-orange-600">{formatCurrency(selectedPembelian.sisa_pembayaran)}</p>
                                 </div>
-                                {selectedPembelian.jumlah_dp && selectedPembelian.jumlah_dp > 0 && (
-                                    <div>
-                                        <span className="text-gray-600">DP:</span>
-                                        <p className="font-semibold text-purple-600">{formatCurrency(selectedPembelian.jumlah_dp)}</p>
-                                    </div>
-                                )}
+                                <div>
+                                    <span className="text-gray-600">DP:</span>
+                                    <p className="font-semibold text-purple-600">
+                                        {selectedPembelian.jumlah_dp && selectedPembelian.jumlah_dp > 0
+                                            ? formatCurrency(selectedPembelian.jumlah_dp)
+                                            : '-'}
+                                    </p>
+                                </div>
                             </div>
                             {selectedPembelian.metode_pembayaran === 'termin' && !selectedPembelian.is_dp_paid && (
                                 <div className="mt-3 rounded-lg bg-yellow-50 p-2 text-xs text-yellow-800">
@@ -244,7 +245,7 @@ export default function Create({ pembelians }: Props) {
                 </FormField>
 
                 <div className="md:col-span-2">
-                    <FormField id="bukti_pembayaran" label="Bukti Pembayaran" error={errors.bukti_pembayaran}>
+                    <FormField id="bukti_pembayaran" label="Bukti Pembayaran" error={errors.bukti_pembayaran} required>
                         <Input
                             id="bukti_pembayaran"
                             type="file"
@@ -256,12 +257,12 @@ export default function Create({ pembelians }: Props) {
                             accept="image/*,.pdf"
                             className={cn(errors.bukti_pembayaran && 'border-red-500')}
                         />
-                        <p className="mt-1 text-sm text-gray-500">Upload bukti pembayaran (JPG, PNG, PDF, max 2MB) - Opsional</p>
+                        <p className="mt-1 text-sm text-gray-500">Upload bukti pembayaran (JPG, PNG, PDF, max 2MB) - WAJIB</p>
                     </FormField>
                 </div>
 
                 <div className="md:col-span-2">
-                    <FormField id="catatan" label="catatan / Catatan" error={errors.catatan}>
+                    <FormField id="catatan" label="Catatan" error={errors.catatan}>
                         <TextArea
                             id="catatan"
                             value={data.catatan}
