@@ -19,6 +19,7 @@ class PemasokController extends Controller
         $sortBy = $request->input('sort_by', 'pemasok_id');
         $sortDirection = $request->input('sort_direction', 'asc');
         $perPage = $request->input('per_page', 10);
+        $statusFilter = $request->input('status'); // Ambil filter status
 
         // Build the query - include trashed
         $query = Pemasok::withTrashed();
@@ -34,13 +35,23 @@ class PemasokController extends Controller
             });
         }
 
-        // Apply sorting
-        $query->orderBy($sortBy, $sortDirection);
+        if ($statusFilter === 'active') {
+            $query->whereNull('deleted_at');
+        } elseif ($statusFilter === 'inactive') {
+            $query->whereNotNull('deleted_at');
+        }
+
+        $sortColumn = $sortBy;
+        if ($sortBy === 'status') {
+            $sortColumn = 'deleted_at';
+        }
+
+        $query->orderBy($sortColumn, $sortDirection);
 
         // Pagination
         $pemasok = $query->paginate($perPage)->withQueryString();
 
-        // Transform data to add status based on deleted_at
+        // Transform data to add status (Bagian ini sudah benar)
         $pemasok->getCollection()->transform(function ($item) {
             $item->status = $item->deleted_at ? 'inactive' : 'active';
             return $item;
@@ -50,6 +61,7 @@ class PemasokController extends Controller
             'pemasok' => $pemasok,
             'filters' => [
                 'search' => $search,
+                'status' => $statusFilter,
                 'sort_by' => $sortBy,
                 'sort_direction' => $sortDirection,
                 'per_page' => (int) $perPage,

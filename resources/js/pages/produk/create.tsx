@@ -80,190 +80,125 @@ export default function Create({ bahanBakus }: Props) {
         return bahan ? `${bahan.nama_bahan} (${bahan.satuan_bahan})` : '';
     };
 
-    return (
-        <FormTemplate title="Tambah Produk" breadcrumbs={breadcrumbs} backUrl="/produk" onSubmit={handleSubmit} processing={processing}>
-            {/* Informasi Dasar */}
-            <div className="space-y-6">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Informasi Dasar</h3>
-
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                    <FormField id="nama_produk" label="Nama" error={errors.nama_produk} required>
-                        <TextInput
-                            id="nama_produk"
-                            value={data.nama_produk}
-                            onChange={(e) => setData('nama_produk', e.target.value)}
-                            placeholder="Masukkan nama produk"
-                            error={errors.nama_produk}
-                        />
-                    </FormField>
-
-                    <FormField id="lokasi_produk" label="Lokasi" error={errors.lokasi_produk} required>
-                        <TextInput
-                            id="lokasi_produk"
-                            value={data.lokasi_produk}
-                            onChange={(e) => setData('lokasi_produk', e.target.value)}
-                            placeholder="Masukkan lokasi produk"
-                            error={errors.lokasi_produk}
-                        />
-                    </FormField>
-
-                    <FormField id="stok_produk" label="Stok" error={errors.stok_produk}>
-                        <NumberInput
-                            id="stok_produk"
-                            value={data.stok_produk}
-                            onChange={(e) => setData('stok_produk', parseFloat(e.target.value) || 0)}
-                            placeholder="Masukkan stok awal"
-                            min={0}
-                            error={errors.stok_produk}
-                        />
-                    </FormField>
-
-                    <FormField id="satuan_produk" label="Satuan" error={errors.satuan_produk} required>
-                        <TextInput
-                            id="satuan_produk"
-                            value={data.satuan_produk}
-                            onChange={(e) => setData('satuan_produk', e.target.value)}
-                            placeholder="Masukkan satuan produk (e.g., pcs, kg)"
-                            error={errors.satuan_produk}
-                        />
-                    </FormField>
-
-                    <FormField id="hpp_produk" label="HPP" error={errors.hpp_produk} required>
-                        <NumberInput
-                            id="hpp_produk"
-                            value={data.hpp_produk}
-                            onChange={(e) => setData('hpp_produk', parseFloat(e.target.value) || 0)}
-                            placeholder="Masukkan HPP produk"
-                            min={0}
-                            error={errors.hpp_produk}
-                        />
-                    </FormField>
-
-                    <FormField id="harga_jual" label="Harga Jual" error={errors.harga_jual} required>
-                        <NumberInput
-                            id="harga_jual"
-                            value={data.harga_jual}
-                            onChange={(e) => setData('harga_jual', parseFloat(e.target.value) || 0)}
-                            placeholder="Masukkan harga jual produk"
-                            min={0}
-                            error={errors.harga_jual}
-                        />
-                    </FormField>
-                </div>
-            </div>
-
-            {/* Informasi Permintaan */}
-            <div className="space-y-6">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Informasi Permintaan</h3>
-
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                    <FormField
+    const demandSection = {
+        title: 'Informasi Permintaan',
+        children: (
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <FormField
+                    id="permintaan_harian_rata2_produk"
+                    label="Permintaan Harian Rata-rata"
+                    error={errors.permintaan_harian_rata2_produk}
+                    required
+                >
+                    <NumberInput
                         id="permintaan_harian_rata2_produk"
-                        label="Permintaan Harian Rata-rata"
+                        value={data.permintaan_harian_rata2_produk}
+                        onChange={(e) => setData('permintaan_harian_rata2_produk', parseFloat(e.target.value) || 0)}
+                        placeholder="Masukkan permintaan harian rata-rata"
                         error={errors.permintaan_harian_rata2_produk}
-                        required
-                    >
-                        <NumberInput
-                            id="permintaan_harian_rata2_produk"
-                            value={data.permintaan_harian_rata2_produk}
-                            onChange={(e) => setData('permintaan_harian_rata2_produk', parseFloat(e.target.value) || 0)}
-                            placeholder="Masukkan permintaan harian rata-rata"
-                            min={0}
-                            error={errors.permintaan_harian_rata2_produk}
-                        />
-                    </FormField>
+                        min="0"
+                        step="0.01"
+                    />
+                </FormField>
 
-                    <FormField
+                <FormField
+                    id="permintaan_harian_maksimum_produk"
+                    label="Permintaan Harian Maksimum"
+                    error={errors.permintaan_harian_maksimum_produk}
+                    required
+                >
+                    <NumberInput
                         id="permintaan_harian_maksimum_produk"
-                        label="Permintaan Harian Maksimum"
+                        value={data.permintaan_harian_maksimum_produk}
+                        onChange={(e) => setData('permintaan_harian_maksimum_produk', parseFloat(e.target.value) || 0)}
+                        placeholder="Masukkan permintaan harian maksimum"
                         error={errors.permintaan_harian_maksimum_produk}
-                        required
-                    >
-                        <NumberInput
-                            id="permintaan_harian_maksimum_produk"
-                            value={data.permintaan_harian_maksimum_produk}
-                            onChange={(e) => setData('permintaan_harian_maksimum_produk', parseFloat(e.target.value) || 0)}
-                            placeholder="Masukkan permintaan harian maksimum"
-                            min={0}
-                            error={errors.permintaan_harian_maksimum_produk}
-                        />
-                    </FormField>
+                        min="0"
+                        step="0.01"
+                    />
+                </FormField>
 
-                    <FormField id="waktu_tunggu_rata2_produk" label="Waktu Tunggu Rata-rata (hari)" error={errors.waktu_tunggu_rata2_produk} required>
-                        <NumberInput
-                            id="waktu_tunggu_rata2_produk"
-                            value={data.waktu_tunggu_rata2_produk}
-                            onChange={(e) => setData('waktu_tunggu_rata2_produk', parseFloat(e.target.value) || 0)}
-                            placeholder="Masukkan waktu tunggu rata-rata"
-                            min={0}
-                            error={errors.waktu_tunggu_rata2_produk}
-                        />
-                    </FormField>
+                <FormField id="waktu_tunggu_rata2_produk" label="Waktu Tunggu Rata-rata (hari)" error={errors.waktu_tunggu_rata2_produk} required>
+                    <NumberInput
+                        id="waktu_tunggu_rata2_produk"
+                        value={data.waktu_tunggu_rata2_produk}
+                        onChange={(e) => setData('waktu_tunggu_rata2_produk', parseFloat(e.target.value) || 0)}
+                        placeholder="Masukkan waktu tunggu rata-rata"
+                        error={errors.waktu_tunggu_rata2_produk}
+                        min="0"
+                        step="0.01"
+                    />
+                </FormField>
 
-                    <FormField
+                <FormField
+                    id="waktu_tunggu_maksimum_produk"
+                    label="Waktu Tunggu Maksimum (hari)"
+                    error={errors.waktu_tunggu_maksimum_produk}
+                    required
+                >
+                    <NumberInput
                         id="waktu_tunggu_maksimum_produk"
-                        label="Waktu Tunggu Maksimum (hari)"
+                        value={data.waktu_tunggu_maksimum_produk}
+                        onChange={(e) => setData('waktu_tunggu_maksimum_produk', parseFloat(e.target.value) || 0)}
+                        placeholder="Masukkan waktu tunggu maksimum"
                         error={errors.waktu_tunggu_maksimum_produk}
-                        required
-                    >
-                        <NumberInput
-                            id="waktu_tunggu_maksimum_produk"
-                            value={data.waktu_tunggu_maksimum_produk}
-                            onChange={(e) => setData('waktu_tunggu_maksimum_produk', parseFloat(e.target.value) || 0)}
-                            placeholder="Masukkan waktu tunggu maksimum"
-                            min={0}
-                            error={errors.waktu_tunggu_maksimum_produk}
-                        />
-                    </FormField>
+                        min="0"
+                        step="0.01"
+                    />
+                </FormField>
 
-                    <FormField id="permintaan_tahunan" label="Permintaan Tahunan" error={errors.permintaan_tahunan} required>
-                        <NumberInput
-                            id="permintaan_tahunan"
-                            value={data.permintaan_tahunan}
-                            onChange={(e) => setData('permintaan_tahunan', parseFloat(e.target.value) || 0)}
-                            placeholder="Masukkan permintaan tahunan"
-                            min={0}
-                            error={errors.permintaan_tahunan}
-                        />
-                    </FormField>
-                </div>
+                <FormField id="permintaan_tahunan" label="Permintaan Tahunan" error={errors.permintaan_tahunan} required>
+                    <NumberInput
+                        id="permintaan_tahunan"
+                        value={data.permintaan_tahunan}
+                        onChange={(e) => setData('permintaan_tahunan', parseFloat(e.target.value) || 0)}
+                        placeholder="Masukkan permintaan tahunan"
+                        error={errors.permintaan_tahunan}
+                        min="0"
+                        step="0.01"
+                    />
+                </FormField>
             </div>
+        ),
+    };
 
-            {/* Informasi Biaya */}
-            <div className="space-y-6">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Informasi Biaya</h3>
+    const costSection = {
+        title: 'Informasi Biaya',
+        children: (
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <FormField id="biaya_pemesanan_produk" label="Biaya Pemesanan" error={errors.biaya_pemesanan_produk} required>
+                    <NumberInput
+                        id="biaya_pemesanan_produk"
+                        value={data.biaya_pemesanan_produk}
+                        onChange={(e) => setData('biaya_pemesanan_produk', parseFloat(e.target.value) || 0)}
+                        placeholder="Masukkan biaya pemesanan"
+                        error={errors.biaya_pemesanan_produk}
+                        min="0"
+                        step="0.01"
+                    />
+                </FormField>
 
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                    <FormField id="biaya_pemesanan_produk" label="Biaya Pemesanan" error={errors.biaya_pemesanan_produk} required>
-                        <NumberInput
-                            id="biaya_pemesanan_produk"
-                            value={data.biaya_pemesanan_produk}
-                            onChange={(e) => setData('biaya_pemesanan_produk', parseFloat(e.target.value) || 0)}
-                            placeholder="Masukkan biaya pemesanan"
-                            min={0}
-                            error={errors.biaya_pemesanan_produk}
-                        />
-                    </FormField>
-
-                    <FormField id="biaya_penyimpanan_produk" label="Biaya Penyimpanan" error={errors.biaya_penyimpanan_produk} required>
-                        <NumberInput
-                            id="biaya_penyimpanan_produk"
-                            value={data.biaya_penyimpanan_produk}
-                            onChange={(e) => setData('biaya_penyimpanan_produk', parseFloat(e.target.value) || 0)}
-                            placeholder="Masukkan biaya penyimpanan"
-                            min={0}
-                            error={errors.biaya_penyimpanan_produk}
-                        />
-                    </FormField>
-                </div>
+                <FormField id="biaya_penyimpanan_produk" label="Biaya Penyimpanan" error={errors.biaya_penyimpanan_produk} required>
+                    <NumberInput
+                        id="biaya_penyimpanan_produk"
+                        value={data.biaya_penyimpanan_produk}
+                        onChange={(e) => setData('biaya_penyimpanan_produk', parseFloat(e.target.value) || 0)}
+                        placeholder="Masukkan biaya penyimpanan"
+                        error={errors.biaya_penyimpanan_produk}
+                        min="0"
+                        step="0.01"
+                    />
+                </FormField>
             </div>
+        ),
+    };
 
-            {/* Bahan Baku */}
-            <div className="space-y-6">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Bahan Baku</h3>
-
+    const bahanBakuSection = {
+        title: 'Bahan Baku',
+        children: (
+            <div className="space-y-4">
                 {/* Add Bahan Baku */}
-                <div className="grid grid-cols-1 items-end gap-4 md:grid-cols-3">
+                <div className="grid grid-cols-1 items-end gap-4 sm:grid-cols-3">
                     <FormField id="select_bahan" label="Pilih Bahan Baku">
                         <Select
                             id="select_bahan"
@@ -284,16 +219,16 @@ export default function Create({ bahanBakus }: Props) {
                             id="jumlah_bahan"
                             value={jumlahBahan}
                             onChange={(e) => setJumlahBahan(parseFloat(e.target.value) || 0)}
-                            placeholder="Quantity needed"
-                            min={0}
-                            step={0.01}
+                            placeholder="Masukkan jumlah"
+                            min="0"
+                            step="0.01"
                         />
                     </FormField>
 
                     <button
                         type="button"
                         onClick={addBahanBaku}
-                        className={`${buttonVariants.primary} flex items-center space-x-2 rounded-md px-4 py-2`}
+                        className={`${buttonVariants.primary} flex items-center justify-center space-x-2 rounded-md px-4 py-2`}
                     >
                         <PlusIcon className="h-4 w-4" />
                         <span>Tambah</span>
@@ -302,22 +237,113 @@ export default function Create({ bahanBakus }: Props) {
 
                 {/* List Bahan Baku */}
                 {data.bahan_baku.length > 0 && (
-                    <div className="space-y-2">
-                        <h4 className="font-medium text-gray-900 dark:text-gray-100">Bahan Baku yang Digunakan:</h4>
-                        {data.bahan_baku.map((item, index) => (
-                            <div key={index} className="flex items-center justify-between rounded-md bg-gray-50 p-3 dark:bg-gray-800">
-                                <span className="text-sm text-gray-900 dark:text-gray-100">
-                                    {getBahanBakuName(item.bahan_baku_id)} - {item.jumlah_bahan_baku} unit
-                                </span>
-                                <button type="button" onClick={() => removeBahanBaku(index)} className={`${buttonVariants.destructive} rounded p-1`}>
-                                    <TrashIcon className="h-4 w-4" />
-                                </button>
-                            </div>
-                        ))}
+                    <div className="space-y-2 rounded-md border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900">
+                        <div className="flex items-center justify-between">
+                            <h4 className="font-semibold text-gray-900 dark:text-gray-100">Bahan Baku yang Digunakan ({data.bahan_baku.length})</h4>
+                        </div>
+                        <div className="space-y-2">
+                            {data.bahan_baku.map((item, index) => (
+                                <div key={index} className="flex items-center justify-between rounded-md bg-white p-3 shadow-sm dark:bg-gray-800">
+                                    <span className="flex-1 text-sm font-medium text-gray-900 dark:text-gray-100">
+                                        {getBahanBakuName(item.bahan_baku_id)}{' '}
+                                        <span className="ml-2 text-gray-500">- {item.jumlah_bahan_baku} unit</span>
+                                    </span>
+                                    <button
+                                        type="button"
+                                        onClick={() => removeBahanBaku(index)}
+                                        className={`${buttonVariants.destructive} rounded p-1.5`}
+                                    >
+                                        <TrashIcon className="h-4 w-4" />
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 )}
 
                 {errors.bahan_baku && <p className="text-sm text-red-600 dark:text-red-400">{errors.bahan_baku}</p>}
+            </div>
+        ),
+    };
+
+    return (
+        <FormTemplate
+            title="Tambah Produk"
+            breadcrumbs={breadcrumbs}
+            backUrl="/produk"
+            onSubmit={handleSubmit}
+            processing={processing}
+            sections={[demandSection, costSection, bahanBakuSection]}
+        >
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                <FormField id="nama_produk" label="Nama" error={errors.nama_produk} required>
+                    <TextInput
+                        id="nama_produk"
+                        type="text"
+                        value={data.nama_produk}
+                        onChange={(e) => setData('nama_produk', e.target.value)}
+                        placeholder="Masukkan nama produk"
+                        error={errors.nama_produk}
+                    />
+                </FormField>
+
+                <FormField id="lokasi_produk" label="Lokasi" error={errors.lokasi_produk} required>
+                    <TextInput
+                        id="lokasi_produk"
+                        type="text"
+                        value={data.lokasi_produk}
+                        onChange={(e) => setData('lokasi_produk', e.target.value)}
+                        placeholder="Masukkan lokasi produk"
+                        error={errors.lokasi_produk}
+                    />
+                </FormField>
+
+                <FormField id="stok_produk" label="Stok" error={errors.stok_produk}>
+                    <NumberInput
+                        id="stok_produk"
+                        value={data.stok_produk}
+                        onChange={(e) => setData('stok_produk', parseFloat(e.target.value) || 0)}
+                        placeholder="Masukkan jumlah stok"
+                        error={errors.stok_produk}
+                        min="0"
+                        step="0.01"
+                    />
+                </FormField>
+
+                <FormField id="satuan_produk" label="Satuan" error={errors.satuan_produk} required>
+                    <TextInput
+                        id="satuan_produk"
+                        type="text"
+                        value={data.satuan_produk}
+                        onChange={(e) => setData('satuan_produk', e.target.value)}
+                        placeholder="Masukkan satuan (pcs, kg, liter, dll.)"
+                        error={errors.satuan_produk}
+                    />
+                </FormField>
+
+                <FormField id="hpp_produk" label="HPP" error={errors.hpp_produk} required>
+                    <NumberInput
+                        id="hpp_produk"
+                        value={data.hpp_produk}
+                        onChange={(e) => setData('hpp_produk', parseFloat(e.target.value) || 0)}
+                        placeholder="Masukkan HPP produk"
+                        error={errors.hpp_produk}
+                        min="0"
+                        step="0.01"
+                    />
+                </FormField>
+
+                <FormField id="harga_jual" label="Harga Jual" error={errors.harga_jual} required>
+                    <NumberInput
+                        id="harga_jual"
+                        value={data.harga_jual}
+                        onChange={(e) => setData('harga_jual', parseFloat(e.target.value) || 0)}
+                        placeholder="Masukkan harga jual produk"
+                        error={errors.harga_jual}
+                        min="0"
+                        step="0.01"
+                    />
+                </FormField>
             </div>
         </FormTemplate>
     );
