@@ -189,7 +189,6 @@ export default function Index({ pemasok, filters, flash }: Props) {
             deleteDialogMessage={(pemasok) =>
                 `Apakah Anda yakin ingin menghapus pemasok "${pemasok.nama_pemasok}"? Tindakan ini tidak dapat dibatalkan.`
             }
-            getItemName={(pemasok) => pemasok.nama_pemasok}
         />
     );
 }
