@@ -13,19 +13,19 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->string('user_id', 10)->primary(); // Changed from id() to string user_id
-            $table->string('nama_lengkap'); // Changed from name to nama_lengkap
+            $table->string('nama_lengkap', 100); // Changed from name to nama_lengkap
             $table->string('email')->unique();
             $table->string('password');
-            $table->string('created_by')->nullable();
-            $table->string('updated_by')->nullable();
-            $table->string('deleted_by')->nullable();
+            $table->string('created_by', 10)->nullable();
+            $table->string('updated_by', 10)->nullable();
+            $table->string('deleted_by', 10)->nullable();
             $table->rememberToken();
             $table->softDeletes();
             $table->timestamps();
 
-           $table->foreign('created_by')->references('user_id')->on('users')->onDelete('set null');
-           $table->foreign('updated_by')->references('user_id')->on('users')->onDelete('set null');
-           $table->foreign('deleted_by')->references('user_id')->on('users')->onDelete('set null');
+            $table->foreign('created_by')->references('user_id')->on('users')->onDelete('set null');
+            $table->foreign('updated_by')->references('user_id')->on('users')->onDelete('set null');
+            $table->foreign('deleted_by')->references('user_id')->on('users')->onDelete('set null');
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {

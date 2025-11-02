@@ -13,10 +13,10 @@ return new class extends Migration
     {
         Schema::create('produk', function (Blueprint $table) {
             $table->string('produk_id', 10)->primary();
-            $table->string('nama_produk');
+            $table->string('nama_produk', 100);
             $table->integer('stok_produk');
-            $table->string('satuan_produk');
-            $table->string('lokasi_produk');
+            $table->string('satuan_produk', 10);
+            $table->string('lokasi_produk', 100);
             $table->decimal('hpp_produk', 20, 2);
             $table->decimal('harga_jual', 20, 2);
             $table->integer('permintaan_harian_rata2_produk');
@@ -29,9 +29,9 @@ return new class extends Migration
             $table->integer('safety_stock_produk');
             $table->integer('rop_produk');
             $table->integer('eoq_produk');
-            $table->string('created_by')->nullable();
-            $table->string('updated_by')->nullable();
-            $table->string('deleted_by')->nullable();
+            $table->string('created_by', 10)->nullable();
+            $table->string('updated_by', 10)->nullable();
+            $table->string('deleted_by', 10)->nullable();
             $table->softDeletes();
             $table->timestamps();
 

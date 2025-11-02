@@ -13,10 +13,10 @@ return new class extends Migration
     {
         Schema::create('bahan_baku', function (Blueprint $table) {
             $table->string('bahan_baku_id', 10)->primary();
-            $table->string('nama_bahan');
+            $table->string('nama_bahan', 100);
             $table->integer('stok_bahan');
-            $table->string('satuan_bahan');
-            $table->string('lokasi_bahan');
+            $table->string('satuan_bahan', 10);
+            $table->string('lokasi_bahan', 100);
             $table->decimal('harga_bahan', 20, 2);
             $table->integer('permintaan_harian_rata2_bahan');
             $table->integer('permintaan_harian_maksimum_bahan');
@@ -28,9 +28,9 @@ return new class extends Migration
             $table->integer('safety_stock_bahan');
             $table->integer('rop_bahan');
             $table->integer('eoq_bahan');
-            $table->string('created_by')->nullable();
-            $table->string('updated_by')->nullable();
-            $table->string('deleted_by')->nullable();
+            $table->string('created_by', 10)->nullable();
+            $table->string('updated_by', 10)->nullable();
+            $table->string('deleted_by', 10)->nullable();
             $table->softDeletes();
             $table->timestamps();
 

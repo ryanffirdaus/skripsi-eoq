@@ -12,15 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('pengadaan', function (Blueprint $table) {
-            $table->string('pengadaan_id')->primary();
+            $table->string('pengadaan_id', 10)->primary();
             $table->enum('jenis_pengadaan', ['pesanan', 'rop']); // Trigger: order-based, ROP-based, or manual
-            $table->string('pesanan_id')->nullable(); // Reference to pesanan if triggered by order
+            $table->string('pesanan_id', 10)->nullable(); // Reference to pesanan if triggered by order
             $table->enum('status', ['pending', 'disetujui_procurement', 'disetujui_finance', 'diproses', 'diterima', 'dibatalkan'])
                 ->default('pending');
             $table->text('catatan')->nullable();
-            $table->string('created_by')->nullable();
-            $table->string('updated_by')->nullable();
-            $table->string('deleted_by')->nullable();
+            $table->string('created_by', 10)->nullable();
+            $table->string('updated_by', 10)->nullable();
+            $table->string('deleted_by', 10)->nullable();
             $table->softDeletes();
             $table->timestamps();
 

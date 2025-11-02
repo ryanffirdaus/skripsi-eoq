@@ -12,13 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('pengiriman', function (Blueprint $table) {
-            $table->string('pengiriman_id', 20)->primary();
-            $table->string('pesanan_id', 20);
+            $table->string('pengiriman_id', 10)->primary();
+            $table->string('pesanan_id', 10);
             $table->foreign('pesanan_id')->references('pesanan_id')->on('pesanan')->onDelete('cascade');
 
             // Informasi Pengiriman
             $table->string('nomor_resi', 50)->unique()->nullable();
-            $table->string('kurir'); // JNE, J&T, TIKI, POS Indonesia, dll
+            $table->string('kurir', 10); // JNE, J&T, TIKI, POS Indonesia, dll
             $table->decimal('biaya_pengiriman', 15, 2);
             $table->integer('estimasi_hari')->default(1); // estimasi pengiriman dalam hari
 

@@ -12,11 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('pengadaan_detail', function (Blueprint $table) {
-            $table->string('pengadaan_detail_id')->primary();
-            $table->string('pengadaan_id');
-            $table->string('pemasok_id')->nullable();
+            $table->string('pengadaan_detail_id', 10)->primary();
+            $table->string('pengadaan_id', 10);
+            $table->string('pemasok_id', 10)->nullable();
             $table->enum('jenis_barang', ['bahan_baku', 'produk']); // Type of item being procured
-            $table->string('barang_id'); // bahan_baku_id or produk_id
+            $table->string('barang_id', 10); // bahan_baku_id or produk_id
             $table->integer('qty_diminta'); // Quantity requested
             $table->integer('qty_disetujui')->nullable(); // Quantity approved
             $table->integer('qty_diterima')->default(0); // Quantity received
