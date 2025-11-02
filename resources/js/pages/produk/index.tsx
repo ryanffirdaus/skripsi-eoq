@@ -200,17 +200,19 @@ export default function Index({ produk, filters, uniqueLokasi, uniqueSatuan, per
 
     return (
         <TableTemplate<Produk>
-            title="Produk Management"
+            title="Manajemen Produk"
             breadcrumbs={breadcrumbs}
             data={produk}
             columns={columns}
             createUrl={permissions.canCreate ? '/produk/create' : undefined}
-            searchPlaceholder="Search by product name or location..."
+            searchPlaceholder="Cari berdasarkan nama produk atau lokasi..."
             filters={filters}
             filterOptions={filterOptions}
             baseUrl="/produk"
             actions={actions}
             flash={flash}
+            deleteDialogTitle="Hapus Produk"
+            deleteDialogMessage={() => 'Apakah Anda yakin ingin menghapus produk ini? Tindakan ini tidak dapat dibatalkan.'}
         />
     );
 }

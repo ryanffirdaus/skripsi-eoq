@@ -51,7 +51,7 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: '/produk',
     },
     {
-        title: 'Edit',
+        title: 'Ubah Produk',
         href: '#',
     },
 ];
@@ -120,65 +120,64 @@ export default function Edit({ produk, bahanProduksi, bahanBakus }: Props) {
 
     return (
         <FormTemplate
-            title={`Edit Produk: ${produk.nama_produk}`}
+            title={`Ubah Produk: ${produk.nama_produk}`}
             breadcrumbs={breadcrumbs}
             backUrl="/produk"
             onSubmit={handleSubmit}
             processing={processing}
-            submitText="Update Produk"
         >
-            {/* Basic Information */}
+            {/* Informasi Dasar */}
             <div className="space-y-6">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Basic Information</h3>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Informasi Dasar</h3>
 
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                    <FormField id="nama_produk" label="Nama Produk" error={errors.nama_produk} required>
+                    <FormField id="nama_produk" label="Nama" error={errors.nama_produk} required>
                         <TextInput
                             id="nama_produk"
                             value={data.nama_produk}
                             onChange={(e) => setData('nama_produk', e.target.value)}
-                            placeholder="Enter product name"
+                            placeholder="Masukkan nama produk"
                             error={errors.nama_produk}
                         />
                     </FormField>
 
-                    <FormField id="lokasi_produk" label="Lokasi Produk" error={errors.lokasi_produk} required>
+                    <FormField id="lokasi_produk" label="Lokasi" error={errors.lokasi_produk} required>
                         <TextInput
                             id="lokasi_produk"
                             value={data.lokasi_produk}
                             onChange={(e) => setData('lokasi_produk', e.target.value)}
-                            placeholder="Enter product location"
+                            placeholder="Masukkan lokasi produk"
                             error={errors.lokasi_produk}
                         />
                     </FormField>
 
-                    <FormField id="stok_produk" label="Stok Produk" error={errors.stok_produk}>
+                    <FormField id="stok_produk" label="Stok" error={errors.stok_produk}>
                         <NumberInput
                             id="stok_produk"
                             value={data.stok_produk}
                             onChange={(e) => setData('stok_produk', parseFloat(e.target.value) || 0)}
-                            placeholder="Enter current stock"
+                            placeholder="Masukkan stok produk"
                             min={0}
                             error={errors.stok_produk}
                         />
                     </FormField>
 
-                    <FormField id="satuan_produk" label="Satuan Produk" error={errors.satuan_produk} required>
+                    <FormField id="satuan_produk" label="Satuan" error={errors.satuan_produk} required>
                         <TextInput
                             id="satuan_produk"
                             value={data.satuan_produk}
                             onChange={(e) => setData('satuan_produk', e.target.value)}
-                            placeholder="e.g., pcs, kg, liter"
+                            placeholder="Masukkan satuan produk (e.g., pcs, kg)"
                             error={errors.satuan_produk}
                         />
                     </FormField>
 
-                    <FormField id="hpp_produk" label="HPP Produk" error={errors.hpp_produk} required>
+                    <FormField id="hpp_produk" label="HPP" error={errors.hpp_produk} required>
                         <NumberInput
                             id="hpp_produk"
                             value={data.hpp_produk}
                             onChange={(e) => setData('hpp_produk', parseFloat(e.target.value) || 0)}
-                            placeholder="Enter cost of goods sold"
+                            placeholder="Masukkan HPP produk"
                             min={0}
                             step="0.01"
                             error={errors.hpp_produk}
@@ -190,7 +189,7 @@ export default function Edit({ produk, bahanProduksi, bahanBakus }: Props) {
                             id="harga_jual"
                             value={data.harga_jual}
                             onChange={(e) => setData('harga_jual', parseFloat(e.target.value) || 0)}
-                            placeholder="Enter selling price"
+                            placeholder="Masukkan harga jual produk"
                             min={0}
                             step="0.01"
                             error={errors.harga_jual}
@@ -199,9 +198,9 @@ export default function Edit({ produk, bahanProduksi, bahanBakus }: Props) {
                 </div>
             </div>
 
-            {/* Demand Information */}
+            {/* Informasi Permintaan */}
             <div className="space-y-6">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Demand Information</h3>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Informasi Permintaan</h3>
 
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                     <FormField
@@ -214,7 +213,7 @@ export default function Edit({ produk, bahanProduksi, bahanBakus }: Props) {
                             id="permintaan_harian_rata2_produk"
                             value={data.permintaan_harian_rata2_produk}
                             onChange={(e) => setData('permintaan_harian_rata2_produk', parseFloat(e.target.value) || 0)}
-                            placeholder="Average daily demand"
+                            placeholder="Permintaan harian rata-rata"
                             min={0}
                             error={errors.permintaan_harian_rata2_produk}
                         />
@@ -230,7 +229,7 @@ export default function Edit({ produk, bahanProduksi, bahanBakus }: Props) {
                             id="permintaan_harian_maksimum_produk"
                             value={data.permintaan_harian_maksimum_produk}
                             onChange={(e) => setData('permintaan_harian_maksimum_produk', parseFloat(e.target.value) || 0)}
-                            placeholder="Maximum daily demand"
+                            placeholder="Permintaan harian maksimum"
                             min={0}
                             error={errors.permintaan_harian_maksimum_produk}
                         />
@@ -241,7 +240,7 @@ export default function Edit({ produk, bahanProduksi, bahanBakus }: Props) {
                             id="waktu_tunggu_rata2_produk"
                             value={data.waktu_tunggu_rata2_produk}
                             onChange={(e) => setData('waktu_tunggu_rata2_produk', parseFloat(e.target.value) || 0)}
-                            placeholder="Average lead time"
+                            placeholder="Waktu tunggu rata-rata"
                             min={0}
                             error={errors.waktu_tunggu_rata2_produk}
                         />
@@ -257,7 +256,7 @@ export default function Edit({ produk, bahanProduksi, bahanBakus }: Props) {
                             id="waktu_tunggu_maksimum_produk"
                             value={data.waktu_tunggu_maksimum_produk}
                             onChange={(e) => setData('waktu_tunggu_maksimum_produk', parseFloat(e.target.value) || 0)}
-                            placeholder="Maximum lead time"
+                            placeholder="Waktu tunggu maksimum"
                             min={0}
                             error={errors.waktu_tunggu_maksimum_produk}
                         />
@@ -268,7 +267,7 @@ export default function Edit({ produk, bahanProduksi, bahanBakus }: Props) {
                             id="permintaan_tahunan"
                             value={data.permintaan_tahunan}
                             onChange={(e) => setData('permintaan_tahunan', parseFloat(e.target.value) || 0)}
-                            placeholder="Annual demand"
+                            placeholder="Permintaan tahunan"
                             min={0}
                             error={errors.permintaan_tahunan}
                         />
@@ -276,9 +275,9 @@ export default function Edit({ produk, bahanProduksi, bahanBakus }: Props) {
                 </div>
             </div>
 
-            {/* Cost Information */}
+            {/* Informasi Biaya */}
             <div className="space-y-6">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Cost Information</h3>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Informasi Biaya</h3>
 
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                     <FormField id="biaya_pemesanan_produk" label="Biaya Pemesanan" error={errors.biaya_pemesanan_produk} required>
@@ -286,7 +285,7 @@ export default function Edit({ produk, bahanProduksi, bahanBakus }: Props) {
                             id="biaya_pemesanan_produk"
                             value={data.biaya_pemesanan_produk}
                             onChange={(e) => setData('biaya_pemesanan_produk', parseFloat(e.target.value) || 0)}
-                            placeholder="Order cost"
+                            placeholder="Masukkan biaya pemesanan"
                             min={0}
                             step="0.01"
                             error={errors.biaya_pemesanan_produk}
@@ -298,7 +297,7 @@ export default function Edit({ produk, bahanProduksi, bahanBakus }: Props) {
                             id="biaya_penyimpanan_produk"
                             value={data.biaya_penyimpanan_produk}
                             onChange={(e) => setData('biaya_penyimpanan_produk', parseFloat(e.target.value) || 0)}
-                            placeholder="Holding cost"
+                            placeholder="Masukkan biaya penyimpanan"
                             min={0}
                             step="0.01"
                             error={errors.biaya_penyimpanan_produk}
@@ -319,7 +318,7 @@ export default function Edit({ produk, bahanProduksi, bahanBakus }: Props) {
                             value={selectedBahan}
                             onChange={(e) => setSelectedBahan(e.target.value)}
                             options={[
-                                { value: '', label: 'Select material...' },
+                                { value: '', label: 'Pilih bahan baku...' },
                                 ...bahanBakus
                                     .filter((bahan) => !data.bahan_baku.some((item) => item.bahan_baku_id === bahan.bahan_baku_id))
                                     .map((bahan) => ({
@@ -347,14 +346,14 @@ export default function Edit({ produk, bahanProduksi, bahanBakus }: Props) {
                         className={`${buttonVariants.primary} flex items-center space-x-2 rounded-md px-4 py-2`}
                     >
                         <PlusIcon className="h-4 w-4" />
-                        <span>Add</span>
+                        <span>Tambah</span>
                     </button>
                 </div>
 
                 {/* List Bahan Baku */}
                 {data.bahan_baku.length > 0 && (
                     <div className="space-y-2">
-                        <h4 className="font-medium text-gray-900 dark:text-gray-100">Materials Used:</h4>
+                        <h4 className="font-medium text-gray-900 dark:text-gray-100">Bahan Baku yang Digunakan:</h4>
                         {data.bahan_baku.map((item, index) => (
                             <div
                                 key={index}

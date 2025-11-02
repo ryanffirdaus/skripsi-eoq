@@ -734,7 +734,7 @@ export default function TableTemplate<T extends Record<string, unknown>>({
                                 Batal
                             </Button>
                             <Button variant="destructive" onClick={handleDelete}>
-                                Hapus
+                                Ya
                             </Button>
                         </div>
                     </div>
