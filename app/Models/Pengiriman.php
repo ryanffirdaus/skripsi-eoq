@@ -64,9 +64,7 @@ class Pengiriman extends Model
 
     public static function generateId(): string
     {
-        $lastId = self::where('pengiriman_id', 'LIKE', 'PG%')
-            ->orderBy('pengiriman_id', 'desc')
-            ->first();
+        $lastId = static::withTrashed()->orderBy('pengiriman_id', 'desc')->first();
 
         if (!$lastId) {
             return 'PG001';

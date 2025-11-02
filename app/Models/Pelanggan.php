@@ -38,7 +38,7 @@ class Pelanggan extends Model
         static::creating(function ($model) {
             // Generate the next ID if not provided
             if (!$model->pelanggan_id) {
-                $latest = static::orderBy('pelanggan_id', 'desc')->first();
+                $latest = static::withTrashed()->orderBy('pelanggan_id', 'desc')->first();
                 $nextId = $latest ? (int) substr($latest->pelanggan_id, 2) + 1 : 1;
                 $model->pelanggan_id = 'CU' . str_pad($nextId, 3, '0', STR_PAD_LEFT);
             }

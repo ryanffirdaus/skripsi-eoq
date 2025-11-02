@@ -4,10 +4,24 @@ import { type BreadcrumbItem } from '@/types';
 import { useForm } from '@inertiajs/react';
 import React from 'react';
 
+interface PesananDetail {
+    pesanan_detail_id: string;
+    produk_id: string;
+    produk_nama: string;
+    jumlah_produk: number;
+    stok_produk: number;
+    stok_cukup: boolean;
+    harga_satuan: number;
+    subtotal: number;
+}
+
 interface Pesanan {
     pesanan_id: string;
     pelanggan_id: string;
     total_harga: number;
+    tanggal_pemesanan: string;
+    all_stock_sufficient: boolean;
+    detail: PesananDetail[];
     pelanggan: {
         nama_pelanggan: string;
         alamat_pengiriman: string;
@@ -55,10 +69,12 @@ export default function Create({ pesanan }: Props) {
         post('/pengiriman');
     }
 
-    const pesananOptions = pesanan.map((p) => ({
-        value: p.pesanan_id,
-        label: `${p.pesanan_id} - ${p.pelanggan.nama_pelanggan} (Rp ${p.total_harga.toLocaleString()})`,
-    }));
+    const pesananOptions = pesanan
+        .filter((p) => p.all_stock_sufficient)
+        .map((p) => ({
+            value: p.pesanan_id,
+            label: `${p.pesanan_id} - ${p.pelanggan.nama_pelanggan} (Rp ${p.total_harga.toLocaleString()})`,
+        }));
 
     const selectedPesanan = pesanan.find((p) => p.pesanan_id === data.pesanan_id);
 
@@ -79,29 +95,78 @@ export default function Create({ pesanan }: Props) {
                             value={data.pesanan_id}
                             onChange={(e) => setData('pesanan_id', e.target.value)}
                             options={pesananOptions}
-                            placeholder="Pilih pesanan"
+                            placeholder="Pilih pesanan (hanya yang stok cukup)"
                             error={errors.pesanan_id}
                         />
                     </FormField>
 
                     {selectedPesanan && (
-                        <div className="mt-4 rounded-lg border bg-muted/50 p-4">
-                            <h4 className="mb-2 font-medium">Detail Pesanan</h4>
-                            <div className="space-y-1 text-sm">
-                                <p>
-                                    <span className="font-medium">Pelanggan:</span> {selectedPesanan.pelanggan.nama_pelanggan}
-                                </p>
-                                <p>
-                                    <span className="font-medium">Total:</span> Rp {selectedPesanan.total_harga.toLocaleString()}
-                                </p>
-                                <p>
-                                    <span className="font-medium">Alamat:</span> {selectedPesanan.pelanggan.alamat_pengiriman},{' '}
-                                    {selectedPesanan.pelanggan.alamat_pengiriman}
-                                </p>
-                                <p>
-                                    <span className="font-medium">Telepon:</span> {selectedPesanan.pelanggan.nomor_telepon}
-                                </p>
+                        <div className="mt-4 space-y-4">
+                            {/* Detail Pesanan */}
+                            <div className="rounded-lg border bg-muted/50 p-4">
+                                <h4 className="mb-3 font-semibold">Detail Pesanan</h4>
+                                <div className="space-y-1 text-sm">
+                                    <p>
+                                        <span className="font-medium">Pesanan:</span> {selectedPesanan.pesanan_id}
+                                    </p>
+                                    <p>
+                                        <span className="font-medium">Pelanggan:</span> {selectedPesanan.pelanggan.nama_pelanggan}
+                                    </p>
+                                    <p>
+                                        <span className="font-medium">Total:</span> Rp {selectedPesanan.total_harga.toLocaleString()}
+                                    </p>
+                                    <p>
+                                        <span className="font-medium">Alamat:</span> {selectedPesanan.pelanggan.alamat_pengiriman}
+                                    </p>
+                                    <p>
+                                        <span className="font-medium">Telepon:</span> {selectedPesanan.pelanggan.nomor_telepon}
+                                    </p>
+                                </div>
                             </div>
+
+                            {/* Detail Produk dengan Stok */}
+                            <div className="space-y-2">
+                                <h4 className="font-semibold">Produk yang Akan Dikirim</h4>
+                                <div className="space-y-2">
+                                    {selectedPesanan.detail.map((detail, idx) => (
+                                        <div
+                                            key={idx}
+                                            className="rounded-lg border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-800"
+                                        >
+                                            <div className="flex items-start justify-between">
+                                                <div className="flex-1">
+                                                    <p className="font-medium text-gray-900 dark:text-gray-100">{detail.produk_nama}</p>
+                                                    <p className="text-sm text-gray-500 dark:text-gray-400">Pesanan: {detail.jumlah_produk} unit</p>
+                                                </div>
+                                                <div className="text-right">
+                                                    <p className="text-sm font-medium">Stok: {detail.stok_produk} unit</p>
+                                                    {detail.stok_cukup ? (
+                                                        <p className="text-sm text-green-600 dark:text-green-400">✓ Stok cukup</p>
+                                                    ) : (
+                                                        <p className="text-sm text-red-600 dark:text-red-400">✗ Stok kurang</p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Peringatan stok tidak cukup */}
+                    {Object.keys(errors).includes('stock') && errors['stock' as keyof typeof errors] && (
+                        <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-900 dark:bg-red-950">
+                            <p className="text-sm font-medium text-red-800 dark:text-red-200">{errors['stock' as keyof typeof errors]}</p>
+                        </div>
+                    )}
+
+                    {/* Info pesanan tanpa stok cukup */}
+                    {pesanan.some((p) => !p.all_stock_sufficient) && pesananOptions.length === 0 && (
+                        <div className="mt-4 rounded-lg border border-yellow-200 bg-yellow-50 p-3 dark:border-yellow-900 dark:bg-yellow-950">
+                            <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                                Semua pesanan tidak dapat dikirim karena stok produk tidak cukup.
+                            </p>
                         </div>
                     )}
                 </div>

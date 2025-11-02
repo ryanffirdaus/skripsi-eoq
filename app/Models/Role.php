@@ -54,7 +54,7 @@ class Role extends Model
         parent::boot();
 
         static::creating(function ($model) {
-            $latestRole = static::latest('role_id')->first();
+            $latestRole = static::withTrashed()->latest('role_id')->first();
             $nextId = $latestRole ? intval(substr($latestRole->role_id, 2)) + 1 : 1;
             $model->role_id = 'RL' . str_pad($nextId, 3, '0', STR_PAD_LEFT);
         });

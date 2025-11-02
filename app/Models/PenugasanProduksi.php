@@ -12,9 +12,15 @@ class PenugasanProduksi extends Model
     use HasFactory, SoftDeletes;
 
     protected $primaryKey = 'penugasan_id';
+
+    protected $keyType = 'string';
+
     protected $table = 'penugasan_produksi';
 
+    public $incrementing = false;
+
     protected $fillable = [
+        'penugasan_id',
         'pengadaan_detail_id',
         'user_id',
         'jumlah_produksi',
@@ -46,6 +52,13 @@ class PenugasanProduksi extends Model
         parent::boot();
 
         static::creating(function ($model) {
+            // Auto-generate penugasan_id
+            if (!$model->penugasan_id) {
+                $latest = static::withTrashed()->orderBy('penugasan_id', 'desc')->first();
+                $nextId = $latest ? (int) substr($latest->penugasan_id, 3) + 1 : 1;
+                $model->penugasan_id = 'PPD' . str_pad($nextId, 5, '0', STR_PAD_LEFT);
+            }
+
             if (Auth::check()) {
                 $model->created_by = Auth::user()->user_id;
             }

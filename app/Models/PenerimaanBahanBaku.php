@@ -33,7 +33,7 @@ class PenerimaanBahanBaku extends Model
 
         static::creating(function ($model) {
             if (!$model->getKey()) {
-                $latest = static::orderBy('penerimaan_id', 'desc')->first();
+                $latest = static::withTrashed()->orderBy('penerimaan_id', 'desc')->first();
                 $nextNumber = $latest ? (int)substr($latest->penerimaan_id, 3) + 1 : 1;
                 $model->{$model->getKeyName()} = 'RBM' . str_pad($nextNumber, 7, '0', STR_PAD_LEFT);
             }

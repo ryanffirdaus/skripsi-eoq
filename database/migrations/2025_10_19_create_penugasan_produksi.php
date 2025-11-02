@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::dropIfExists('penugasan_produksi');
 
         Schema::create('penugasan_produksi', function (Blueprint $table) {
-            $table->id('penugasan_id');
+            $table->string('penugasan_id', 50)->primary();
             $table->string('pengadaan_detail_id');
             $table->foreign('pengadaan_detail_id')->references('pengadaan_detail_id')->on('pengadaan_detail')->onDelete('cascade');
 
@@ -25,7 +25,7 @@ return new class extends Migration
             // Jumlah yang harus diproduksi
             $table->integer('jumlah_produksi');
 
-            // Status: ditugaskan, dalam_proses, selesai, dibatalkan
+            // Status: ditugaskan, proses, selesai, dibatalkan
             $table->enum('status', ['ditugaskan', 'proses', 'selesai', 'dibatalkan'])->default('ditugaskan');
 
             $table->date('deadline');

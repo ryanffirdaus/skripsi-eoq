@@ -31,7 +31,7 @@ interface PengadaanDetail extends Record<string, unknown> {
 }
 
 interface Penugasan extends Record<string, unknown> {
-    penugasan_id: number;
+    penugasan_id: string;
     pengadaan_detail_id: string;
     pengadaan_detail?: PengadaanDetail;
     user_id: string;

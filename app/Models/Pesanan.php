@@ -37,7 +37,7 @@ class Pesanan extends Model
 
         static::creating(function ($model) {
             if (!$model->pesanan_id) {
-                $latest = static::orderBy('pesanan_id', 'desc')->first();
+                $latest = static::withTrashed()->orderBy('pesanan_id', 'desc')->first();
                 $nextId = $latest ? (int) substr($latest->pesanan_id, 2) + 1 : 1;
                 $model->pesanan_id = 'PS' . str_pad($nextId, 3, '0', STR_PAD_LEFT);
             }

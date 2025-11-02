@@ -98,22 +98,41 @@ class PengirimanController extends Controller
      */
     public function create()
     {
-        $pesanan = Pesanan::with('pelanggan')
+        $pesananList = Pesanan::with(['pelanggan', 'detail.produk'])
             ->whereIn('status', ['pending', 'diproses'])
             ->whereDoesntHave('pengiriman')
-            ->get()
-            ->map(function ($item) {
+            ->get();
+
+        $pesanan = $pesananList->map(function ($item) {
+            $details = $item->detail->map(function ($detail) {
                 return [
-                    'pesanan_id' => $item->pesanan_id,
-                    'pelanggan_id' => $item->pelanggan_id,
-                    'total_harga' => $item->total_harga,
-                    'pelanggan' => $item->pelanggan ? [
-                        'nama_pelanggan' => $item->pelanggan->nama_pelanggan,
-                        'alamat_pengiriman' => $item->pelanggan->alamat_pengiriman,
-                        'nomor_telepon' => $item->pelanggan->nomor_telepon,
-                    ] : null,
+                    'pesanan_detail_id' => $detail->pesanan_detail_id,
+                    'produk_id' => $detail->produk_id,
+                    'produk_nama' => $detail->produk->nama_produk ?? 'N/A',
+                    'jumlah_produk' => $detail->jumlah_produk,
+                    'stok_produk' => $detail->produk->stok_produk ?? 0,
+                    'stok_cukup' => ($detail->produk->stok_produk ?? 0) >= $detail->jumlah_produk,
+                    'harga_satuan' => $detail->harga_satuan,
+                    'subtotal' => $detail->subtotal,
                 ];
-            });
+            })->toArray();
+
+            $allStockSufficient = collect($details)->every(fn($d) => $d['stok_cukup']);
+
+            return [
+                'pesanan_id' => $item->pesanan_id,
+                'pelanggan_id' => $item->pelanggan_id,
+                'total_harga' => $item->total_harga,
+                'tanggal_pemesanan' => $item->tanggal_pemesanan,
+                'all_stock_sufficient' => $allStockSufficient,
+                'pelanggan' => $item->pelanggan ? [
+                    'nama_pelanggan' => $item->pelanggan->nama_pelanggan,
+                    'alamat_pengiriman' => $item->pelanggan->alamat_pengiriman,
+                    'nomor_telepon' => $item->pelanggan->nomor_telepon,
+                ] : null,
+                'detail' => $details,
+            ];
+        })->values()->all();
 
         return Inertia::render('pengiriman/create', [
             'pesanan' => $pesanan,
@@ -137,6 +156,35 @@ class PengirimanController extends Controller
         if ($validator->fails()) {
             return redirect()->back()
                 ->withErrors($validator)
+                ->withInput();
+        }
+
+        // Validasi stok produk
+        $pesanan = Pesanan::with('detail.produk')->find($request->pesanan_id);
+
+        if (!$pesanan) {
+            return redirect()->back()
+                ->withErrors(['pesanan_id' => 'Pesanan tidak ditemukan.'])
+                ->withInput();
+        }
+
+        // Cek stok setiap produk di pesanan
+        $stockErrors = [];
+        foreach ($pesanan->detail as $detail) {
+            $produk = $detail->produk;
+            if (!$produk) {
+                $stockErrors[] = "Produk untuk item detail tidak ditemukan.";
+                continue;
+            }
+
+            if ($produk->stok_produk < $detail->jumlah_produk) {
+                $stockErrors[] = "Produk '{$produk->nama_produk}' memiliki stok {$produk->stok_produk}, tetapi pesanan membutuhkan {$detail->jumlah_produk} unit.";
+            }
+        }
+
+        if (!empty($stockErrors)) {
+            return redirect()->back()
+                ->withErrors(['stock' => implode(' ', $stockErrors)])
                 ->withInput();
         }
 

@@ -35,7 +35,7 @@ class TransaksiPembayaran extends Model
 
         static::creating(function ($model) {
             if (!$model->transaksi_pembayaran_id) {
-                $latest = static::orderBy('transaksi_pembayaran_id', 'desc')->first();
+                $latest = static::withTrashed()->orderBy('transaksi_pembayaran_id', 'desc')->first();
                 $nextNumber = $latest ? (int)substr($latest->transaksi_pembayaran_id, 3) + 1 : 1;
                 $model->transaksi_pembayaran_id = 'TRP' . str_pad($nextNumber, 8, '0', STR_PAD_LEFT);
             }

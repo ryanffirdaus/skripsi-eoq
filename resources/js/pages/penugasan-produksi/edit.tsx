@@ -18,7 +18,7 @@ interface PengadaanDetail {
 }
 
 interface Penugasan {
-    penugasan_id: number;
+    penugasan_id: string;
     pengadaan_detail_id: string;
     pengadaan_detail?: PengadaanDetail;
     user_id: string;
