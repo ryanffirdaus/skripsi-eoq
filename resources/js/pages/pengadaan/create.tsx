@@ -287,7 +287,6 @@ export default function Create({ pemasoks, pesanan, bahanBaku, produk }: Props) 
             backUrl="/pengadaan"
             onSubmit={handleSubmit}
             processing={processing}
-            submitText="Simpan Pengadaan"
             processingText="Menyimpan..."
         >
             <Head title="Tambah Pengadaan" />
@@ -406,9 +405,9 @@ export default function Create({ pemasoks, pesanan, bahanBaku, produk }: Props) 
                 {items.length === 0 && !calculationResult && (
                     <div className="rounded-lg border-2 border-dashed border-gray-300 p-8 text-center">
                         <CalculatorIcon className="mx-auto h-12 w-12 text-gray-400" />
-                        <h3 className="mt-2 text-sm font-medium text-gray-900">Belum ada item procurement</h3>
+                        <h3 className="mt-2 text-sm font-medium text-gray-900">Belum ada item pengadaan</h3>
                         <p className="mt-1 text-sm text-gray-500">
-                            Pilih pesanan dan klik "Hitung Kebutuhan" untuk mendapatkan daftar item yang perlu diprocurement
+                            Pilih pesanan dan klik "Hitung Kebutuhan" untuk mendapatkan daftar item yang perlu dilakukan pengadaan
                         </p>
                     </div>
                 )}
@@ -557,7 +556,7 @@ export default function Create({ pemasoks, pesanan, bahanBaku, produk }: Props) 
 
                                 {isCritical && (
                                     <div className="mt-2 rounded border border-red-200 bg-red-100 p-2 text-sm text-red-700">
-                                        ⚠️ Stok kritis! Perlu segera diprocurement
+                                        ⚠️ Stok kritis! Perlu segera dilakukan pengadaan
                                     </div>
                                 )}
 
@@ -584,7 +583,7 @@ export default function Create({ pemasoks, pesanan, bahanBaku, produk }: Props) 
                             <span className="font-medium">Total Estimasi Biaya:</span>
                             <span className="text-lg font-bold">Rp {calculateTotal().toLocaleString('id-ID')}</span>
                         </div>
-                        <div className="mt-2 text-sm text-gray-600">Total {items.length} item akan diprocurement</div>
+                        <div className="mt-2 text-sm text-gray-600">Total {items.length} item akan dilakukan pengadaan</div>
                     </div>
                 )}
             </div>

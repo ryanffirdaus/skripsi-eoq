@@ -300,19 +300,21 @@ export default function Index({ pengadaan, filters, flash }: Props) {
 
     return (
         <TableTemplate<Pengadaan>
-            title="Pengadaan Management"
+            title="Manajemen Pengadaan"
             breadcrumbs={breadcrumbs}
             data={pengadaan}
             columns={columns}
             createUrl="/pengadaan/create"
-            createButtonText="Buat Pengadaan"
             searchPlaceholder="Cari pengadaan..."
             filters={filters}
             filterOptions={filterOptions}
             baseUrl="/pengadaan"
             actions={actions}
             flash={flash}
-            idField="pengadaan_id"
+            deleteDialogTitle="Hapus Pengadaan"
+            deleteDialogMessage={(item) =>
+                `Apakah Anda yakin ingin menghapus pengadaan dengan ID "${item.pengadaan_id}"? Tindakan ini tidak dapat dibatalkan.`
+            }
         />
     );
 }

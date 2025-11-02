@@ -90,6 +90,11 @@ class Pesanan extends Model
         return $this->belongsTo(User::class, 'deleted_by', 'user_id');
     }
 
+    public function pengadaan()
+    {
+        return $this->hasMany(Pengadaan::class, 'pesanan_id', 'pesanan_id');
+    }
+
     public function pengiriman()
     {
         return $this->hasMany(Pengiriman::class, 'pesanan_id', 'pesanan_id');

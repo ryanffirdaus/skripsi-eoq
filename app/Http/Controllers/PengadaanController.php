@@ -135,19 +135,13 @@ class PengadaanController extends Controller
         $pesanan = Pesanan::with(['pelanggan:pelanggan_id,nama_pelanggan', 'detail.produk'])
             ->select('pesanan_id', 'pelanggan_id', 'tanggal_pemesanan', 'total_harga', 'status')
             ->whereIn('status', ['pending', 'confirmed', 'processing']) // Only active orders
+            ->whereDoesntHave('pengadaan') // Filter pesanan yang BELUM ada pengadaan
+            ->whereHas('detail', function ($query) { // Filter stok di level DB
+                $query->join('produk', 'pesanan_detail.produk_id', '=', 'produk.produk_id')
+                    ->whereColumn('pesanan_detail.jumlah_produk', '>', 'produk.stok_produk');
+            })
             ->orderBy('tanggal_pemesanan', 'desc')
             ->get()
-            ->filter(function ($item) {
-                // Filter: Only include orders where at least one product qty exceeds stock
-                $hasExceedingProduct = false;
-                foreach ($item->detail as $detail) {
-                    if ($detail->jumlah_produk > $detail->produk->stok_produk) {
-                        $hasExceedingProduct = true;
-                        break;
-                    }
-                }
-                return $hasExceedingProduct;
-            })
             ->map(function ($item) {
                 return [
                     'pesanan_id' => $item->pesanan_id,
@@ -159,6 +153,10 @@ class PengadaanController extends Controller
                     'display_text' => $item->pesanan_id . ' - ' . ($item->pelanggan->nama_pelanggan ?? 'Unknown') . ' (' . date('d/m/Y', strtotime($item->tanggal_pemesanan)) . ')',
                     'produk' => $item->detail->map(function ($detail) {
                         $produk = $detail->produk;
+
+                        // Pengaman jika relasi produk gagal (misal: produk terhapus)
+                        if (!$produk) return null;
+
                         return [
                             'produk_id' => $produk->produk_id,
                             'nama_produk' => $produk->nama_produk,
@@ -168,10 +166,10 @@ class PengadaanController extends Controller
                             'hpp_produk' => $produk->hpp_produk,
                             'satuan_produk' => $produk->satuan_produk,
                         ];
-                    })
+                    })->filter() // Menghapus item null jika ada
                 ];
             })
-            ->values(); // Re-index array after filter
+            ->values(); // Re-index array
 
         $bahanBaku = BahanBaku::select('bahan_baku_id', 'nama_bahan', 'satuan_bahan as satuan', 'harga_bahan as harga_per_unit', 'stok_bahan as stok_saat_ini', 'rop_bahan as reorder_point', 'eoq_bahan as eoq')
             ->orderBy('nama_bahan')
@@ -206,7 +204,7 @@ class PengadaanController extends Controller
             });
 
         return Inertia::render('pengadaan/create', [
-            'pemasoks' => $pemasok,  // ✅ FIXED: Frontend expect 'pemasoks' plural
+            'pemasoks' => $pemasok,
             'pesanan' => $pesanan,
             'bahanBaku' => $bahanBaku,
             'produk' => $produk,
@@ -293,7 +291,7 @@ class PengadaanController extends Controller
                 $detailCatatan = "Total diperlukan: {$totalDiperlukan}, Stok: {$stokSaatIni}, Kekurangan: {$kekurangan}\n";
                 foreach ($bahan['detail_kebutuhan'] as $detail) {
                     if ($detail['total_bahan'] > 0) {
-                        $detailCatatan .= "- Utk '{$detail['produk']}': {$detail['jumlah_produksi']} x {$detail['jumlah_bahan_per_produk']} = {$detail['total_bahan']}\n";
+                        $detailCatatan .= "- Untuk '{$detail['produk']}': {$detail['jumlah_produksi']} x {$detail['jumlah_bahan_per_produk']} = {$detail['total_bahan']}\n";
                     }
                 }
 
