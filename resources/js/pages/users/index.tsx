@@ -55,7 +55,7 @@ interface Props {
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Users',
+        title: 'Pengguna',
         href: '/users',
     },
 ];
@@ -78,7 +78,7 @@ export default function Index({ users, roles, filters, flash }: Props) {
         },
         {
             key: 'role',
-            label: 'Role',
+            label: 'Jenis Peran',
             sortable: true,
             hideable: true,
             defaultVisible: true,
@@ -138,13 +138,14 @@ export default function Index({ users, roles, filters, flash }: Props) {
             columns={columns}
             createUrl="/users/create"
             createButtonText="Tambah"
-            searchPlaceholder="Search by name or email..."
+            searchPlaceholder="Cari pengguna..."
             filters={filters}
             filterOptions={filterOptions}
             actions={actions}
             baseUrl="/users"
             flash={flash}
             deleteDialogTitle="Hapus Pengguna"
+            deleteDialogMessage={() => 'Apakah Anda yakin ingin menghapus pengguna ini? Tindakan ini tidak dapat dibatalkan.'}
         />
     );
 }

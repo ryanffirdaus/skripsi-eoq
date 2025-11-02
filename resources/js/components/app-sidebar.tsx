@@ -29,7 +29,7 @@ const mainNavItems: NavItem[] = [
         roles: ['R01', 'R02', 'R03', 'R04', 'R05', 'R06', 'R07', 'R08', 'R09', 'R10'], // Semua role
     },
     {
-        title: 'Users',
+        title: 'Pengguna',
         href: '/users',
         icon: Users, // Tetap untuk pengguna internal sistem
         roles: ['R01'], // Hanya Admin

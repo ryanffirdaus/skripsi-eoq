@@ -15,7 +15,7 @@ interface CreateProps {
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Users',
+        title: 'Pengguna',
         href: '/users',
     },
     {
@@ -44,27 +44,27 @@ export default function Create({ roles }: CreateProps) {
     }));
 
     const passwordSection = {
-        title: 'Password',
+        title: 'Kata Sandi',
         children: (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                <FormField id="password" label="Password" error={errors.password} required>
+                <FormField id="password" label="Kata Sandi" error={errors.password} required>
                     <TextInput
                         id="password"
                         type="password"
                         value={data.password}
                         onChange={(e) => setData('password', e.target.value)}
-                        placeholder="Enter password"
+                        placeholder="Masukkan kata sandi"
                         error={errors.password}
                     />
                 </FormField>
 
-                <FormField id="password_confirmation" label="Confirm Password" error={errors.password_confirmation} required>
+                <FormField id="password_confirmation" label="Konfirmasi Kata Sandi" error={errors.password_confirmation} required>
                     <TextInput
                         id="password_confirmation"
                         type="password"
                         value={data.password_confirmation}
                         onChange={(e) => setData('password_confirmation', e.target.value)}
-                        placeholder="Confirm password"
+                        placeholder="Masukkan konfirmasi kata sandi"
                         error={errors.password_confirmation}
                     />
                 </FormField>
@@ -88,7 +88,7 @@ export default function Create({ roles }: CreateProps) {
                         type="text"
                         value={data.nama_lengkap}
                         onChange={(e) => setData('nama_lengkap', e.target.value)}
-                        placeholder="Enter full name"
+                        placeholder="Masukkan nama lengkap"
                         error={errors.nama_lengkap}
                     />
                 </FormField>
@@ -99,18 +99,18 @@ export default function Create({ roles }: CreateProps) {
                         type="email"
                         value={data.email}
                         onChange={(e) => setData('email', e.target.value)}
-                        placeholder="Enter email address"
+                        placeholder="Masukkan alamat email"
                         error={errors.email}
                     />
                 </FormField>
 
-                <FormField id="role_id" label="Role" error={errors.role_id} required>
+                <FormField id="role_id" label="Jenis Peran" error={errors.role_id} required>
                     <Select
                         id="role_id"
                         value={data.role_id}
                         onChange={(e) => setData('role_id', e.target.value)}
                         options={roleOptions}
-                        placeholder="Select role"
+                        placeholder="Pilih jenis peran"
                         error={errors.role_id}
                     />
                 </FormField>

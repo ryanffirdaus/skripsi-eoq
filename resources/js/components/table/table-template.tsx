@@ -575,11 +575,11 @@ export default function TableTemplate<T extends Record<string, unknown>>({
                 {/* Results Summary */}
                 <div className={cn('flex items-center justify-between text-sm', colors.text.secondary)}>
                     <div>
-                        Showing {data.from || 0} to {data.to || 0} of {data.total} results
+                        Menampilkan {data.from || 0} hingga {data.to || 0} dari {data.total} hasil
                         {hasActiveFilters && <span className="ml-2 text-blue-600">(filtered)</span>}
                     </div>
                     <div className="flex items-center gap-2">
-                        <label className="text-sm">Per page:</label>
+                        <label className="text-sm">Per halaman:</label>
                         <select
                             value={perPage}
                             onChange={(e) => handlePerPageChange(Number(e.target.value))}

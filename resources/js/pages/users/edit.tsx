@@ -23,11 +23,11 @@ interface Props {
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Users',
+        title: 'Pengguna',
         href: '/users',
     },
     {
-        title: 'Edit User',
+        title: 'Ubah Pengguna',
         href: '#',
     },
 ];
@@ -52,28 +52,28 @@ export default function Edit({ user, roles }: Props) {
     }));
 
     const passwordSection = {
-        title: 'Change Password',
+        title: 'Ubah Kata Sandi',
         children: (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                <FormField id="password" label="New Password" error={errors.password}>
+                <FormField id="password" label="Kata Sandi Baru" error={errors.password}>
                     <TextInput
                         id="password"
                         type="password"
                         value={data.password}
                         onChange={(e) => setData('password', e.target.value)}
-                        placeholder="Enter new password"
+                        placeholder="Masukkan kata sandi baru"
                         error={errors.password}
                     />
-                    <span className="text-xs text-gray-500 dark:text-gray-400">(leave blank to keep current)</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">(biarkan kosong untuk mempertahankan kata sandi saat ini)</span>
                 </FormField>
 
-                <FormField id="password_confirmation" label="Confirm Password" error={errors.password_confirmation}>
+                <FormField id="password_confirmation" label="Konfirmasi Kata Sandi" error={errors.password_confirmation}>
                     <TextInput
                         id="password_confirmation"
                         type="password"
                         value={data.password_confirmation}
                         onChange={(e) => setData('password_confirmation', e.target.value)}
-                        placeholder="Confirm new password"
+                        placeholder="Masukkan konfirmasi kata sandi baru"
                         error={errors.password_confirmation}
                     />
                 </FormField>
@@ -83,13 +83,13 @@ export default function Edit({ user, roles }: Props) {
 
     return (
         <FormTemplate
-            title={`Edit User: ${user.nama_lengkap}`}
+            title={`Ubah Pengguna: ${user.nama_lengkap}`}
             breadcrumbs={breadcrumbs}
             backUrl="/users"
             onSubmit={handleSubmit}
             processing={processing}
             submitText="Simpan"
-            processingText="Updating..."
+            processingText="Memperbarui..."
             sections={[passwordSection]}
         >
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
@@ -99,7 +99,7 @@ export default function Edit({ user, roles }: Props) {
                         type="text"
                         value={data.nama_lengkap}
                         onChange={(e) => setData('nama_lengkap', e.target.value)}
-                        placeholder="Enter full name"
+                        placeholder="Masukkan nama lengkap"
                         error={errors.nama_lengkap}
                     />
                 </FormField>
@@ -110,18 +110,18 @@ export default function Edit({ user, roles }: Props) {
                         type="email"
                         value={data.email}
                         onChange={(e) => setData('email', e.target.value)}
-                        placeholder="Enter email address"
+                        placeholder="Masukkan alamat email"
                         error={errors.email}
                     />
                 </FormField>
 
-                <FormField id="role_id" label="Role" error={errors.role_id} required>
+                <FormField id="role_id" label="Jenis Peran" error={errors.role_id} required>
                     <Select
                         id="role_id"
                         value={data.role_id}
                         onChange={(e) => setData('role_id', e.target.value)}
                         options={roleOptions}
-                        placeholder="Select role"
+                        placeholder="Pilih jenis peran"
                         error={errors.role_id}
                     />
                 </FormField>
