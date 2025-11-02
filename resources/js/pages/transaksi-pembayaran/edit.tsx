@@ -27,7 +27,7 @@ interface Transaksi {
     jumlah_pembayaran: number;
     metode_pembayaran: string;
     bukti_pembayaran?: string;
-    deskripsi?: string;
+    catatan?: string;
 }
 
 interface Props {
@@ -48,7 +48,7 @@ export default function Edit({ transaksi }: Props) {
         jumlah_pembayaran: transaksi.jumlah_pembayaran.toString(),
         metode_pembayaran: transaksi.metode_pembayaran,
         bukti_pembayaran: null as File | null,
-        deskripsi: transaksi.deskripsi || '',
+        catatan: transaksi.catatan || '',
     });
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -177,11 +177,11 @@ export default function Edit({ transaksi }: Props) {
                 </div>
 
                 <div className="md:col-span-2">
-                    <FormField id="deskripsi" label="Deskripsi / Catatan" error={errors.deskripsi}>
+                    <FormField id="catatan" label="catatan / Catatan" error={errors.catatan}>
                         <TextArea
-                            id="deskripsi"
-                            value={data.deskripsi}
-                            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setData('deskripsi', e.target.value)}
+                            id="catatan"
+                            value={data.catatan}
+                            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setData('catatan', e.target.value)}
                             rows={3}
                             placeholder="Catatan tambahan untuk pembayaran ini..."
                         />

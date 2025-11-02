@@ -12,14 +12,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('pembelian', function (Blueprint $table) {
-            $table->string('pembelian_id', 20)->primary();
+            $table->string('pembelian_id', 50)->primary();
 
             // Foreign key ke tabel pengadaan (permintaan internal)
-            $table->string('pengadaan_id', 10)->index();
+            $table->string('pengadaan_id', 50)->index();
             $table->foreign('pengadaan_id')->references('pengadaan_id')->on('pengadaan')->onDelete('restrict');
 
             // Foreign key ke tabel pemasok
-            $table->string('pemasok_id', 10)->index();
+            $table->string('pemasok_id', 50)->index();
             $table->foreign('pemasok_id')->references('pemasok_id')->on('pemasok')->onDelete('restrict');
             $table->date('tanggal_pembelian');
             $table->date('tanggal_kirim_diharapkan')->nullable();
@@ -31,11 +31,11 @@ return new class extends Migration
             $table->text('catatan')->nullable();
 
             // Foreign keys untuk tracking user
-            $table->string('created_by', 10)->nullable();
+            $table->string('created_by', 50)->nullable();
             $table->foreign('created_by')->references('user_id')->on('users')->onDelete('set null');
-            $table->string('updated_by', 10)->nullable();
+            $table->string('updated_by', 50)->nullable();
             $table->foreign('updated_by')->references('user_id')->on('users')->onDelete('set null');
-            $table->string('deleted_by', 10)->nullable();
+            $table->string('deleted_by', 50)->nullable();
             $table->foreign('deleted_by')->references('user_id')->on('users')->onDelete('set null');
 
             $table->timestamps();

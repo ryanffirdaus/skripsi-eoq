@@ -42,7 +42,7 @@ export default function Create({ pembelians }: Props) {
         jumlah_pembayaran: '',
         metode_pembayaran: 'transfer' as string,
         nomor_referensi: '',
-        keterangan: '',
+        catatan: '',
         bukti_pembayaran: null as File | null,
     });
 
@@ -261,11 +261,11 @@ export default function Create({ pembelians }: Props) {
                 </div>
 
                 <div className="md:col-span-2">
-                    <FormField id="keterangan" label="Keterangan / Catatan" error={errors.keterangan}>
+                    <FormField id="catatan" label="catatan / Catatan" error={errors.catatan}>
                         <TextArea
-                            id="keterangan"
-                            value={data.keterangan}
-                            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setData('keterangan', e.target.value)}
+                            id="catatan"
+                            value={data.catatan}
+                            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setData('catatan', e.target.value)}
                             rows={3}
                             placeholder="Catatan tambahan untuk pembayaran ini..."
                         />

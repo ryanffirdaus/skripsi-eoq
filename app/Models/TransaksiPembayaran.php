@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Auth;
 
 class TransaksiPembayaran extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $primaryKey = 'transaksi_pembayaran_id';
     public $incrementing = false;
@@ -21,7 +23,10 @@ class TransaksiPembayaran extends Model
         'tanggal_pembayaran',
         'total_pembayaran',
         'bukti_pembayaran',
-        'deskripsi',
+        'catatan',
+        'created_by',
+        'updated_by',
+        'deleted_by',
     ];
 
     protected $casts = [
@@ -39,12 +44,44 @@ class TransaksiPembayaran extends Model
                 $nextNumber = $latest ? (int)substr($latest->transaksi_pembayaran_id, 3) + 1 : 1;
                 $model->transaksi_pembayaran_id = 'TRP' . str_pad($nextNumber, 8, '0', STR_PAD_LEFT);
             }
+
+            if (Auth::check()) {
+                $model->created_by = Auth::user()->user_id;
+                $model->updated_by = Auth::user()->user_id;
+            }
+        });
+
+        static::updating(function ($model) {
+            if (Auth::check()) {
+                $model->updated_by = Auth::user()->user_id;
+            }
+        });
+
+        static::deleting(function ($model) {
+            if (Auth::check()) {
+                $model->deleted_by = Auth::user()->user_id;
+            }
         });
     }
 
     public function pembelian()
     {
         return $this->belongsTo(Pembelian::class, 'pembelian_id', 'pembelian_id');
+    }
+
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by', 'user_id');
+    }
+
+    public function updatedBy()
+    {
+        return $this->belongsTo(User::class, 'updated_by', 'user_id');
+    }
+
+    public function deletedBy()
+    {
+        return $this->belongsTo(User::class, 'deleted_by', 'user_id');
     }
 
     /**

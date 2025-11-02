@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PembelianDetail extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $primaryKey = 'pembelian_detail_id';
     protected $keyType = 'string';

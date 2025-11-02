@@ -148,7 +148,7 @@ class TransaksiPembayaranSeeder extends Seeder
     /**
      * Helper method to create payment transaction
      */
-    private function createPayment(Pembelian $pembelian, string $jenisPembayaran, float $totalPembayaran, string $deskripsi, $tanggalPembayaran = null)
+    private function createPayment(Pembelian $pembelian, string $jenisPembayaran, float $totalPembayaran, string $catatan, $tanggalPembayaran = null)
     {
         $transaksi = TransaksiPembayaran::create([
             'pembelian_id' => $pembelian->pembelian_id,
@@ -156,7 +156,7 @@ class TransaksiPembayaranSeeder extends Seeder
             'tanggal_pembayaran' => $tanggalPembayaran ?? now()->subDays(rand(1, 5)),
             'total_pembayaran' => $totalPembayaran,
             'bukti_pembayaran' => 'BUKTI-' . strtoupper($jenisPembayaran) . '-' . date('Ymd') . '-' . str_pad(rand(1, 999), 3, '0', STR_PAD_LEFT) . '.pdf',
-            'deskripsi' => $deskripsi,
+            'catatan' => $catatan,
         ]);
 
         $this->command->line("  > Transaksi Pembayaran {$jenisPembayaran} untuk PO {$pembelian->pembelian_id} berhasil dibuat (Rp " . number_format($totalPembayaran, 0, ',', '.') . ").");

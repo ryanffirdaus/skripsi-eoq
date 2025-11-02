@@ -4,16 +4,17 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PenerimaanBahanBakuDetail extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $primaryKey = 'penerimaan_detail_id';
     protected $keyType = 'string';
     protected $table = 'penerimaan_bahan_baku_detail';
     public $incrementing = false;
-    public $timestamps = false;
+    public $timestamps = true;
 
     protected $fillable = [
         'penerimaan_detail_id',

@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('pengiriman', function (Blueprint $table) {
-            $table->string('pengiriman_id', 10)->primary();
-            $table->string('pesanan_id', 10);
+            $table->string('pengiriman_id', 50)->primary();
+            $table->string('pesanan_id', 50);
             $table->foreign('pesanan_id')->references('pesanan_id')->on('pesanan')->onDelete('cascade');
 
             // Informasi Pengiriman
@@ -38,9 +38,9 @@ return new class extends Migration
             $table->text('catatan')->nullable();
 
             // Audit Trail
-            $table->string('created_by')->nullable();
-            $table->string('updated_by')->nullable();
-            $table->string('deleted_by')->nullable();
+            $table->string('created_by', 50)->nullable();
+            $table->string('updated_by', 50)->nullable();
+            $table->string('deleted_by', 50)->nullable();
             $table->softDeletes();
             $table->timestamps();
 

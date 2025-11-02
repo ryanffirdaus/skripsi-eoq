@@ -13,7 +13,7 @@ interface TransaksiPembayaran extends Record<string, unknown> {
     tanggal_pembayaran: string;
     total_pembayaran: number;
     bukti_pembayaran: string;
-    deskripsi?: string;
+    catatan?: string;
     created_at: string;
 }
 

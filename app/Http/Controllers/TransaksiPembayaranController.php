@@ -70,7 +70,7 @@ class TransaksiPembayaranController extends Controller
                 'jenis_pembayaran'        => $item->jenis_pembayaran,
                 'jumlah_pembayaran'       => (float) $item->jumlah_pembayaran,
                 'bukti_pembayaran'        => $item->bukti_pembayaran,
-                'deskripsi'               => $item->deskripsi,
+                'catatan'               => $item->catatan,
                 'created_at'              => $item->created_at?->format('Y-m-d H:i:s'),
             ];
         });
@@ -178,8 +178,13 @@ class TransaksiPembayaranController extends Controller
             'tanggal_pembayaran' => 'required|date',
             'jumlah_pembayaran'  => 'required|numeric|min:0',
             'metode_pembayaran'  => 'required|in:tunai,transfer',
-            'bukti_pembayaran'   => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:2048',
-            'deskripsi'          => 'nullable|string|max:1000',
+            'bukti_pembayaran'   => 'required|file|mimes:jpeg,png,jpg,pdf|max:2048',
+            'catatan'          => 'nullable|string|max:1000',
+        ], [
+            'bukti_pembayaran.required' => 'Bukti pembayaran wajib diunggah',
+            'bukti_pembayaran.file' => 'Bukti pembayaran harus berupa file',
+            'bukti_pembayaran.mimes' => 'Bukti pembayaran harus berformat: jpeg, png, jpg, atau pdf',
+            'bukti_pembayaran.max' => 'Ukuran file maksimal 2MB',
         ]);
 
         if ($validator->fails()) {
@@ -253,7 +258,7 @@ class TransaksiPembayaranController extends Controller
             'jumlah_pembayaran'       => $request->jumlah_pembayaran,
             'metode_pembayaran'       => $request->metode_pembayaran,
             'bukti_pembayaran'        => $buktiPath,
-            'deskripsi'               => $request->deskripsi,
+            'catatan'               => $request->catatan,
         ]);
 
         return redirect()->route('transaksi-pembayaran.index')
@@ -312,7 +317,7 @@ class TransaksiPembayaranController extends Controller
             'bukti_pembayaran'        => $transaksiPembayaran->bukti_pembayaran
                 ? Storage::url($transaksiPembayaran->bukti_pembayaran)
                 : null,
-            'deskripsi'               => $transaksiPembayaran->deskripsi,
+            'catatan'               => $transaksiPembayaran->catatan,
             'created_at'              => $transaksiPembayaran->created_at?->format('d M Y H:i'),
         ];
 
@@ -362,7 +367,7 @@ class TransaksiPembayaranController extends Controller
             'bukti_pembayaran'        => $transaksiPembayaran->bukti_pembayaran
                 ? Storage::url($transaksiPembayaran->bukti_pembayaran)
                 : null,
-            'deskripsi'               => $transaksiPembayaran->deskripsi,
+            'catatan'               => $transaksiPembayaran->catatan,
         ];
 
         return Inertia::render('transaksi-pembayaran/edit', [
@@ -390,8 +395,22 @@ class TransaksiPembayaranController extends Controller
             'tanggal_pembayaran' => 'required|date',
             'jumlah_pembayaran'  => 'required|numeric|min:0',
             'metode_pembayaran'  => 'required|in:tunai,transfer',
-            'bukti_pembayaran'   => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:2048',
-            'deskripsi'          => 'nullable|string|max:1000',
+            'bukti_pembayaran'   => [
+                function ($attribute, $value, $fail) use ($transaksiPembayaran) {
+                    if (!$transaksiPembayaran->bukti_pembayaran && !$value) {
+                        $fail('Bukti pembayaran wajib diunggah');
+                    }
+                },
+                'nullable',
+                'file',
+                'mimes:jpeg,png,jpg,pdf',
+                'max:2048'
+            ],
+            'catatan'          => 'nullable|string|max:1000',
+        ], [
+            'bukti_pembayaran.file' => 'Bukti pembayaran harus berupa file',
+            'bukti_pembayaran.mimes' => 'Bukti pembayaran harus berformat: jpeg, png, jpg, atau pdf',
+            'bukti_pembayaran.max' => 'Ukuran file maksimal 2MB',
         ]);
 
         if ($validator->fails()) {
@@ -405,7 +424,7 @@ class TransaksiPembayaranController extends Controller
             'tanggal_pembayaran' => $request->tanggal_pembayaran,
             'jumlah_pembayaran'  => $request->jumlah_pembayaran,
             'metode_pembayaran'  => $request->metode_pembayaran,
-            'deskripsi'          => $request->deskripsi,
+            'catatan'          => $request->catatan,
         ];
 
         // Upload bukti pembayaran baru jika ada

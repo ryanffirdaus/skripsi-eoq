@@ -45,7 +45,7 @@ class TransaksiPembayaranFactory extends Factory
             'jumlah_pembayaran' => $jumlahPembayaran,
             'metode_pembayaran' => $this->faker->randomElement(['tunai', 'transfer']),
             'bukti_pembayaran' => null, // Will be handled by seeder if needed
-            'deskripsi' => $this->faker->sentence,
+            'catatan' => $this->faker->sentence,
         ];
     }
 }

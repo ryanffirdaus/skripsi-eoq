@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('produk', function (Blueprint $table) {
-            $table->string('produk_id', 10)->primary();
+            $table->string('produk_id', 50)->primary();
             $table->string('nama_produk', 100);
             $table->integer('stok_produk');
             $table->string('satuan_produk', 10);
@@ -29,9 +29,9 @@ return new class extends Migration
             $table->integer('safety_stock_produk');
             $table->integer('rop_produk');
             $table->integer('eoq_produk');
-            $table->string('created_by', 10)->nullable();
-            $table->string('updated_by', 10)->nullable();
-            $table->string('deleted_by', 10)->nullable();
+            $table->string('created_by', 50)->nullable();
+            $table->string('updated_by', 50)->nullable();
+            $table->string('deleted_by', 50)->nullable();
             $table->softDeletes();
             $table->timestamps();
 

@@ -27,7 +27,6 @@ interface BahanBaku {
 interface Produk {
     produk_id: string;
     nama_produk: string;
-    deskripsi?: string;
     hpp: number;
     harga_jual: number;
     demand_tahunan: number;
@@ -100,11 +99,6 @@ export default function Show({ produk, permissions }: Props) {
                                 <div>
                                     <label className={cn('text-sm font-medium', colors.label.base)}>Nama Produk</label>
                                     <p className={cn('mt-1 text-lg', colors.text.primary)}>{produk.nama_produk}</p>
-                                </div>
-
-                                <div>
-                                    <label className={cn('text-sm font-medium', colors.label.base)}>Deskripsi</label>
-                                    <p className={cn('mt-1', colors.text.primary)}>{produk.deskripsi || 'Tidak ada deskripsi'}</p>
                                 </div>
 
                                 <div>

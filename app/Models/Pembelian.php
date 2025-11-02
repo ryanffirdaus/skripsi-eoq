@@ -68,6 +68,11 @@ class Pembelian extends Model
                 $model->deleted_by = Auth::user()->user_id;
                 $model->save();
             }
+
+            // Soft delete all detail items
+            $model->detail()->each(function ($detail) {
+                $detail->delete();
+            });
         });
     }
 
@@ -118,7 +123,7 @@ class Pembelian extends Model
                 $total += $qty * $detail->pengadaanDetail->harga_satuan;
             }
         }
-        $this->total_biaya = $total;
+        $this->setAttribute('total_biaya', $total);
         $this->saveQuietly();
     }
 

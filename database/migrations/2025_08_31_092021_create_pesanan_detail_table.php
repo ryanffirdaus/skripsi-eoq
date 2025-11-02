@@ -12,13 +12,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('pesanan_detail', function (Blueprint $table) {
-            $table->string('pesanan_detail_id', 20)->primary();
-            $table->string('pesanan_id', 10);
-            $table->string('produk_id', 10);
+            $table->string('pesanan_detail_id', 50)->primary();
+            $table->string('pesanan_id', 50);
+            $table->string('produk_id', 50);
             $table->integer('jumlah_produk');
             $table->decimal('harga_satuan', 25, 2);
             $table->decimal('subtotal', 25, 2);
             $table->timestamps();
+            $table->softDeletes();
 
             $table->foreign('pesanan_id')->references('pesanan_id')->on('pesanan')->onDelete('cascade');
             $table->foreign('produk_id')->references('produk_id')->on('produk')->onDelete('cascade');

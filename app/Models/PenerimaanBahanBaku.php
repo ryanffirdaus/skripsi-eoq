@@ -4,11 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
 
 class PenerimaanBahanBaku extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $primaryKey = 'penerimaan_id';
     protected $keyType = 'string';
@@ -21,6 +22,7 @@ class PenerimaanBahanBaku extends Model
         'qty_diterima',
         'created_by',
         'updated_by',
+        'deleted_by',
     ];
 
     protected $casts = [
@@ -46,6 +48,17 @@ class PenerimaanBahanBaku extends Model
             if (Auth::check() && !$model->updated_by) {
                 $model->updated_by = Auth::id();
             }
+        });
+
+        static::deleting(function ($model) {
+            if (Auth::check()) {
+                $model->deleted_by = Auth::id();
+            }
+
+            // Soft delete all detail items
+            $model->detail()->each(function ($detail) {
+                $detail->delete();
+            });
         });
     }
 
@@ -84,5 +97,11 @@ class PenerimaanBahanBaku extends Model
     public function updatedBy()
     {
         return $this->belongsTo(User::class, 'updated_by', 'user_id');
+    }
+
+    // Relasi ke user yang menghapus
+    public function deletedBy()
+    {
+        return $this->belongsTo(User::class, 'deleted_by', 'user_id');
     }
 }

@@ -15,11 +15,11 @@ return new class extends Migration
 
         Schema::create('penugasan_produksi', function (Blueprint $table) {
             $table->string('penugasan_id', 50)->primary();
-            $table->string('pengadaan_detail_id');
+            $table->string('pengadaan_detail_id', 50);
             $table->foreign('pengadaan_detail_id')->references('pengadaan_detail_id')->on('pengadaan_detail')->onDelete('cascade');
 
             // user_id: siapa yang ditugaskan
-            $table->string('user_id');
+            $table->string('user_id', 50);
             $table->foreign('user_id')->references('user_id')->on('users')->onDelete('cascade');
 
             // Jumlah yang harus diproduksi
@@ -32,15 +32,15 @@ return new class extends Migration
             $table->text('catatan')->nullable();
 
             // created_by: siapa yang menugaskan
-            $table->string('created_by')->nullable();
+            $table->string('created_by', 50)->nullable();
             $table->foreign('created_by')->references('user_id')->on('users')->onDelete('set null');
 
             // updated_by: siapa yang terakhir update
-            $table->string('updated_by')->nullable();
+            $table->string('updated_by', 50)->nullable();
             $table->foreign('updated_by')->references('user_id')->on('users')->onDelete('set null');
 
             // deleted_by: siapa yang menghapus
-            $table->string('deleted_by')->nullable();
+            $table->string('deleted_by', 50)->nullable();
             $table->foreign('deleted_by')->references('user_id')->on('users')->onDelete('set null');
 
             $table->timestamps();

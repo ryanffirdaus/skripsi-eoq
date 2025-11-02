@@ -12,7 +12,6 @@ interface UserRef {
 interface BahanBaku {
     bahan_baku_id: string;
     nama_bahan: string;
-    deskripsi?: string;
     satuan: string;
     stok_saat_ini: number;
     stok_minimum: number;
@@ -91,10 +90,6 @@ export default function Show({ bahanBaku, permissions }: Props) {
         {
             label: 'Nama Bahan',
             value: <span className="text-lg font-medium">{bahanBaku.nama_bahan}</span>,
-        },
-        {
-            label: 'Deskripsi',
-            value: bahanBaku.deskripsi || 'Tidak ada deskripsi',
         },
         {
             label: 'Satuan',

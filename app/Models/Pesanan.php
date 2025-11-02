@@ -62,6 +62,11 @@ class Pesanan extends Model
             if (Auth::id()) {
                 $model->deleted_by = Auth::id();
             }
+
+            // Soft delete all detail items
+            $model->detail()->each(function ($detail) {
+                $detail->delete();
+            });
         });
     }
 

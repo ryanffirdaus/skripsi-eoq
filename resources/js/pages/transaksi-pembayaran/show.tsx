@@ -38,7 +38,7 @@ interface Transaksi {
     tanggal_pembayaran: string;
     total_pembayaran: number;
     bukti_pembayaran?: string;
-    deskripsi?: string;
+    catatan?: string;
     created_at: string;
 }
 
@@ -100,10 +100,10 @@ export default function Show({ transaksi }: Props) {
                             </div>
                         </div>
 
-                        {transaksi.deskripsi && (
+                        {transaksi.catatan && (
                             <div>
-                                <p className="text-sm text-gray-600">Deskripsi / Catatan</p>
-                                <p className="mt-1 rounded-md bg-gray-50 p-3 text-sm">{transaksi.deskripsi}</p>
+                                <p className="text-sm text-gray-600">catatan / Catatan</p>
+                                <p className="mt-1 rounded-md bg-gray-50 p-3 text-sm">{transaksi.catatan}</p>
                             </div>
                         )}
 
