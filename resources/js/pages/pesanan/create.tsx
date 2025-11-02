@@ -107,167 +107,153 @@ export default function Create({ pelanggan, produk }: Props) {
 
     return (
         <FormTemplate title="Tambah Pesanan" breadcrumbs={breadcrumbs} backUrl="/pesanan" onSubmit={handleSubmit} processing={processing}>
-            <div className="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
-                <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Tambah Pesanan</h1>
+            {/* Basic Info */}
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <div>
+                    <label className={cn('mb-1 block text-sm font-medium', colors.label.base)}>
+                        Pelanggan <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                        value={data.pelanggan_id}
+                        onChange={(e) => setData('pelanggan_id', e.target.value)}
+                        className={cn(colors.input.base, errors.pelanggan_id && colors.input.error)}
+                        required
+                    >
+                        <option value="">Pilih Pelanggan</option>
+                        {pelanggan.map((p) => (
+                            <option key={p.pelanggan_id} value={p.pelanggan_id}>
+                                {p.nama_pelanggan} ({p.email_pelanggan})
+                            </option>
+                        ))}
+                    </select>
+                    {errors.pelanggan_id && <p className={colors.text.error}>{errors.pelanggan_id}</p>}
+                </div>
+
+                <div>
+                    <label className={cn('mb-1 block text-sm font-medium', colors.label.base)}>Catatan</label>
+                    <textarea
+                        value={data.catatan}
+                        onChange={(e) => setData('catatan', e.target.value)}
+                        className={cn(colors.input.base, errors.catatan && colors.input.error)}
+                        placeholder="Masukkan catatan terkait pelanggan"
+                        rows={3}
+                    />
+                    {errors.catatan && <p className={colors.text.error}>{errors.catatan}</p>}
+                </div>
+
+                <div>
+                    <label className={cn('mb-1 block text-sm font-medium', colors.label.base)}>
+                        Tanggal Pemesanan <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                        type="date"
+                        value={data.tanggal_pemesanan}
+                        onChange={(e) => setData('tanggal_pemesanan', e.target.value)}
+                        className={cn(colors.input.base, errors.tanggal_pemesanan && colors.input.error)}
+                        required
+                    />
+                    {errors.tanggal_pemesanan && <p className={colors.text.error}>{errors.tanggal_pemesanan}</p>}
+                </div>
             </div>
 
-            <div className="space-y-6 p-6">
-                {/* Basic Info */}
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                    <div>
-                        <label className={cn('mb-1 block text-sm font-medium', colors.label.base)}>
-                            Pelanggan <span className="text-red-500">*</span>
-                        </label>
-                        <select
-                            value={data.pelanggan_id}
-                            onChange={(e) => setData('pelanggan_id', e.target.value)}
-                            className={cn(colors.input.base, errors.pelanggan_id && colors.input.error)}
-                            required
-                        >
-                            <option value="">Pilih Pelanggan</option>
-                            {pelanggan.map((p) => (
-                                <option key={p.pelanggan_id} value={p.pelanggan_id}>
-                                    {p.nama_pelanggan} ({p.email_pelanggan})
-                                </option>
-                            ))}
-                        </select>
-                        {errors.pelanggan_id && <p className={colors.text.error}>{errors.pelanggan_id}</p>}
-                    </div>
-
-                    <div>
-                        <label className={cn('mb-1 block text-sm font-medium', colors.label.base)}>Catatan</label>
-                        <textarea
-                            value={data.catatan}
-                            onChange={(e) => setData('catatan', e.target.value)}
-                            className={cn(colors.input.base, errors.catatan && colors.input.error)}
-                            placeholder="Masukkan catatan terkait pelanggan"
-                            rows={3}
-                        />
-                        {errors.catatan && <p className={colors.text.error}>{errors.catatan}</p>}
-                    </div>
-
-                    <div>
-                        <label className={cn('mb-1 block text-sm font-medium', colors.label.base)}>
-                            Tanggal Pemesanan <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                            type="date"
-                            value={data.tanggal_pemesanan}
-                            onChange={(e) => setData('tanggal_pemesanan', e.target.value)}
-                            className={cn(colors.input.base, errors.tanggal_pemesanan && colors.input.error)}
-                            required
-                        />
-                        {errors.tanggal_pemesanan && <p className={colors.text.error}>{errors.tanggal_pemesanan}</p>}
-                    </div>
+            {/* Produk Items Section */}
+            <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-medium text-gray-900">Produk</h3>
+                    <Button type="button" onClick={addProdukItem} variant="outline" size="sm" className="flex items-center gap-2">
+                        <PlusIcon className="h-4 w-4" />
+                        Tambah Produk
+                    </Button>
                 </div>
 
-                {/* Produk Items Section */}
-                <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-medium text-gray-900">Produk</h3>
-                        <Button type="button" onClick={addProdukItem} variant="outline" size="sm" className="flex items-center gap-2">
-                            <PlusIcon className="h-4 w-4" />
-                            Tambah Produk
-                        </Button>
-                    </div>
+                {produkItems.map((item, index) => (
+                    <div key={index} className={cn('rounded-lg border p-4', colors.border.primary)}>
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                            <div>
+                                <label className={cn('mb-1 block text-sm font-medium', colors.label.base)}>
+                                    Produk <span className="text-red-500">*</span>
+                                </label>
+                                <select
+                                    value={item.produk_id}
+                                    onChange={(e) => updateProdukItem(index, 'produk_id', e.target.value)}
+                                    className={cn(colors.input.base, errors[`produk.${index}.produk_id`] && colors.input.error)}
+                                    required
+                                >
+                                    <option value="">Pilih Produk</option>
+                                    {produk.map((p) => (
+                                        <option key={p.produk_id} value={p.produk_id}>
+                                            {p.nama_produk} (Stok: {p.stok_produk} {p.satuan_produk})
+                                        </option>
+                                    ))}
+                                </select>
+                                {errors[`produk.${index}.produk_id`] && <p className={colors.text.error}>{errors[`produk.${index}.produk_id`]}</p>}
+                            </div>
 
-                    {produkItems.map((item, index) => (
-                        <div key={index} className={cn('rounded-lg border p-4', colors.border.primary)}>
-                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                                <div>
-                                    <label className={cn('mb-1 block text-sm font-medium', colors.label.base)}>
-                                        Produk <span className="text-red-500">*</span>
-                                    </label>
-                                    <select
-                                        value={item.produk_id}
-                                        onChange={(e) => updateProdukItem(index, 'produk_id', e.target.value)}
-                                        className={cn(colors.input.base, errors[`produk.${index}.produk_id`] && colors.input.error)}
-                                        required
-                                    >
-                                        <option value="">Pilih Produk</option>
-                                        {produk.map((p) => (
-                                            <option key={p.produk_id} value={p.produk_id}>
-                                                {p.nama_produk} (Stok: {p.stok_produk} {p.satuan_produk})
-                                            </option>
-                                        ))}
-                                    </select>
-                                    {errors[`produk.${index}.produk_id`] && (
-                                        <p className={colors.text.error}>{errors[`produk.${index}.produk_id`]}</p>
-                                    )}
-                                </div>
+                            <div>
+                                <label className={cn('mb-1 block text-sm font-medium', colors.label.base)}>
+                                    Jumlah <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    value={item.jumlah_produk}
+                                    onChange={(e) => updateProdukItem(index, 'jumlah_produk', parseInt(e.target.value) || 0)}
+                                    className={cn(colors.input.base, errors[`produk.${index}.jumlah_produk`] && colors.input.error)}
+                                    required
+                                />
+                                {errors[`produk.${index}.jumlah_produk`] && (
+                                    <p className={colors.text.error}>{errors[`produk.${index}.jumlah_produk`]}</p>
+                                )}
+                            </div>
 
-                                <div>
-                                    <label className={cn('mb-1 block text-sm font-medium', colors.label.base)}>
-                                        Jumlah <span className="text-red-500">*</span>
-                                    </label>
-                                    <input
-                                        type="number"
-                                        min="1"
-                                        value={item.jumlah_produk}
-                                        onChange={(e) => updateProdukItem(index, 'jumlah_produk', parseInt(e.target.value) || 0)}
-                                        className={cn(colors.input.base, errors[`produk.${index}.jumlah_produk`] && colors.input.error)}
-                                        required
-                                    />
-                                    {errors[`produk.${index}.jumlah_produk`] && (
-                                        <p className={colors.text.error}>{errors[`produk.${index}.jumlah_produk`]}</p>
-                                    )}
-                                </div>
+                            <div>
+                                <label className={cn('mb-1 block text-sm font-medium', colors.label.base)}>
+                                    Harga Satuan <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={item.harga_satuan}
+                                    onChange={(e) => updateProdukItem(index, 'harga_satuan', parseFloat(e.target.value) || 0)}
+                                    className={cn(colors.input.base, errors[`produk.${index}.harga_satuan`] && colors.input.error)}
+                                    required
+                                />
+                                {errors[`produk.${index}.harga_satuan`] && (
+                                    <p className={colors.text.error}>{errors[`produk.${index}.harga_satuan`]}</p>
+                                )}
+                            </div>
 
-                                <div>
-                                    <label className={cn('mb-1 block text-sm font-medium', colors.label.base)}>
-                                        Harga Satuan <span className="text-red-500">*</span>
-                                    </label>
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        step="0.01"
-                                        value={item.harga_satuan}
-                                        onChange={(e) => updateProdukItem(index, 'harga_satuan', parseFloat(e.target.value) || 0)}
-                                        className={cn(colors.input.base, errors[`produk.${index}.harga_satuan`] && colors.input.error)}
-                                        required
-                                    />
-                                    {errors[`produk.${index}.harga_satuan`] && (
-                                        <p className={colors.text.error}>{errors[`produk.${index}.harga_satuan`]}</p>
-                                    )}
-                                </div>
-
-                                <div className="flex items-end">
-                                    <div className="flex-1">
-                                        <label className={cn('mb-1 block text-sm font-medium', colors.label.base)}>Subtotal</label>
-                                        <div className={cn('rounded-md border bg-gray-50 px-3 py-2', colors.border.primary)}>
-                                            Rp {(item.jumlah_produk * item.harga_satuan).toLocaleString('id-ID')}
-                                        </div>
+                            <div className="flex items-end">
+                                <div className="flex-1">
+                                    <label className={cn('mb-1 block text-sm font-medium', colors.label.base)}>Subtotal</label>
+                                    <div className={cn('rounded-md border bg-gray-50 px-3 py-2', colors.border.primary)}>
+                                        Rp {(item.jumlah_produk * item.harga_satuan).toLocaleString('id-ID')}
                                     </div>
-                                    {produkItems.length > 1 && (
-                                        <Button
-                                            type="button"
-                                            onClick={() => removeProdukItem(index)}
-                                            variant="destructive"
-                                            size="sm"
-                                            className="ml-2"
-                                        >
-                                            <MinusIcon className="h-4 w-4" />
-                                        </Button>
-                                    )}
                                 </div>
+                                {produkItems.length > 1 && (
+                                    <Button type="button" onClick={() => removeProdukItem(index)} variant="destructive" size="sm" className="ml-2">
+                                        <MinusIcon className="h-4 w-4" />
+                                    </Button>
+                                )}
                             </div>
                         </div>
-                    ))}
-
-                    {/* Total Section */}
-                    <div className={cn('rounded-lg border bg-gray-50 p-4', colors.border.primary)}>
-                        <div className="flex items-center justify-between text-lg font-semibold">
-                            <span>Total Harga:</span>
-                            <span>Rp {calculateTotal().toLocaleString('id-ID')}</span>
-                        </div>
                     </div>
+                ))}
 
-                    {errors.produk && (
-                        <Alert variant="destructive">
-                            <AlertDescription>{errors.produk}</AlertDescription>
-                        </Alert>
-                    )}
+                {/* Total Section */}
+                <div className={cn('rounded-lg border bg-gray-50 p-4', colors.border.primary)}>
+                    <div className="flex items-center justify-between text-lg font-semibold">
+                        <span>Total Harga:</span>
+                        <span>Rp {calculateTotal().toLocaleString('id-ID')}</span>
+                    </div>
                 </div>
+
+                {errors.produk && (
+                    <Alert variant="destructive">
+                        <AlertDescription>{errors.produk}</AlertDescription>
+                    </Alert>
+                )}
             </div>
         </FormTemplate>
     );

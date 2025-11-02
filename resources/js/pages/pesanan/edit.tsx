@@ -220,6 +220,7 @@ export default function Edit({ pesanan, pelanggan, produk }: Props) {
                         value={data.catatan}
                         onChange={(e) => setData('catatan', e.target.value)}
                         className={cn(colors.input.base, errors.catatan && colors.input.error)}
+                        placeholder="Masukkan catatan tambahan..."
                         rows={3}
                     />
                     {errors.catatan && <p className={colors.text.error}>{errors.catatan}</p>}

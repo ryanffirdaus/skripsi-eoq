@@ -1,4 +1,4 @@
-import { createDeleteAction, createEditAction, createViewAction } from '@/components/table/table-actions';
+import { createDeleteAction, createEditAction } from '@/components/table/table-actions';
 import TableTemplate from '@/components/table/table-template';
 import { formatCurrency, formatDate } from '@/lib/formatters';
 import { type BreadcrumbItem } from '@/types';
@@ -272,7 +272,6 @@ export default function Index({ pengiriman, filters, flash }: Props) {
 
     const actions = useMemo(
         () => [
-            createViewAction<Pengiriman>((item) => `/pengiriman/${item.pengiriman_id}`),
             createEditAction<Pengiriman>(
                 (item) => `/pengiriman/${item.pengiriman_id}/edit`,
                 (item) => item.status !== 'selesai' && item.status !== 'dibatalkan',
@@ -291,19 +290,19 @@ export default function Index({ pengiriman, filters, flash }: Props) {
 
     return (
         <TableTemplate<Pengiriman>
-            title="Pengiriman Management"
+            title="Manajemen Pengiriman"
             breadcrumbs={breadcrumbs}
             data={pengiriman}
             columns={columns}
             createUrl="/pengiriman/create"
-            createButtonText="Tambah Pengiriman"
             searchPlaceholder="Cari pengiriman..."
             filters={filters}
             filterOptions={filterOptions}
             baseUrl="/pengiriman"
             actions={actions}
             flash={flash}
-            idField="pengiriman_id"
+            deleteDialogTitle="Hapus Pengiriman"
+            deleteDialogMessage={(item) => `Apakah Anda yakin ingin menghapus pengiriman dengan ID "${item.pengiriman_id}"?`}
         />
     );
 }

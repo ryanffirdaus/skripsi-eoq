@@ -191,19 +191,19 @@ export default function Index({ pesanan, filters, permissions, flash }: Props) {
 
     return (
         <TableTemplate<Pesanan>
-            title="Pesanan Management"
+            title="Manajemen Pesanan"
             breadcrumbs={breadcrumbs}
             data={pesanan}
             columns={columns}
             createUrl={permissions.canCreate ? '/pesanan/create' : undefined}
-            createButtonText="Tambah Pesanan"
             searchPlaceholder="Cari pesanan..."
             filters={filters}
             filterOptions={filterOptions}
             baseUrl="/pesanan"
             actions={actions}
             flash={flash}
-            idField="pesanan_id"
+            deleteDialogTitle="Hapus Pesanan"
+            deleteDialogMessage={(item) => `Apakah Anda yakin ingin menghapus pesanan dengan ID "${item.pesanan_id}"?`}
         />
     );
 }

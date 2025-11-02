@@ -109,9 +109,8 @@ class PengirimanController extends Controller
                     'total_harga' => $item->total_harga,
                     'pelanggan' => $item->pelanggan ? [
                         'nama_pelanggan' => $item->pelanggan->nama_pelanggan,
-                        'alamat_pelanggan' => $item->pelanggan->alamat_pelanggan,
-                        'kota_pelanggan' => $item->pelanggan->kota_pelanggan,
-                        'telepon_pelanggan' => $item->pelanggan->telepon_pelanggan,
+                        'alamat_pengiriman' => $item->pelanggan->alamat_pengiriman,
+                        'nomor_telepon' => $item->pelanggan->nomor_telepon,
                     ] : null,
                 ];
             });
@@ -184,7 +183,7 @@ class PengirimanController extends Controller
                     'status' => $pengiriman->pesanan->status,
                     'pelanggan' => [
                         'nama_pelanggan' => $pengiriman->pesanan->pelanggan->nama_pelanggan,
-                        'alamat_pelanggan' => $pengiriman->pesanan->pelanggan->alamat_pelanggan,
+                        'alamat_pengiriman' => $pengiriman->pesanan->pelanggan->alamat_pengiriman,
                         'kota_pelanggan' => $pengiriman->pesanan->pelanggan->kota_pelanggan,
                         'telepon_pelanggan' => $pengiriman->pesanan->pelanggan->telepon_pelanggan,
                     ]

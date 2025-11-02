@@ -10,9 +10,8 @@ interface Pesanan {
     total_harga: number;
     pelanggan: {
         nama_pelanggan: string;
-        alamat_pelanggan: string;
-        kota_pelanggan: string;
-        telepon_pelanggan: string;
+        alamat_pengiriman: string;
+        nomor_telepon: string;
     };
 }
 
@@ -36,7 +35,7 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: '/pengiriman',
     },
     {
-        title: 'Buat Pengiriman',
+        title: 'Tambah Pengiriman',
         href: '#',
     },
 ];
@@ -65,12 +64,11 @@ export default function Create({ pesanan }: Props) {
 
     return (
         <FormTemplate
-            title="Buat Pengiriman Baru"
+            title="Tambah Pengiriman"
             breadcrumbs={breadcrumbs}
             backUrl="/pengiriman"
             onSubmit={handleSubmit}
             processing={processing}
-            submitText="Buat Pengiriman"
             processingText="Membuat..."
         >
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
@@ -97,11 +95,11 @@ export default function Create({ pesanan }: Props) {
                                     <span className="font-medium">Total:</span> Rp {selectedPesanan.total_harga.toLocaleString()}
                                 </p>
                                 <p>
-                                    <span className="font-medium">Alamat:</span> {selectedPesanan.pelanggan.alamat_pelanggan},{' '}
-                                    {selectedPesanan.pelanggan.kota_pelanggan}
+                                    <span className="font-medium">Alamat:</span> {selectedPesanan.pelanggan.alamat_pengiriman},{' '}
+                                    {selectedPesanan.pelanggan.alamat_pengiriman}
                                 </p>
                                 <p>
-                                    <span className="font-medium">Telepon:</span> {selectedPesanan.pelanggan.telepon_pelanggan}
+                                    <span className="font-medium">Telepon:</span> {selectedPesanan.pelanggan.nomor_telepon}
                                 </p>
                             </div>
                         </div>
