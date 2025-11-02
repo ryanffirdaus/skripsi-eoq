@@ -145,7 +145,7 @@ export default function Index({ users, roles, filters, flash }: Props) {
             baseUrl="/users"
             flash={flash}
             deleteDialogTitle="Hapus Pengguna"
-            deleteDialogMessage={() => 'Apakah Anda yakin ingin menghapus pengguna ini? Tindakan ini tidak dapat dibatalkan.'}
+            deleteDialogMessage={(item) => `Apakah Anda yakin ingin menghapus pengguna "${item.nama_lengkap}"? Tindakan ini tidak dapat dibatalkan.`}
         />
     );
 }

@@ -203,7 +203,7 @@ export default function Index({ bahanBaku, filters, uniqueLokasi, uniqueSatuan, 
             actions={actions}
             flash={flash}
             deleteDialogTitle="Hapus Bahan Baku"
-            deleteDialogMessage={() => 'Apakah Anda yakin ingin menghapus bahan baku ini? Tindakan ini tidak dapat dibatalkan.'}
+            deleteDialogMessage={(item) => `Apakah Anda yakin ingin menghapus bahan baku "${item.nama_bahan}"? Tindakan ini tidak dapat dibatalkan.`}
         />
     );
 }

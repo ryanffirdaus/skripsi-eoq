@@ -212,7 +212,7 @@ export default function Index({ produk, filters, uniqueLokasi, uniqueSatuan, per
             actions={actions}
             flash={flash}
             deleteDialogTitle="Hapus Produk"
-            deleteDialogMessage={() => 'Apakah Anda yakin ingin menghapus produk ini? Tindakan ini tidak dapat dibatalkan.'}
+            deleteDialogMessage={(item) => `Apakah Anda yakin ingin menghapus produk "${item.nama_produk}"? Tindakan ini tidak dapat dibatalkan.`}
         />
     );
 }

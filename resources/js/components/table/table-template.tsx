@@ -475,7 +475,7 @@ export default function TableTemplate<T extends Record<string, unknown>>({
                                     className="flex items-center gap-2"
                                 >
                                     <FunnelIcon className="h-4 w-4" />
-                                    Filters
+                                    Filter
                                 </Button>
                             )}
 
@@ -487,12 +487,12 @@ export default function TableTemplate<T extends Record<string, unknown>>({
                                 className="flex items-center gap-2"
                             >
                                 <EyeIcon className="h-4 w-4" />
-                                Columns
+                                Kolom
                             </Button>
 
                             <Button type="submit" className="flex items-center gap-2">
                                 <MagnifyingGlassIcon className="h-4 w-4" />
-                                Search
+                                Cari
                             </Button>
 
                             {hasActiveFilters && (

@@ -24,7 +24,7 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: '/pelanggan',
     },
     {
-        title: 'Edit',
+        title: 'Ubah Pelanggan',
         href: '#',
     },
 ];
@@ -65,35 +65,34 @@ export default function Edit({ pelanggan }: Props) {
 
     return (
         <FormTemplate
-            title={`Edit Pelanggan: ${pelanggan.nama_pelanggan}`}
+            title={`Ubah Pelanggan: ${pelanggan.nama_pelanggan}`}
             breadcrumbs={breadcrumbs}
             backUrl="/pelanggan"
             onSubmit={handleSubmit}
             processing={processing}
-            submitText="Update Pelanggan"
         >
             {/* Basic Information */}
             <div className="space-y-6">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Customer Information</h3>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Informasi Pelanggan</h3>
 
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                    <FormField id="nama_pelanggan" label="Nama Pelanggan" error={errors.nama_pelanggan} required>
+                    <FormField id="nama_pelanggan" label="Nama" error={errors.nama_pelanggan} required>
                         <TextInput
                             id="nama_pelanggan"
                             value={data.nama_pelanggan}
                             onChange={(e) => setData('nama_pelanggan', e.target.value)}
-                            placeholder="Enter customer name"
+                            placeholder="Masukkan nama pelanggan"
                             error={errors.nama_pelanggan}
                         />
                     </FormField>
 
-                    <FormField id="email_pelanggan" label="Email Pelanggan" error={errors.email_pelanggan} required>
+                    <FormField id="email_pelanggan" label="Email" error={errors.email_pelanggan} required>
                         <TextInput
                             id="email_pelanggan"
                             type="email"
                             value={data.email_pelanggan}
                             onChange={(e) => setData('email_pelanggan', e.target.value)}
-                            placeholder="Enter email address"
+                            placeholder="Masukkan alamat email"
                             error={errors.email_pelanggan}
                         />
                     </FormField>
@@ -103,7 +102,7 @@ export default function Edit({ pelanggan }: Props) {
                             id="nomor_telepon"
                             value={data.nomor_telepon}
                             onChange={(e) => setData('nomor_telepon', e.target.value)}
-                            placeholder="Enter phone number"
+                            placeholder="Masukkan nomor telepon"
                             error={errors.nomor_telepon}
                         />
                     </FormField>
@@ -112,7 +111,7 @@ export default function Edit({ pelanggan }: Props) {
 
             {/* Address Information */}
             <div className="space-y-6">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Address Information</h3>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Informasi Alamat</h3>
 
                 <div className="space-y-4">
                     <FormField id="alamat_pembayaran" label="Alamat Pembayaran" error={errors.alamat_pembayaran} required>
@@ -120,7 +119,7 @@ export default function Edit({ pelanggan }: Props) {
                             id="alamat_pembayaran"
                             value={data.alamat_pembayaran}
                             onChange={(e) => setData('alamat_pembayaran', e.target.value)}
-                            placeholder="Enter billing address"
+                            placeholder="Masukkan alamat pembayaran"
                             rows={3}
                             error={errors.alamat_pembayaran}
                         />
@@ -136,7 +135,7 @@ export default function Edit({ pelanggan }: Props) {
                             className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800"
                         />
                         <label htmlFor="same_as_payment" className="text-sm text-gray-700 dark:text-gray-300">
-                            Use billing address as shipping address
+                            Gunakan alamat pembayaran sebagai alamat pengiriman
                         </label>
                     </div>
 
@@ -146,7 +145,7 @@ export default function Edit({ pelanggan }: Props) {
                                 id="alamat_pengiriman"
                                 value={data.alamat_pengiriman}
                                 onChange={(e) => setData('alamat_pengiriman', e.target.value)}
-                                placeholder="Enter shipping address"
+                                placeholder="Masukkan alamat pengiriman"
                                 rows={3}
                                 error={errors.alamat_pengiriman}
                             />

@@ -134,20 +134,21 @@ export default function Index({ pelanggan, filters, flash }: Props) {
 
     return (
         <TableTemplate<Pelanggan>
-            title="Pelanggan Management"
+            title="Manajemen Pelanggan"
             breadcrumbs={breadcrumbs}
             data={pelanggan}
             columns={columns}
             createUrl="/pelanggan/create"
             createButtonText="Tambah"
-            searchPlaceholder="Search by name, email, or phone..."
+            searchPlaceholder="Cari berdasarkan nama, email, atau telepon..."
             filters={filters}
             baseUrl="/pelanggan"
             actions={actions}
             flash={flash}
-            deleteDialogTitle="Delete Pelanggan"
-            deleteDialogMessage={(item) => `Are you sure you want to delete customer "${item.nama_pelanggan}"? This action cannot be undone.`}
-            getItemName={(item) => item.nama_pelanggan}
+            deleteDialogTitle="Hapus Pelanggan"
+            deleteDialogMessage={(item) =>
+                `Apakah Anda yakin ingin menghapus pelanggan "${item.nama_pelanggan}"? Tindakan ini tidak dapat dibatalkan.`
+            }
         />
     );
 }
