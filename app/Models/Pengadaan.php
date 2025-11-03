@@ -22,6 +22,9 @@ class Pengadaan extends Model
         'pesanan_id',
         'status',
         'catatan',
+        'alasan_penolakan',
+        'rejected_by',
+        'rejected_at',
         'created_by',
         'updated_by',
         'deleted_by'
@@ -101,6 +104,11 @@ class Pengadaan extends Model
         return $this->belongsTo(User::class, 'deleted_by', 'user_id');
     }
 
+    public function rejectedBy()
+    {
+        return $this->belongsTo(User::class, 'rejected_by', 'user_id');
+    }
+
     // Accessors
     public function getTotalBiayaAttribute()
     {
@@ -111,6 +119,7 @@ class Pengadaan extends Model
 
     // Status constants (SOURCE OF TRUTH: migration)
     // Flow: draft → pending_approval_gudang → pending_supplier_allocation → pending_approval_pengadaan → pending_approval_keuangan → processed → received
+    // At any stage: can be rejected (status = rejected)
     public const STATUS_DRAFT = 'draft';
     public const STATUS_PENDING_APPROVAL_GUDANG = 'pending_approval_gudang'; // Menunggu approval Manajer Gudang
     public const STATUS_PENDING_SUPPLIER_ALLOCATION = 'pending_supplier_allocation'; // Menunggu diisi pemasok
@@ -119,6 +128,7 @@ class Pengadaan extends Model
     public const STATUS_PROCESSED = 'processed'; // Sudah disetujui keuangan, siap di-PO
     public const STATUS_RECEIVED = 'received'; // Barang diterima
     public const STATUS_CANCELLED = 'cancelled'; // Dibatalkan
+    public const STATUS_REJECTED = 'rejected'; // Ditolak (harus mengisi alasan penolakan)
 
     // Status methods (SOURCE OF TRUTH: migration)
     public function isDraft()
@@ -161,9 +171,21 @@ class Pengadaan extends Model
         return $this->status === 'cancelled';
     }
 
+    public function isRejected()
+    {
+        return $this->status === 'rejected';
+    }
+
     // Business logic methods
     public function canBeEdited()
     {
+        $user = Auth::user();
+
+        // Admin (R01) dapat edit di SEMUA status tanpa exception
+        if ($user && $user->role_id === 'R01') {
+            return true;
+        }
+
         // Bisa edit di tahap: pending, disetujui_gudang
         // Tidak bisa edit setelah disetujui_pengadaan, disetujui_keuangan, diproses, diterima, dibatalkan
         return in_array($this->status, ['pending', 'disetujui_gudang']);
@@ -216,6 +238,7 @@ class Pengadaan extends Model
     /**
      * Validasi apakah status transition valid
      * Flow: draft → pending_approval_gudang → pending_supplier_allocation → pending_approval_pengadaan → pending_approval_keuangan → processed → received
+     * Bisa rejected dari status manapun kecuali received atau sudah rejected
      * Bisa cancelled dari status manapun kecuali received atau sudah cancelled
      */
     public function isValidStatusTransition($newStatus)
@@ -227,13 +250,18 @@ class Pengadaan extends Model
             return true;
         }
 
-        // Bisa cancelled dari status manapun kecuali received atau sudah cancelled
-        if ($newStatus === 'cancelled') {
-            return !in_array($currentStatus, ['received', 'cancelled']);
+        // Bisa rejected dari status manapun kecuali received atau sudah rejected
+        if ($newStatus === 'rejected') {
+            return !in_array($currentStatus, ['received', 'rejected']);
         }
 
-        // Tidak bisa update jika sudah received atau cancelled
-        if (in_array($currentStatus, ['received', 'cancelled'])) {
+        // Bisa cancelled dari status manapun kecuali received atau sudah cancelled
+        if ($newStatus === 'cancelled') {
+            return !in_array($currentStatus, ['received', 'cancelled', 'rejected']);
+        }
+
+        // Tidak bisa update jika sudah received, cancelled, atau rejected
+        if (in_array($currentStatus, ['received', 'cancelled', 'rejected'])) {
             return false;
         }
 
@@ -256,6 +284,21 @@ class Pengadaan extends Model
         // Total biaya is now calculated as an accessor from detail->total_harga
         // This method is kept for backward compatibility but does nothing
         return $this->total_biaya;
+    }
+
+    /**
+     * Reject pengadaan dengan alasan penolakan
+     */
+    public function reject($reason)
+    {
+        $this->update([
+            'status' => 'rejected',
+            'alasan_penolakan' => $reason,
+            'rejected_by' => Auth::user()->user_id,
+            'rejected_at' => now(),
+        ]);
+
+        return $this;
     }
 
     // Scope methods

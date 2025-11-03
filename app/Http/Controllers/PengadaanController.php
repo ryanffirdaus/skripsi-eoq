@@ -511,22 +511,29 @@ class PengadaanController extends Controller
      */
     public function edit(Pengadaan $pengadaan)
     {
-        // Authorization check: dapat edit detail atau perubahan status
-        if (!$this->canEditPengadaanDetail($pengadaan) && !$this->canApprovePengadaan($pengadaan)) {
-            return redirect()->route('pengadaan.index')
-                ->with('flash', [
-                    'message' => 'Anda tidak memiliki izin untuk mengedit pengadaan ini.',
-                    'type' => 'error'
-                ]);
-        }
+        $user = Auth::user();
 
-        if (!$pengadaan->canBeEdited()) {
-            return redirect()->route('pengadaan.index')
-                ->with('flash', [
-                    'message' => 'Pengadaan tidak dapat diedit karena statusnya sudah ' . $pengadaan->status,
-                    'type' => 'error'
-                ]);
+        // Authorization check: dapat edit detail atau perubahan status
+        // Admin dapat edit kapan saja, others harus sesuai role
+        if (!$this->isAdmin()) {
+            if (!$this->canEditPengadaanDetail($pengadaan) && !$this->canApprovePengadaan($pengadaan)) {
+                return redirect()->route('pengadaan.index')
+                    ->with('flash', [
+                        'message' => 'Anda tidak memiliki izin untuk mengedit pengadaan ini.',
+                        'type' => 'error'
+                    ]);
+            }
+
+            // Check status: Non-admin hanya dapat edit di status tertentu
+            if (!$pengadaan->canBeEdited()) {
+                return redirect()->route('pengadaan.index')
+                    ->with('flash', [
+                        'message' => 'Pengadaan tidak dapat diedit karena statusnya sudah ' . $pengadaan->status,
+                        'type' => 'error'
+                    ]);
+            }
         }
+        // Admin bypass semua status checks - dapat edit kapan saja
 
         // FIX: Menggunakan nested eager loading untuk memuat pemasok di dalam setiap detail.
         $pengadaan->load('detail.pemasok');
@@ -906,7 +913,69 @@ class PengadaanController extends Controller
             'processed' => 'Sudah Diproses',
             'received' => 'Diterima',
             'cancelled' => 'Dibatalkan',
+            'rejected' => 'Ditolak',
             default => ucfirst(str_replace('_', ' ', $status))
         };
+    }
+
+    /**
+     * Reject a pengadaan with reason
+     * Can be rejected by:
+     * - Manajer Gudang (R07) at pending_approval_gudang status
+     * - Manajer Pengadaan (R09) at pending_approval_pengadaan status
+     * - Manajer Keuangan (R10) at pending_approval_keuangan status
+     * - Admin (R01) at any status
+     */
+    public function reject(Request $request, Pengadaan $pengadaan)
+    {
+        $validator = Validator::make($request->all(), [
+            'alasan_penolakan' => 'required|string|min:10|max:1000',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $user = Auth::user();
+        $canReject = false;
+
+        // Check authorization based on role and current status
+        if ($this->isAdmin()) {
+            $canReject = true; // Admin can reject at any status
+        } elseif ($user->role_id === 'R07' && $pengadaan->status === 'pending_approval_gudang') {
+            $canReject = true; // Manajer Gudang dapat reject di pending_approval_gudang
+        } elseif ($user->role_id === 'R09' && $pengadaan->status === 'pending_approval_pengadaan') {
+            $canReject = true; // Manajer Pengadaan dapat reject di pending_approval_pengadaan
+        } elseif ($user->role_id === 'R10' && $pengadaan->status === 'pending_approval_keuangan') {
+            $canReject = true; // Manajer Keuangan dapat reject di pending_approval_keuangan
+        }
+
+        if (!$canReject) {
+            return response()->json([
+                'message' => 'Anda tidak memiliki izin untuk menolak pengadaan ini atau status pengadaan tidak memungkinkan penolakan.'
+            ], 403);
+        }
+
+        // Validate that pengadaan is not already in final status
+        if (in_array($pengadaan->status, ['received', 'rejected'])) {
+            return response()->json([
+                'message' => 'Pengadaan tidak dapat ditolak karena sudah dalam status final.'
+            ], 422);
+        }
+
+        try {
+            $pengadaan->reject($request->alasan_penolakan);
+
+            return response()->json([
+                'message' => 'Pengadaan berhasil ditolak!',
+                'pengadaan' => $pengadaan->fresh()
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error rejecting pengadaan: ' . $e->getMessage());
+
+            return response()->json([
+                'message' => 'Terjadi kesalahan saat menolak pengadaan.'
+            ], 500);
+        }
     }
 }

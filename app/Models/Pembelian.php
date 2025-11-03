@@ -74,6 +74,16 @@ class Pembelian extends Model
                 $detail->delete();
             });
         });
+
+        static::created(function ($model) {
+            // Ketika Pembelian dibuat dari Pengadaan, ubah status Pengadaan dari "disetujui_keuangan" menjadi "diproses"
+            if ($model->pengadaan_id) {
+                $pengadaan = Pengadaan::find($model->pengadaan_id);
+                if ($pengadaan && $pengadaan->status === 'disetujui_keuangan') {
+                    $pengadaan->update(['status' => 'diproses']);
+                }
+            }
+        });
     }
 
     // Relationships
@@ -129,12 +139,24 @@ class Pembelian extends Model
 
     public function canBeEdited()
     {
+        $user = Auth::user();
+
+        // Admin (R01) dapat edit di SEMUA status tanpa exception
+        if ($user && $user->role_id === 'R01') {
+            return true;
+        }
+
         // Edit button tampil untuk semua status kecuali cancelled dan fully_received
         return !in_array($this->status, ['cancelled', 'fully_received']);
     }
 
     public function canBeCancelled()
     {
+        // Admin (R01) dapat bypass
+        if (Auth::check() && Auth::user()->role_id === 'R01') {
+            return true;
+        }
+
         return !in_array($this->status, ['fully_received', 'cancelled']);
     }
 

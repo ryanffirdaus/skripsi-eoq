@@ -71,6 +71,9 @@ interface Pengadaan {
     prioritas_label: string;
     alasan_pengadaan?: string;
     catatan?: string;
+    alasan_penolakan?: string;
+    rejected_by?: string;
+    rejected_at?: string;
     pemasok: Pemasok;
     pesanan?: Pesanan;
     detail: PengadaanDetail[];
@@ -97,10 +100,10 @@ export default function Show({ pengadaan }: Props) {
             pending: 'border-yellow-200 bg-yellow-50 text-yellow-700',
             approved: 'border-blue-200 bg-blue-50 text-blue-700',
             rejected: 'border-red-200 bg-red-50 text-red-700',
+            cancelled: 'border-gray-300 bg-gray-100 text-gray-800',
             po_sent: 'border-purple-200 bg-purple-50 text-purple-700',
             partial_received: 'border-orange-200 bg-orange-50 text-orange-700',
             received: 'border-green-200 bg-green-50 text-green-700',
-            cancelled: 'border-red-200 bg-red-50 text-red-700',
         };
         return statusColors[status] || 'border-gray-200 bg-gray-50 text-gray-700';
     };

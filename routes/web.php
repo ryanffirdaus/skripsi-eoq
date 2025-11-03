@@ -52,6 +52,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('pengadaan/auto-rop', [PengadaanController::class, 'autoGenerateROP'])->name('pengadaan.auto-rop');
     Route::post('pengadaan/auto-pesanan/{pesanan}', [PengadaanController::class, 'autoGeneratePesanan'])->name('pengadaan.auto-pesanan');
     Route::patch('pengadaan/{pengadaan}/approve', [PengadaanController::class, 'approve'])->name('pengadaan.approve');
+    Route::patch('pengadaan/{pengadaan}/reject', [PengadaanController::class, 'reject'])->name('pengadaan.reject');
     Route::patch('pengadaan/{pengadaan}/status', [PengadaanController::class, 'updateStatus'])->name('pengadaan.update-status');
     Route::post('pengadaan/{pengadaan}/receive', [PengadaanController::class, 'receiveItems'])->name('pengadaan.receive');
     Route::post('pengadaan/calculate', [PengadaanController::class, 'calculateProcurement'])->name('pengadaan.calculate');

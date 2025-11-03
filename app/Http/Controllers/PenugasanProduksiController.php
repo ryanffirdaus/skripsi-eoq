@@ -209,7 +209,8 @@ class PenugasanProduksiController extends Controller
             abort(403, 'Unauthorized');
         }
 
-        if ($penugasan_produksi->status === 'selesai' || $penugasan_produksi->status === 'dibatalkan') {
+        // Status check: Admin bisa edit semua status, others tidak bisa edit status final
+        if (!$this->isAdmin() && ($penugasan_produksi->status === 'selesai' || $penugasan_produksi->status === 'dibatalkan')) {
             return back()->with('error', 'Tidak dapat mengubah penugasan yang sudah final');
         }
 
@@ -247,8 +248,8 @@ class PenugasanProduksiController extends Controller
             abort(403, 'Anda tidak memiliki izin untuk mengubah penugasan produksi.');
         }
 
-        // Check if status is already final
-        if ($penugasan_produksi->status === 'selesai' || $penugasan_produksi->status === 'dibatalkan') {
+        // Check if status is already final - Admin dapat bypass
+        if (!$this->isAdmin() && ($penugasan_produksi->status === 'selesai' || $penugasan_produksi->status === 'dibatalkan')) {
             return back()->with('error', 'Tidak dapat mengubah penugasan yang sudah final');
         }
 
@@ -323,7 +324,8 @@ class PenugasanProduksiController extends Controller
             abort(403, 'Anda tidak memiliki izin untuk menghapus penugasan produksi.');
         }
 
-        if ($penugasan_produksi->status === 'selesai') {
+        // Check if status is already final - Admin dapat bypass
+        if (!$this->isAdmin() && $penugasan_produksi->status === 'selesai') {
             return back()->with('error', 'Tidak dapat menghapus penugasan yang sudah selesai');
         }
 
