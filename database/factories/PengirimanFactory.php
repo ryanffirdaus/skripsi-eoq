@@ -24,9 +24,9 @@ class PengirimanFactory extends Factory
         $kurirOptions = ['JNE', 'J&T', 'TIKI', 'POS Indonesia', 'SiCepat', 'AnterAja', 'Gojek'];
         $selectedKurir = $this->faker->randomElement($kurirOptions);
 
-        $status = $this->faker->randomElement(['pending', 'dikirim', 'selesai', 'dibatalkan']);
-        $tanggalKirim = $status !== 'pending' ? $this->faker->dateTimeBetween('-7 days', 'now') : null;
-        $tanggalDiterima = $status === 'delivered' && $tanggalKirim ?
+        $status = $this->faker->randomElement(['menunggu', 'dikirim', 'selesai', 'dibatalkan']);
+        $tanggalKirim = $status !== 'menunggu' ? $this->faker->dateTimeBetween('-7 days', 'now') : null;
+        $tanggalDiterima = $status === 'selesai' && $tanggalKirim ?
             $this->faker->dateTimeBetween($tanggalKirim, '+3 days') : null;
 
         return [
@@ -39,20 +39,20 @@ class PengirimanFactory extends Factory
             'tanggal_kirim' => $tanggalKirim,
             'tanggal_diterima' => $tanggalDiterima,
             'catatan' => $this->faker->optional(0.3)->sentence(),
-            'created_by' => User::factory(),
-            'updated_by' => function (array $attributes) {
-                return $attributes['created_by'];
+            'dibuat_oleh' => User::factory(),
+            'diupdate_oleh' => function (array $attributes) {
+                return $attributes['dibuat_oleh'];
             },
         ];
     }
 
     /**
-     * Status pending state
+     * Status menunggu state
      */
     public function pending(): static
     {
         return $this->state(fn(array $attributes) => [
-            'status' => 'pending',
+            'status' => 'menunggu',
             'tanggal_kirim' => null,
             'tanggal_diterima' => null,
             'nomor_resi' => null,
@@ -60,12 +60,12 @@ class PengirimanFactory extends Factory
     }
 
     /**
-     * Status shipped state
+     * Status dikirim state
      */
     public function shipped(): static
     {
         return $this->state(fn(array $attributes) => [
-            'status' => 'shipped',
+            'status' => 'dikirim',
             'tanggal_kirim' => $this->faker->dateTimeBetween('-3 days', 'now'),
             'tanggal_diterima' => null,
             'nomor_resi' => $this->faker->numerify('##########'),
@@ -73,14 +73,14 @@ class PengirimanFactory extends Factory
     }
 
     /**
-     * Status delivered state
+     * Status selesai state
      */
     public function delivered(): static
     {
         $tanggalKirim = $this->faker->dateTimeBetween('-7 days', '-2 days');
 
         return $this->state(fn(array $attributes) => [
-            'status' => 'delivered',
+            'status' => 'selesai',
             'tanggal_kirim' => $tanggalKirim,
             'tanggal_diterima' => $this->faker->dateTimeBetween($tanggalKirim, 'now'),
             'nomor_resi' => $this->faker->numerify('##########'),
@@ -88,12 +88,12 @@ class PengirimanFactory extends Factory
     }
 
     /**
-     * Status cancelled state
+     * Status dibatalkan state
      */
     public function cancelled(): static
     {
         return $this->state(fn(array $attributes) => [
-            'status' => 'cancelled',
+            'status' => 'dibatalkan',
             'tanggal_kirim' => null,
             'tanggal_diterima' => null,
             'nomor_resi' => $this->faker->optional(0.3)->numerify('##########'),

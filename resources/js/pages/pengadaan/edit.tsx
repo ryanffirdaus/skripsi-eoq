@@ -81,12 +81,12 @@ export default function Edit({ pengadaan, pemasoks, statusOptions, auth }: Props
     const canEditSupplier = (): boolean => {
         const userRole = auth?.user?.role_id;
         // R01 (Admin) dapat edit status apapun
-        // R04 (Staf Pengadaan) and R09 (Manajer Pengadaan) hanya saat disetujui_gudang
+        // R04 (Staf Pengadaan) and R09 (Manajer Pengadaan) hanya saat menunggu_alokasi_pemasok
         if (userRole === 'R01') {
             return true; // Admin bisa edit di status apapun
         }
         const isPengadaanStaff = userRole === 'R04' || userRole === 'R09';
-        const isCorrectStatus = pengadaan.status === 'disetujui_gudang';
+        const isCorrectStatus = pengadaan.status === 'menunggu_alokasi_pemasok';
         return isPengadaanStaff && isCorrectStatus;
     };
 
@@ -98,8 +98,8 @@ export default function Edit({ pengadaan, pemasoks, statusOptions, auth }: Props
         }
         // Staf/Manajer Gudang (R02, R07), Staf/Manajer Pengadaan (R04, R09)
         const isAuthorizedRole = ['R02', 'R04', 'R07', 'R09'].includes(userRole || '');
-        // Only when status is pending or disetujui_gudang
-        const isEditableStatus = pengadaan.status === 'pending' || pengadaan.status === 'disetujui_gudang';
+        // Only when status is draft or menunggu_alokasi_pemasok
+        const isEditableStatus = pengadaan.status === 'draft' || pengadaan.status === 'menunggu_alokasi_pemasok';
         return isAuthorizedRole && isEditableStatus;
     };
 
@@ -145,8 +145,11 @@ export default function Edit({ pengadaan, pemasoks, statusOptions, auth }: Props
                     <div className="ml-3">
                         <h3 className="text-sm font-medium text-blue-800">Informasi Edit Pengadaan</h3>
                         <div className="mt-2 text-sm text-blue-700">
-                            <p>• Anda dapat mengubah status, catatan, dan pemasok untuk setiap item bahan baku.</p>
-                            <p>• Harga satuan hanya dapat diubah saat status: Pending, Ditolak Procurement, atau Ditolak Finance.</p>
+                            <p>
+                                • Staf/Manajer Pengadaan dapat mengubah status, catatan, dan mengalokasikan pemasok saat status "Menunggu Alokasi
+                                Pemasok".
+                            </p>
+                            <p>• Harga satuan dapat diubah saat status Draft atau Menunggu Alokasi Pemasok.</p>
                             <p>• Kuantitas dan jenis item tidak dapat diubah setelah pengadaan dibuat.</p>
                         </div>
                     </div>

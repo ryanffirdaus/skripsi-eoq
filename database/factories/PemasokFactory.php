@@ -23,7 +23,7 @@ class PemasokFactory extends Factory
             'nomor_telepon' => $this->faker->phoneNumber(),
             'alamat' => $this->faker->address(),
             'catatan' => $this->faker->optional()->sentence(),
-            'created_by' => 'US001', // Default admin user
+            'dibuat_oleh' => 'US001', // Default admin user
         ];
     }
 

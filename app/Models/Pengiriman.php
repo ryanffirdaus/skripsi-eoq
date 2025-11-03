@@ -27,8 +27,8 @@ class Pengiriman extends Model
         'tanggal_kirim',
         'tanggal_diterima',
         'catatan',
-        'created_by',
-        'updated_by'
+        'dibuat_oleh',
+        'diupdate_oleh'
     ];
 
     protected $casts = [
@@ -49,16 +49,16 @@ class Pengiriman extends Model
             if (empty($model->pengiriman_id)) {
                 $model->pengiriman_id = self::generateId();
             }
-            $model->created_by = Auth::id();
+            $model->dibuat_oleh = Auth::id();
         });
 
         static::updating(function ($model) {
-            $model->updated_by = Auth::id();
+            $model->diupdate_oleh = Auth::id();
         });
 
         static::deleting(function ($model) {
-            $model->updated_by = Auth::id();
-            $model->deleted_by = Auth::id();
+            $model->diupdate_oleh = Auth::id();
+            $model->dihapus_oleh = Auth::id();
         });
     }
 
@@ -128,12 +128,12 @@ class Pengiriman extends Model
 
     public function createdBy()
     {
-        return $this->belongsTo(User::class, 'created_by', 'user_id');
+        return $this->belongsTo(User::class, 'dibuat_oleh', 'user_id');
     }
 
     public function updatedBy()
     {
-        return $this->belongsTo(User::class, 'updated_by', 'user_id');
+        return $this->belongsTo(User::class, 'diupdate_oleh', 'user_id');
     }
 
     // Scopes

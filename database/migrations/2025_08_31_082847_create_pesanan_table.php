@@ -12,15 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('pesanan', function (Blueprint $table) {
-            $table->string('pesanan_id', 50)->primary();
-            $table->string('pelanggan_id', 50);
+            $table->string('pesanan_id', 5)->primary(); // PS001
+            $table->string('pelanggan_id', 5);
             $table->date('tanggal_pemesanan');
-            $table->decimal('total_harga', 25, 2);
+            $table->decimal('total_harga', 15, 2);
             $table->enum('status', ['pending', 'diproses', 'dikirim', 'selesai', 'dibatalkan'])->default('pending');
             $table->text('catatan')->nullable();
-            $table->string('created_by', 50)->nullable();
-            $table->string('updated_by', 50)->nullable();
-            $table->string('deleted_by', 50)->nullable();
+            $table->string('created_by', 6)->nullable();
+            $table->string('updated_by', 6)->nullable();
+            $table->string('deleted_by', 6)->nullable();
             $table->softDeletes();
             $table->timestamps();
 

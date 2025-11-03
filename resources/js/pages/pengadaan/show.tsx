@@ -72,7 +72,7 @@ interface Pengadaan {
     alasan_pengadaan?: string;
     catatan?: string;
     alasan_penolakan?: string;
-    rejected_by?: string;
+    ditolak_oleh?: string;
     rejected_at?: string;
     pemasok: Pemasok;
     pesanan?: Pesanan;
@@ -97,13 +97,14 @@ export default function Show({ pengadaan }: Props) {
     const getStatusColor = (status: string) => {
         const statusColors: Record<string, string> = {
             draft: 'border-gray-200 bg-gray-50 text-gray-700',
-            pending: 'border-yellow-200 bg-yellow-50 text-yellow-700',
-            approved: 'border-blue-200 bg-blue-50 text-blue-700',
-            rejected: 'border-red-200 bg-red-50 text-red-700',
-            cancelled: 'border-gray-300 bg-gray-100 text-gray-800',
-            po_sent: 'border-purple-200 bg-purple-50 text-purple-700',
-            partial_received: 'border-orange-200 bg-orange-50 text-orange-700',
-            received: 'border-green-200 bg-green-50 text-green-700',
+            menunggu_persetujuan_gudang: 'border-yellow-200 bg-yellow-50 text-yellow-700',
+            menunggu_alokasi_pemasok: 'border-blue-200 bg-blue-50 text-blue-700',
+            menunggu_persetujuan_pengadaan: 'border-indigo-200 bg-indigo-50 text-indigo-700',
+            menunggu_persetujuan_keuangan: 'border-purple-200 bg-purple-50 text-purple-700',
+            diproses: 'border-teal-200 bg-teal-50 text-teal-700',
+            diterima: 'border-green-200 bg-green-50 text-green-700',
+            dibatalkan: 'border-gray-300 bg-gray-100 text-gray-800',
+            ditolak: 'border-red-200 bg-red-50 text-red-700',
         };
         return statusColors[status] || 'border-gray-200 bg-gray-50 text-gray-700';
     };

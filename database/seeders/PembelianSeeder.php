@@ -38,9 +38,9 @@ class PembelianSeeder extends Seeder
         PembelianDetail::truncate();
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
-        // Get pengadaan that have status 'processed' and ready for PO (only bahan_baku)
+        // Get pengadaan that have status 'diproses' and ready for PO (only bahan_baku)
         // These are pengadaan that have passed all approval stages from finance
-        $pengadaanSiapProses = Pengadaan::where('status', 'processed')
+        $pengadaanSiapProses = Pengadaan::where('status', 'diproses')
             ->with('detail')
             ->get()
             ->filter(function ($pengadaan) {
@@ -49,12 +49,12 @@ class PembelianSeeder extends Seeder
             });
 
         if ($pengadaanSiapProses->isEmpty()) {
-            $this->command->warn('Tidak ditemukan data Pengadaan dengan status "processed" yang berisi bahan baku. Seeding Pembelian dilewati.');
+            $this->command->warn('Tidak ditemukan data Pengadaan dengan status "diproses" yang berisi bahan baku. Seeding Pembelian dilewati.');
             return;
         }
 
-        // Status options: draft, sent, confirmed, partially_received, fully_received, cancelled
-        $statusOptions = ['draft', 'sent', 'confirmed', 'partially_received', 'fully_received'];
+        // Status options: draft, menunggu, dipesan, dikirim, dikonfirmasi, diterima, dibatalkan
+        $statusOptions = ['draft', 'menunggu', 'dipesan', 'dikirim', 'dikonfirmasi', 'diterima'];
         $metodePembayaranOptions = ['tunai', 'transfer', 'termin'];
 
         $statusIndex = 0; // To cycle through all status options

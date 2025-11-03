@@ -65,8 +65,8 @@ interface Pembelian extends Record<string, unknown> {
     transaksi_pembayaran?: TransaksiPembayaran[];
     created_at: string;
     updated_at: string;
-    created_by?: { user_id: string; nama_lengkap: string };
-    updated_by?: { user_id: string; nama_lengkap: string };
+    dibuat_oleh?: { user_id: string; nama_lengkap: string };
+    diupdate_oleh?: { user_id: string; nama_lengkap: string };
 }
 
 interface Props {
@@ -380,7 +380,7 @@ export default function Show({ pembelian }: Props) {
                             <div>
                                 <p className="font-medium text-gray-500">Dibuat</p>
                                 <p>{formatDate(pembelian.created_at)}</p>
-                                {pembelian.created_by && <p className="text-xs text-gray-500">oleh {pembelian.created_by.nama_lengkap}</p>}
+                                {pembelian.dibuat_oleh && <p className="text-xs text-gray-500">oleh {pembelian.dibuat_oleh.nama_lengkap}</p>}
                             </div>
 
                             <Separator />
@@ -388,7 +388,7 @@ export default function Show({ pembelian }: Props) {
                             <div>
                                 <p className="font-medium text-gray-500">Diperbarui</p>
                                 <p>{formatDate(pembelian.updated_at)}</p>
-                                {pembelian.updated_by && <p className="text-xs text-gray-500">oleh {pembelian.updated_by.nama_lengkap}</p>}
+                                {pembelian.diupdate_oleh && <p className="text-xs text-gray-500">oleh {pembelian.diupdate_oleh.nama_lengkap}</p>}
                             </div>
                         </CardContent>
                     </Card>

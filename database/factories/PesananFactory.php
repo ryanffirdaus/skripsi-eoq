@@ -16,8 +16,8 @@ class PesananFactory extends Factory
      */
     public function definition(): array
     {
-        $statuses = ['pending', 'diproses', 'dikirim', 'selesai', 'dibatalkan'];
-        $statusWeights = [20, 30, 15, 15, 15, 5]; // Weighted probability for more realistic distribution
+        $statuses = ['menunggu', 'dikonfirmasi', 'diproses', 'siap', 'dikirim', 'diterima', 'dibatalkan', 'selesai'];
+        $statusWeights = [20, 15, 20, 10, 15, 10, 5, 5]; // Weighted probability for more realistic distribution
 
         return [
             'tanggal_pemesanan' => $this->faker->dateTimeBetween('-6 months', 'now'),

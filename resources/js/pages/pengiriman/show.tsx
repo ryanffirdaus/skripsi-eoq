@@ -38,8 +38,8 @@ interface Pengiriman {
     tanggal_diterima?: string;
     catatan?: string;
     pesanan: Pesanan;
-    created_by?: string;
-    updated_by?: string;
+    dibuat_oleh?: string;
+    diupdate_oleh?: string;
     created_at?: string;
     updated_at?: string;
     createdBy?: User;
@@ -56,14 +56,16 @@ interface Props {
 
 const getStatusBadge = (status: string, status_label: string) => {
     const colors = {
-        pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-        dikirim: 'bg-blue-100 text-blue-800 border-blue-200',
-        selesai: 'bg-green-100 text-green-800 border-green-200',
+        menunggu: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+        dalam_perjalanan: 'bg-blue-100 text-blue-800 border-blue-200',
+        diterima: 'bg-green-100 text-green-800 border-green-200',
+        dikirim: 'bg-indigo-100 text-indigo-800 border-indigo-200',
+        selesai: 'bg-teal-100 text-teal-800 border-teal-200',
         dibatalkan: 'bg-red-100 text-red-800 border-red-200',
     };
     return {
         label: status_label,
-        color: colors[status as keyof typeof colors] || colors.pending,
+        color: colors[status as keyof typeof colors] || colors.menunggu,
     };
 };
 

@@ -26,9 +26,9 @@ class Pesanan extends Model
         'total_harga',
         'status',
         'catatan',
-        'created_by',
-        'updated_by',
-        'deleted_by'
+        'dibuat_oleh',
+        'diupdate_oleh',
+        'dihapus_oleh'
     ];
 
     protected static function boot()
@@ -47,20 +47,20 @@ class Pesanan extends Model
             }
 
             if (Auth::id()) {
-                $model->created_by = Auth::id();
-                $model->updated_by = Auth::id();
+                $model->dibuat_oleh = Auth::id();
+                $model->diupdate_oleh = Auth::id();
             }
         });
 
         static::updating(function ($model) {
             if (Auth::id()) {
-                $model->updated_by = Auth::id();
+                $model->diupdate_oleh = Auth::id();
             }
         });
 
         static::deleting(function ($model) {
             if (Auth::id()) {
-                $model->deleted_by = Auth::id();
+                $model->dihapus_oleh = Auth::id();
             }
 
             // Soft delete all detail items
@@ -82,17 +82,17 @@ class Pesanan extends Model
 
     public function createdBy()
     {
-        return $this->belongsTo(User::class, 'created_by', 'user_id');
+        return $this->belongsTo(User::class, 'dibuat_oleh', 'user_id');
     }
 
     public function updatedBy()
     {
-        return $this->belongsTo(User::class, 'updated_by', 'user_id');
+        return $this->belongsTo(User::class, 'diupdate_oleh', 'user_id');
     }
 
     public function deletedBy()
     {
-        return $this->belongsTo(User::class, 'deleted_by', 'user_id');
+        return $this->belongsTo(User::class, 'dihapus_oleh', 'user_id');
     }
 
     public function pengadaan()

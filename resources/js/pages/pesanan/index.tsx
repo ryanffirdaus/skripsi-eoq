@@ -12,7 +12,7 @@ interface Pesanan extends Record<string, unknown> {
     tanggal_pemesanan: string;
     total_harga: number;
     jumlah_produk: number;
-    status: 'pending' | 'diproses' | 'dikirim' | 'selesai' | 'dibatalkan';
+    status: 'menunggu' | 'dikonfirmasi' | 'diproses' | 'dikirim' | 'selesai' | 'dibatalkan';
     created_at: string;
     updated_at: string;
 }
@@ -65,18 +65,19 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 const statusColors = {
-    pending: 'bg-yellow-100 text-yellow-800',
-    diproses: 'bg-blue-100 text-blue-800',
-    dikirim: 'bg-purple-100 text-purple-800',
+    menunggu: 'bg-yellow-100 text-yellow-800',
+    dikonfirmasi: 'bg-blue-100 text-blue-800',
+    diproses: 'bg-purple-100 text-purple-800',
+    dikirim: 'bg-indigo-100 text-indigo-800',
     selesai: 'bg-green-100 text-green-800',
     dibatalkan: 'bg-red-100 text-red-800',
 };
 
 const statusLabels = {
-    pending: 'Pending',
+    menunggu: 'Menunggu',
+    dikonfirmasi: 'Dikonfirmasi',
     diproses: 'Diproses',
     dikirim: 'Dikirim',
-    diterima: 'Diterima',
     selesai: 'Selesai',
     dibatalkan: 'Dibatalkan',
 };
@@ -155,7 +156,8 @@ export default function Index({ pesanan, filters, permissions, flash }: Props) {
                 type: 'select' as const,
                 placeholder: 'Semua Status',
                 options: [
-                    { value: 'pending', label: 'Pending' },
+                    { value: 'menunggu', label: 'Menunggu' },
+                    { value: 'dikonfirmasi', label: 'Dikonfirmasi' },
                     { value: 'diproses', label: 'Diproses' },
                     { value: 'dikirim', label: 'Dikirim' },
                     { value: 'selesai', label: 'Selesai' },

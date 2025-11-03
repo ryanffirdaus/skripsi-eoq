@@ -36,9 +36,9 @@ interface Penugasan extends Record<string, unknown> {
     pengadaan_detail?: PengadaanDetail;
     user_id: string;
     user?: User;
-    created_by?: string | User;
+    dibuat_oleh?: string | User;
     createdBy?: User;
-    created_by_user?: User;
+    dibuat_oleh_user?: User;
     jumlah_produksi: number;
     status: string;
     deadline: string;
@@ -90,8 +90,9 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 const statusOptions = [
+    { value: 'menunggu', label: 'Menunggu' },
     { value: 'ditugaskan', label: 'Ditugaskan' },
-    { value: 'proses', label: 'Sedang Dikerjakan' },
+    { value: 'sedang_dikerjakan', label: 'Sedang Dikerjakan' },
     { value: 'selesai', label: 'Selesai' },
     { value: 'dibatalkan', label: 'Dibatalkan' },
 ];
@@ -150,14 +151,14 @@ export default function Index({ penugasan, filters, userRole, flash }: Props) {
             render: (item: Penugasan) => item.user?.nama_lengkap || '-',
         },
         {
-            key: 'created_by',
+            key: 'dibuat_oleh',
             label: 'Supervisor',
             sortable: false,
             hideable: true,
             defaultVisible: false,
             render: (item: Penugasan) => {
                 // Handle multiple possible field names due to snake_case/camelCase conversion
-                const createdByUser = item.createdBy || item.created_by_user || (typeof item.created_by === 'object' ? item.created_by : null);
+                const createdByUser = item.createdBy || item.dibuat_oleh_user || (typeof item.dibuat_oleh === 'object' ? item.dibuat_oleh : null);
                 return (createdByUser as User)?.nama_lengkap || '-';
             },
         },
@@ -184,8 +185,9 @@ export default function Index({ penugasan, filters, userRole, flash }: Props) {
             defaultVisible: true,
             render: (item: Penugasan) => {
                 const statusMap: Record<string, string> = {
+                    menunggu: 'Menunggu',
                     ditugaskan: 'Ditugaskan',
-                    proses: 'Sedang Dikerjakan',
+                    sedang_dikerjakan: 'Sedang Dikerjakan',
                     selesai: 'Selesai',
                     dibatalkan: 'Dibatalkan',
                 };

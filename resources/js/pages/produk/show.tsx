@@ -30,10 +30,10 @@ interface Produk {
     hpp: number;
     harga_jual: number;
     demand_tahunan: number;
-    created_by_id?: string;
-    updated_by_id?: string;
-    created_by?: UserRef | null;
-    updated_by?: UserRef | null;
+    dibuat_oleh_id?: string;
+    diupdate_oleh_id?: string;
+    dibuat_oleh?: UserRef | null;
+    diupdate_oleh?: UserRef | null;
     created_at: string;
     updated_at: string;
     bahan_baku?: BahanBaku[];
@@ -219,8 +219,8 @@ export default function Show({ produk, permissions }: Props) {
                         <TimestampSection
                             createdAt={produk.created_at}
                             updatedAt={produk.updated_at}
-                            createdBy={produk.created_by?.nama_lengkap}
-                            updatedBy={produk.updated_by?.nama_lengkap}
+                            createdBy={produk.dibuat_oleh?.nama_lengkap}
+                            updatedBy={produk.diupdate_oleh?.nama_lengkap}
                         />
                     </div>
                 </div>

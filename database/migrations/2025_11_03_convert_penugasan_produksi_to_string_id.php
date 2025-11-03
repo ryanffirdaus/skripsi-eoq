@@ -31,17 +31,17 @@ return new class extends Migration
             $table->date('deadline');
             $table->text('catatan')->nullable();
 
-            // created_by: siapa yang menugaskan
-            $table->string('created_by')->nullable();
-            $table->foreign('created_by')->references('user_id')->on('users')->onDelete('set null');
+            // dibuat_oleh: siapa yang menugaskan
+            $table->string('dibuat_oleh')->nullable();
+            $table->foreign('dibuat_oleh')->references('user_id')->on('users')->onDelete('set null');
 
-            // updated_by: siapa yang terakhir update
-            $table->string('updated_by')->nullable();
-            $table->foreign('updated_by')->references('user_id')->on('users')->onDelete('set null');
+            // diupdate_oleh: siapa yang terakhir update
+            $table->string('diupdate_oleh')->nullable();
+            $table->foreign('diupdate_oleh')->references('user_id')->on('users')->onDelete('set null');
 
-            // deleted_by: siapa yang menghapus
-            $table->string('deleted_by')->nullable();
-            $table->foreign('deleted_by')->references('user_id')->on('users')->onDelete('set null');
+            // dihapus_oleh: siapa yang menghapus
+            $table->string('dihapus_oleh')->nullable();
+            $table->foreign('dihapus_oleh')->references('user_id')->on('users')->onDelete('set null');
 
             $table->timestamps();
             $table->softDeletes();
@@ -50,7 +50,7 @@ return new class extends Migration
             $table->index('pengadaan_detail_id');
             $table->index('user_id');
             $table->index('status');
-            $table->index('created_by');
+            $table->index('dibuat_oleh');
         });
 
         // Copy data from old table with new ID format
@@ -66,9 +66,9 @@ return new class extends Migration
                 'status' => $record->status,
                 'deadline' => $record->deadline,
                 'catatan' => $record->catatan,
-                'created_by' => $record->created_by,
-                'updated_by' => $record->updated_by,
-                'deleted_by' => $record->deleted_by,
+                'dibuat_oleh' => $record->dibuat_oleh ?? $record->created_by ?? null,
+                'diupdate_oleh' => $record->diupdate_oleh ?? $record->updated_by ?? null,
+                'dihapus_oleh' => $record->dihapus_oleh ?? $record->deleted_by ?? null,
                 'created_at' => $record->created_at,
                 'updated_at' => $record->updated_at,
                 'deleted_at' => $record->deleted_at,
@@ -99,14 +99,14 @@ return new class extends Migration
             $table->date('deadline');
             $table->text('catatan')->nullable();
 
-            $table->string('created_by')->nullable();
-            $table->foreign('created_by')->references('user_id')->on('users')->onDelete('set null');
+            $table->string('dibuat_oleh')->nullable();
+            $table->foreign('dibuat_oleh')->references('user_id')->on('users')->onDelete('set null');
 
-            $table->string('updated_by')->nullable();
-            $table->foreign('updated_by')->references('user_id')->on('users')->onDelete('set null');
+            $table->string('diupdate_oleh')->nullable();
+            $table->foreign('diupdate_oleh')->references('user_id')->on('users')->onDelete('set null');
 
-            $table->string('deleted_by')->nullable();
-            $table->foreign('deleted_by')->references('user_id')->on('users')->onDelete('set null');
+            $table->string('dihapus_oleh')->nullable();
+            $table->foreign('dihapus_oleh')->references('user_id')->on('users')->onDelete('set null');
 
             $table->timestamps();
             $table->softDeletes();
@@ -114,7 +114,7 @@ return new class extends Migration
             $table->index('pengadaan_detail_id');
             $table->index('user_id');
             $table->index('status');
-            $table->index('created_by');
+            $table->index('dibuat_oleh');
         });
 
         // Copy data back with extracted numeric IDs
@@ -130,9 +130,9 @@ return new class extends Migration
                 'status' => $record->status,
                 'deadline' => $record->deadline,
                 'catatan' => $record->catatan,
-                'created_by' => $record->created_by,
-                'updated_by' => $record->updated_by,
-                'deleted_by' => $record->deleted_by,
+                'dibuat_oleh' => $record->dibuat_oleh,
+                'diupdate_oleh' => $record->diupdate_oleh,
+                'dihapus_oleh' => $record->dihapus_oleh,
                 'created_at' => $record->created_at,
                 'updated_at' => $record->updated_at,
                 'deleted_at' => $record->deleted_at,

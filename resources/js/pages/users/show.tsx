@@ -18,14 +18,14 @@ interface User {
     user_id: string;
     nama_lengkap: string;
     email: string;
-    role_id?: string;
-    role?: Role | null;
-    created_by_id?: string;
-    updated_by_id?: string;
-    created_by?: UserRef | null; // This is the relationship
-    updated_by?: UserRef | null; // This is the relationship
+    role_id: string;
+    nama_role: string;
     created_at: string;
     updated_at: string;
+    dibuat_oleh_id?: string;
+    diupdate_oleh_id?: string;
+    dibuat_oleh?: UserRef | null; // This is the relationship
+    diupdate_oleh?: UserRef | null; // This is the relationship
 }
 
 interface Props {
@@ -117,8 +117,8 @@ export default function Show({ user }: Props) {
                 <TimestampSection
                     createdAt={user.created_at}
                     updatedAt={user.updated_at}
-                    createdBy={user.created_by?.nama_lengkap}
-                    updatedBy={user.updated_by?.nama_lengkap}
+                    createdBy={user.dibuat_oleh?.nama_lengkap}
+                    updatedBy={user.diupdate_oleh?.nama_lengkap}
                 />
             </div>
         </ShowPageTemplate>

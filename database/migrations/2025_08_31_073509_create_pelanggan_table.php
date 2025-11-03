@@ -12,15 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('pelanggan', function (Blueprint $table) {
-            $table->string('pelanggan_id', 50)->primary();
-            $table->string('email_pelanggan')->unique();
-            $table->string('nama_pelanggan', 100);
+            $table->string('pelanggan_id', 5)->primary(); // PL001
+            $table->string('email_pelanggan', 50)->unique();
+            $table->string('nama_pelanggan', 50);
             $table->string('nomor_telepon', 20);
             $table->text('alamat_pembayaran');
             $table->text('alamat_pengiriman');
-            $table->string('created_by', 50)->nullable();
-            $table->string('updated_by', 50)->nullable();
-            $table->string('deleted_by', 50)->nullable();
+            $table->string('created_by', 6)->nullable();
+            $table->string('updated_by', 6)->nullable();
+            $table->string('deleted_by', 6)->nullable();
             $table->softDeletes();
             $table->timestamps();
 

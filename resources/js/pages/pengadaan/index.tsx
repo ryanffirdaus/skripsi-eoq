@@ -77,16 +77,16 @@ export default function Index({ pengadaan, filters, flash }: Props) {
                 textColor: 'text-slate-700',
                 borderColor: 'border-slate-300',
             },
-            pending_approval_gudang: {
+            menunggu_persetujuan_gudang: {
                 variant: 'secondary' as const,
-                label: 'Menunggu Approval Gudang',
+                label: 'Menunggu Persetujuan Gudang',
                 icon: Users,
                 description: 'Tahap 2: Review Gudang',
                 bgColor: 'bg-blue-100',
                 textColor: 'text-blue-700',
                 borderColor: 'border-blue-300',
             },
-            pending_supplier_allocation: {
+            menunggu_alokasi_pemasok: {
                 variant: 'default' as const,
                 label: 'Menunggu Alokasi Pemasok',
                 icon: ShoppingCart,
@@ -95,34 +95,34 @@ export default function Index({ pengadaan, filters, flash }: Props) {
                 textColor: 'text-amber-700',
                 borderColor: 'border-amber-300',
             },
-            pending_approval_pengadaan: {
+            menunggu_persetujuan_pengadaan: {
                 variant: 'default' as const,
-                label: 'Menunggu Approval Pengadaan',
+                label: 'Menunggu Persetujuan Pengadaan',
                 icon: DollarSign,
                 description: 'Tahap 4: Approval Final Pengadaan',
                 bgColor: 'bg-purple-100',
                 textColor: 'text-purple-700',
                 borderColor: 'border-purple-300',
             },
-            pending_approval_keuangan: {
+            menunggu_persetujuan_keuangan: {
                 variant: 'default' as const,
-                label: 'Menunggu Approval Keuangan',
+                label: 'Menunggu Persetujuan Keuangan',
                 icon: DollarSign,
                 description: 'Tahap 5: Review Budget',
                 bgColor: 'bg-indigo-100',
                 textColor: 'text-indigo-700',
                 borderColor: 'border-indigo-300',
             },
-            processed: {
+            diproses: {
                 variant: 'default' as const,
-                label: 'Sudah Diproses',
+                label: 'Diproses',
                 icon: CheckCircle,
                 description: 'Tahap 6: Siap PO',
                 bgColor: 'bg-emerald-100',
                 textColor: 'text-emerald-700',
                 borderColor: 'border-emerald-300',
             },
-            received: {
+            diterima: {
                 variant: 'default' as const,
                 label: 'Diterima',
                 icon: Package,
@@ -131,7 +131,7 @@ export default function Index({ pengadaan, filters, flash }: Props) {
                 textColor: 'text-green-700',
                 borderColor: 'border-green-300',
             },
-            cancelled: {
+            dibatalkan: {
                 variant: 'destructive' as const,
                 label: 'Dibatalkan',
                 icon: Ban,
@@ -244,13 +244,13 @@ export default function Index({ pengadaan, filters, flash }: Props) {
                 options: [
                     { value: '', label: 'Semua Status' },
                     { value: 'draft', label: 'Draft' },
-                    { value: 'pending_approval_gudang', label: 'Menunggu Approval Gudang' },
-                    { value: 'pending_supplier_allocation', label: 'Menunggu Alokasi Pemasok' },
-                    { value: 'pending_approval_pengadaan', label: 'Menunggu Approval Pengadaan' },
-                    { value: 'pending_approval_keuangan', label: 'Menunggu Approval Keuangan' },
-                    { value: 'processed', label: 'Sudah Diproses' },
-                    { value: 'received', label: 'Diterima' },
-                    { value: 'cancelled', label: 'Dibatalkan' },
+                    { value: 'menunggu_persetujuan_gudang', label: 'Menunggu Persetujuan Gudang' },
+                    { value: 'menunggu_alokasi_pemasok', label: 'Menunggu Alokasi Pemasok' },
+                    { value: 'menunggu_persetujuan_pengadaan', label: 'Menunggu Persetujuan Pengadaan' },
+                    { value: 'menunggu_persetujuan_keuangan', label: 'Menunggu Persetujuan Keuangan' },
+                    { value: 'diproses', label: 'Diproses' },
+                    { value: 'diterima', label: 'Diterima' },
+                    { value: 'dibatalkan', label: 'Dibatalkan' },
                 ],
             },
             {

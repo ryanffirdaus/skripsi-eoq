@@ -49,7 +49,7 @@ class PengadaanSeeder extends Seeder
                 'pesanan_id' => null,
                 'status' => 'draft',
                 'catatan' => 'Pengadaan otomatis berdasarkan ROP bahan baku - menunggu review gudang',
-                'created_by' => 'US001',
+                'dibuat_oleh' => 'US001',
                 'details' => [
                     ['type' => 'bahan_baku', 'qty' => 100, 'qty_disetujui' => null],
                     ['type' => 'bahan_baku', 'qty' => 150, 'qty_disetujui' => null],
@@ -62,7 +62,7 @@ class PengadaanSeeder extends Seeder
                 'pesanan_id' => $pesanans->first()->pesanan_id,
                 'status' => 'draft',
                 'catatan' => 'Pengadaan dari pesanan pelanggan - draft untuk review',
-                'created_by' => 'US001',
+                'dibuat_oleh' => 'US001',
                 'details' => [
                     ['type' => 'bahan_baku', 'qty' => 200, 'qty_disetujui' => null],
                     ['type' => 'produk', 'qty' => 75, 'qty_disetujui' => null],
@@ -74,9 +74,9 @@ class PengadaanSeeder extends Seeder
             [
                 'jenis_pengadaan' => 'rop',
                 'pesanan_id' => null,
-                'status' => 'pending_approval_gudang',
+                'status' => 'menunggu_persetujuan_gudang',
                 'catatan' => 'Pengadaan otomatis berdasarkan ROP produk - menunggu persetujuan manajer gudang',
-                'created_by' => 'US001',
+                'dibuat_oleh' => 'US001',
                 'details' => [
                     ['type' => 'produk', 'qty' => 50, 'qty_disetujui' => null],
                     ['type' => 'produk', 'qty' => 30, 'qty_disetujui' => null],
@@ -87,9 +87,9 @@ class PengadaanSeeder extends Seeder
             [
                 'jenis_pengadaan' => 'pesanan',
                 'pesanan_id' => $pesanans->skip(1)->first()->pesanan_id ?? $pesanans->first()->pesanan_id,
-                'status' => 'pending_approval_gudang',
+                'status' => 'menunggu_persetujuan_gudang',
                 'catatan' => 'Pengadaan bahan untuk pesanan - menunggu persetujuan gudang',
-                'created_by' => 'US001',
+                'dibuat_oleh' => 'US001',
                 'details' => [
                     ['type' => 'bahan_baku', 'qty' => 200, 'qty_disetujui' => null],
                     ['type' => 'bahan_baku', 'qty' => 150, 'qty_disetujui' => null],
@@ -101,9 +101,9 @@ class PengadaanSeeder extends Seeder
             [
                 'jenis_pengadaan' => 'rop',
                 'pesanan_id' => null,
-                'status' => 'pending_supplier_allocation',
+                'status' => 'menunggu_alokasi_pemasok',
                 'catatan' => 'Pengadaan campuran - menunggu alokasi pemasok dari manajer pengadaan',
-                'created_by' => 'US001',
+                'dibuat_oleh' => 'US001',
                 'details' => [
                     ['type' => 'bahan_baku', 'qty' => 90, 'qty_disetujui' => 90],
                     ['type' => 'produk', 'qty' => 25, 'qty_disetujui' => 25],
@@ -114,9 +114,9 @@ class PengadaanSeeder extends Seeder
             [
                 'jenis_pengadaan' => 'pesanan',
                 'pesanan_id' => $pesanans->skip(2)->first()->pesanan_id ?? $pesanans->first()->pesanan_id,
-                'status' => 'pending_supplier_allocation',
+                'status' => 'menunggu_alokasi_pemasok',
                 'catatan' => 'Bahan baku dari pesanan - menunggu penunjukan pemasok',
-                'created_by' => 'US001',
+                'dibuat_oleh' => 'US001',
                 'details' => [
                     ['type' => 'bahan_baku', 'qty' => 120, 'qty_disetujui' => 120],
                 ],
@@ -127,9 +127,9 @@ class PengadaanSeeder extends Seeder
             [
                 'jenis_pengadaan' => 'rop',
                 'pesanan_id' => null,
-                'status' => 'pending_approval_pengadaan',
+                'status' => 'menunggu_persetujuan_pengadaan',
                 'catatan' => 'Produk jadi ROP - menunggu persetujuan akhir manajer pengadaan',
-                'created_by' => 'US001',
+                'dibuat_oleh' => 'US001',
                 'details' => [
                     ['type' => 'produk', 'qty' => 40, 'qty_disetujui' => 40],
                     ['type' => 'produk', 'qty' => 60, 'qty_disetujui' => 60],
@@ -141,9 +141,9 @@ class PengadaanSeeder extends Seeder
             [
                 'jenis_pengadaan' => 'rop',
                 'pesanan_id' => null,
-                'status' => 'pending_approval_keuangan',
+                'status' => 'menunggu_persetujuan_keuangan',
                 'catatan' => 'Bahan baku ROP - menunggu persetujuan budget dari manajer keuangan',
-                'created_by' => 'US001',
+                'dibuat_oleh' => 'US001',
                 'details' => [
                     ['type' => 'bahan_baku', 'qty' => 100, 'qty_disetujui' => 100],
                     ['type' => 'bahan_baku', 'qty' => 150, 'qty_disetujui' => 150],
@@ -154,9 +154,9 @@ class PengadaanSeeder extends Seeder
             [
                 'jenis_pengadaan' => 'pesanan',
                 'pesanan_id' => $pesanans->first()->pesanan_id,
-                'status' => 'pending_approval_keuangan',
+                'status' => 'menunggu_persetujuan_keuangan',
                 'catatan' => 'Pengadaan dari pesanan - review finansial oleh keuangan',
-                'created_by' => 'US001',
+                'dibuat_oleh' => 'US001',
                 'details' => [
                     ['type' => 'bahan_baku', 'qty' => 150, 'qty_disetujui' => 150],
                     ['type' => 'produk', 'qty' => 75, 'qty_disetujui' => 75],
@@ -168,9 +168,9 @@ class PengadaanSeeder extends Seeder
             [
                 'jenis_pengadaan' => 'rop',
                 'pesanan_id' => null,
-                'status' => 'processed',
+                'status' => 'diproses',
                 'catatan' => 'Pengadaan bahan baku siap dibuat PO - persetujuan lengkap dari semua level',
-                'created_by' => 'US001',
+                'dibuat_oleh' => 'US001',
                 'details' => [
                     ['type' => 'bahan_baku', 'qty' => 200, 'qty_disetujui' => 200],
                     ['type' => 'bahan_baku', 'qty' => 180, 'qty_disetujui' => 180],
@@ -181,9 +181,9 @@ class PengadaanSeeder extends Seeder
             [
                 'jenis_pengadaan' => 'pesanan',
                 'pesanan_id' => $pesanans->skip(1)->first()->pesanan_id ?? $pesanans->first()->pesanan_id,
-                'status' => 'processed',
+                'status' => 'diproses',
                 'catatan' => 'Bahan untuk pesanan siap PO - approved all stages',
-                'created_by' => 'US001',
+                'dibuat_oleh' => 'US001',
                 'details' => [
                     ['type' => 'bahan_baku', 'qty' => 300, 'qty_disetujui' => 300],
                 ],
@@ -193,9 +193,9 @@ class PengadaanSeeder extends Seeder
             [
                 'jenis_pengadaan' => 'rop',
                 'pesanan_id' => null,
-                'status' => 'processed',
+                'status' => 'diproses',
                 'catatan' => 'Produk jadi siap dibuat PO - semua approval selesai',
-                'created_by' => 'US001',
+                'dibuat_oleh' => 'US001',
                 'details' => [
                     ['type' => 'produk', 'qty' => 50, 'qty_disetujui' => 50],
                     ['type' => 'produk', 'qty' => 40, 'qty_disetujui' => 40],
@@ -207,9 +207,9 @@ class PengadaanSeeder extends Seeder
             [
                 'jenis_pengadaan' => 'rop',
                 'pesanan_id' => null,
-                'status' => 'received',
+                'status' => 'diterima',
                 'catatan' => 'Pengadaan bahan baku selesai - barang sudah diterima di gudang',
-                'created_by' => 'US001',
+                'dibuat_oleh' => 'US001',
                 'details' => [
                     ['type' => 'bahan_baku', 'qty' => 120, 'qty_disetujui' => 120],
                     ['type' => 'bahan_baku', 'qty' => 80, 'qty_disetujui' => 80],
@@ -220,9 +220,9 @@ class PengadaanSeeder extends Seeder
             [
                 'jenis_pengadaan' => 'pesanan',
                 'pesanan_id' => $pesanans->skip(2)->first()->pesanan_id ?? $pesanans->first()->pesanan_id,
-                'status' => 'received',
+                'status' => 'diterima',
                 'catatan' => 'Pengadaan dari pesanan selesai - semua barang diterima',
-                'created_by' => 'US001',
+                'dibuat_oleh' => 'US001',
                 'details' => [
                     ['type' => 'bahan_baku', 'qty' => 100, 'qty_disetujui' => 100],
                     ['type' => 'produk', 'qty' => 50, 'qty_disetujui' => 50],
@@ -233,9 +233,9 @@ class PengadaanSeeder extends Seeder
             [
                 'jenis_pengadaan' => 'rop',
                 'pesanan_id' => null,
-                'status' => 'received',
+                'status' => 'diterima',
                 'catatan' => 'Pengadaan produk selesai - stok sudah diupdate di sistem',
-                'created_by' => 'US001',
+                'dibuat_oleh' => 'US001',
                 'details' => [
                     ['type' => 'produk', 'qty' => 75, 'qty_disetujui' => 75],
                     ['type' => 'produk', 'qty' => 60, 'qty_disetujui' => 60],
@@ -247,9 +247,9 @@ class PengadaanSeeder extends Seeder
             [
                 'jenis_pengadaan' => 'rop',
                 'pesanan_id' => null,
-                'status' => 'cancelled',
+                'status' => 'dibatalkan',
                 'catatan' => 'Pengadaan dibatalkan dari draft - tidak diperlukan lagi',
-                'created_by' => 'US001',
+                'dibuat_oleh' => 'US001',
                 'details' => [
                     ['type' => 'bahan_baku', 'qty' => 500, 'qty_disetujui' => null],
                 ],
@@ -259,9 +259,9 @@ class PengadaanSeeder extends Seeder
             [
                 'jenis_pengadaan' => 'pesanan',
                 'pesanan_id' => $pesanans->first()->pesanan_id,
-                'status' => 'cancelled',
+                'status' => 'dibatalkan',
                 'catatan' => 'Pengadaan dibatalkan saat pending approval - budget terpotong',
-                'created_by' => 'US001',
+                'dibuat_oleh' => 'US001',
                 'details' => [
                     ['type' => 'bahan_baku', 'qty' => 400, 'qty_disetujui' => null],
                     ['type' => 'produk', 'qty' => 200, 'qty_disetujui' => null],

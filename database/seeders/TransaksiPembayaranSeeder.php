@@ -24,7 +24,7 @@ use Illuminate\Support\Facades\DB;
  *
  * 3. TERMIN (Installment):
  *    - DP (Down Payment): 30% of total - created immediately
- *    - Termin: 40% of total - created when status = confirmed/partially_received/fully_received
+ *    - Termin: 40% of total - created when status = dikonfirmasi/diterima
  *    - Pelunasan: 30% of total - created when status = fully_received
  *    - Staged payments aligned with goods delivery
  *
@@ -108,7 +108,7 @@ class TransaksiPembayaranSeeder extends Seeder
                 );
 
                 // 2. Termin Payment (40% - after 50% delivery)
-                if (in_array($pembelian->status, ['confirmed', 'partially_received', 'fully_received'])) {
+                if (in_array($pembelian->status, ['dikonfirmasi', 'diterima'])) {
                     $jumlahTermin = $totalBiaya * 0.4;
                     $this->createPayment(
                         $pembelian,

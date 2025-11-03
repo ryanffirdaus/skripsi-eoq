@@ -33,7 +33,7 @@ class PengirimanSeeder extends Seeder
                 continue;
             }
 
-            $status = fake()->randomElement(['pending', 'dikirim', 'selesai', 'dibatalkan']);
+            $status = fake()->randomElement(['menunggu', 'dikirim', 'selesai', 'dibatalkan']);
 
             $pengiriman = [
                 'pesanan_id' => $pesananId,
@@ -42,31 +42,31 @@ class PengirimanSeeder extends Seeder
                 'estimasi_hari' => fake()->numberBetween(1, 5),
                 'status' => $status,
                 'catatan' => fake()->optional(0.3)->sentence(),
-                'created_by' => fake()->randomElement($userIds),
-                'updated_by' => fake()->randomElement($userIds),
+                'dibuat_oleh' => fake()->randomElement($userIds),
+                'diupdate_oleh' => fake()->randomElement($userIds),
                 'created_at' => now(),
                 'updated_at' => now(),
             ];
 
             // Set tanggal dan nomor resi berdasarkan status
             switch ($status) {
-                case 'pending':
+                case 'menunggu':
                     $pengiriman['nomor_resi'] = null;
                     $pengiriman['tanggal_kirim'] = null;
                     $pengiriman['tanggal_diterima'] = null;
                     break;
-                case 'shipped':
+                case 'dikirim':
                     $pengiriman['nomor_resi'] = fake()->numerify('##########');
                     $pengiriman['tanggal_kirim'] = fake()->dateTimeBetween('-3 days', 'now');
                     $pengiriman['tanggal_diterima'] = null;
                     break;
-                case 'delivered':
+                case 'selesai':
                     $tanggalKirim = fake()->dateTimeBetween('-7 days', '-2 days');
                     $pengiriman['nomor_resi'] = fake()->numerify('##########');
                     $pengiriman['tanggal_kirim'] = $tanggalKirim;
                     $pengiriman['tanggal_diterima'] = fake()->dateTimeBetween($tanggalKirim, 'now');
                     break;
-                case 'cancelled':
+                case 'dibatalkan':
                     $pengiriman['nomor_resi'] = fake()->optional(0.3)->numerify('##########');
                     $pengiriman['tanggal_kirim'] = null;
                     $pengiriman['tanggal_diterima'] = null;

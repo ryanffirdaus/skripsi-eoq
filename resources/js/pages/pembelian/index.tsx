@@ -81,21 +81,23 @@ export default function Index({ pembelian, filters, pemasoks, permissions, flash
     const getStatusBadge = (status: string) => {
         const statusColors = {
             draft: 'outline',
-            sent: 'secondary',
-            confirmed: 'default',
-            partially_received: 'default',
-            fully_received: 'secondary',
-            cancelled: 'destructive',
+            menunggu: 'secondary',
+            dipesan: 'default',
+            dikirim: 'default',
+            dikonfirmasi: 'default',
+            diterima: 'secondary',
+            dibatalkan: 'destructive',
         } as const;
 
         return (
             <Badge variant={statusColors[status as keyof typeof statusColors] || 'outline'}>
                 {status === 'draft' && 'Draft'}
-                {status === 'sent' && 'Terkirim'}
-                {status === 'confirmed' && 'Dikonfirmasi'}
-                {status === 'partially_received' && 'Diterima Sebagian'}
-                {status === 'fully_received' && 'Diterima Lengkap'}
-                {status === 'cancelled' && 'Dibatalkan'}
+                {status === 'menunggu' && 'Menunggu'}
+                {status === 'dipesan' && 'Dipesan'}
+                {status === 'dikirim' && 'Dikirim'}
+                {status === 'dikonfirmasi' && 'Dikonfirmasi'}
+                {status === 'diterima' && 'Diterima'}
+                {status === 'dibatalkan' && 'Dibatalkan'}
             </Badge>
         );
     };
@@ -162,11 +164,12 @@ export default function Index({ pembelian, filters, pemasoks, permissions, flash
                 options: [
                     { value: '', label: 'Semua Status' },
                     { value: 'draft', label: 'Draft' },
-                    { value: 'sent', label: 'Terkirim' },
-                    { value: 'confirmed', label: 'Dikonfirmasi' },
-                    { value: 'partially_received', label: 'Diterima Sebagian' },
-                    { value: 'fully_received', label: 'Diterima Lengkap' },
-                    { value: 'cancelled', label: 'Dibatalkan' },
+                    { value: 'menunggu', label: 'Menunggu' },
+                    { value: 'dipesan', label: 'Dipesan' },
+                    { value: 'dikirim', label: 'Dikirim' },
+                    { value: 'dikonfirmasi', label: 'Dikonfirmasi' },
+                    { value: 'diterima', label: 'Diterima' },
+                    { value: 'dibatalkan', label: 'Dibatalkan' },
                 ],
             },
             {

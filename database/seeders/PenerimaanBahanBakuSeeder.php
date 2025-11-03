@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\DB;
  * Creates Goods Receipt records (Penerimaan Bahan Baku) for Purchase Orders.
  *
  * Workflow:
- * - Processes Pembelian with statuses: sent, confirmed, partially_received, fully_received
+ * - Processes Pembelian with statuses: dikirim, dikonfirmasi, diterima (partially or fully)
  * - Sent status: No receipts created (still in delivery)
  * - Confirmed/Partially_received: Creates partial receipts (30-70% of ordered qty)
  * - Fully_received: Creates complete receipts that total 100% of order
@@ -46,12 +46,13 @@ class PenerimaanBahanBakuSeeder extends Seeder
         // confirmed: confirmed, ready/receiving goods
         // partially_received: some items received, need more
         // fully_received: all items received (complete)
-        $eligiblePembelian = Pembelian::whereIn('status', ['sent', 'confirmed', 'partially_received', 'fully_received'])
-            ->with('detail.pengadaanDetail')
+        $eligiblePembelian = Pembelian::whereIn('status', ['dikirim', 'dikonfirmasi', 'diterima'])
+            ->with('details.pengadaanDetail')
+            ->orderBy('tanggal_pembelian', 'asc')
             ->get();
 
         if ($eligiblePembelian->isEmpty()) {
-            $this->command->warn('Tidak ditemukan Pembelian dengan status yang sesuai (sent, confirmed, partially_received, fully_received). Seeding dilewati.');
+            $this->command->warn('Tidak ditemukan Pembelian dengan status yang sesuai (dikirim, dikonfirmasi, diterima). Seeding dilewati.');
             return;
         }
 

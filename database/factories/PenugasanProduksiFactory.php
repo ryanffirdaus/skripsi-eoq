@@ -34,9 +34,9 @@ class PenugasanProduksiFactory extends Factory
             'status' => $this->faker->randomElement(['ditugaskan', 'proses', 'selesai', 'dibatalkan']),
             'deadline' => Carbon::now()->addDays($this->faker->numberBetween(1, 30)),
             'catatan' => $this->faker->sentence(),
-            'created_by' => User::factory(['role_id' => 'ROLE002']), // Supervisor
-            'updated_by' => null,
-            'deleted_by' => null,
+            'dibuat_oleh' => User::factory(['role_id' => 'ROLE002']), // Supervisor
+            'diupdate_oleh' => null,
+            'dihapus_oleh' => null,
         ];
     }
 
@@ -48,8 +48,8 @@ class PenugasanProduksiFactory extends Factory
         return $this->state(function (array $attributes) {
             return [
                 'status' => 'ditugaskan',
-                'updated_by' => null,
-                'deleted_by' => null,
+                'diupdate_oleh' => null,
+                'dihapus_oleh' => null,
             ];
         });
     }
@@ -62,7 +62,7 @@ class PenugasanProduksiFactory extends Factory
         return $this->state(function (array $attributes) {
             return [
                 'status' => 'proses',
-                'updated_by' => $attributes['user_id'], // Worker yang update
+                'diupdate_oleh' => $attributes['user_id'], // Worker yang update
             ];
         });
     }
@@ -75,7 +75,7 @@ class PenugasanProduksiFactory extends Factory
         return $this->state(function (array $attributes) {
             return [
                 'status' => 'selesai',
-                'updated_by' => $attributes['user_id'], // Worker yang complete
+                'diupdate_oleh' => $attributes['user_id'], // Worker yang complete
             ];
         });
     }
@@ -88,7 +88,7 @@ class PenugasanProduksiFactory extends Factory
         return $this->state(function (array $attributes) {
             return [
                 'status' => 'dibatalkan',
-                'updated_by' => $attributes['created_by'], // Supervisor yang cancel
+                'diupdate_oleh' => $attributes['dibuat_oleh'], // Supervisor yang cancel
             ];
         });
     }
@@ -137,7 +137,7 @@ class PenugasanProduksiFactory extends Factory
     {
         return $this->state(function (array $attributes) use ($supervisor) {
             return [
-                'created_by' => $supervisor->user_id,
+                'dibuat_oleh' => $supervisor->user_id,
             ];
         });
     }

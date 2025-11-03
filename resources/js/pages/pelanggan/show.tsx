@@ -41,8 +41,8 @@ interface Pelanggan {
     tipe_pelanggan: 'company' | 'individual';
     created_at: string;
     updated_at: string;
-    created_by?: UserRef;
-    updated_by?: UserRef;
+    dibuat_oleh?: UserRef;
+    diupdate_oleh?: UserRef;
     pesanan?: Pesanan[];
 }
 
@@ -257,8 +257,8 @@ export default function Show({ pelanggan }: Props) {
                         <TimestampSection
                             createdAt={pelanggan.created_at}
                             updatedAt={pelanggan.updated_at}
-                            createdBy={pelanggan.created_by?.nama_lengkap}
-                            updatedBy={pelanggan.updated_by?.nama_lengkap}
+                            createdBy={pelanggan.dibuat_oleh?.nama_lengkap}
+                            updatedBy={pelanggan.diupdate_oleh?.nama_lengkap}
                             createdLabel="Terdaftar"
                         />
                     </div>

@@ -23,10 +23,10 @@ interface BahanBaku {
     biaya_penyimpanan: number;
     eoq: number;
     harga_per_unit: number;
-    created_by_id?: string;
-    updated_by_id?: string;
-    created_by?: UserRef | null;
-    updated_by?: UserRef | null;
+    dibuat_oleh_id?: string;
+    diupdate_oleh_id?: string;
+    dibuat_oleh?: UserRef | null;
+    diupdate_oleh?: UserRef | null;
     created_at: string;
     updated_at: string;
 }
@@ -183,8 +183,8 @@ export default function Show({ bahanBaku, permissions }: Props) {
                 <TimestampSection
                     createdAt={bahanBaku.created_at}
                     updatedAt={bahanBaku.updated_at}
-                    createdBy={bahanBaku.created_by?.nama_lengkap}
-                    updatedBy={bahanBaku.updated_by?.nama_lengkap}
+                    createdBy={bahanBaku.dibuat_oleh?.nama_lengkap}
+                    updatedBy={bahanBaku.diupdate_oleh?.nama_lengkap}
                 />
             </div>
         </ShowPageTemplate>

@@ -73,22 +73,26 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 const statusColors = {
-    pending: 'bg-yellow-100 text-yellow-800',
-    dikirim: 'bg-blue-100 text-blue-800',
-    selesai: 'bg-green-100 text-green-800',
+    menunggu: 'bg-yellow-100 text-yellow-800',
+    dalam_perjalanan: 'bg-blue-100 text-blue-800',
+    diterima: 'bg-green-100 text-green-800',
+    dikirim: 'bg-indigo-100 text-indigo-800',
+    selesai: 'bg-teal-100 text-teal-800',
     dibatalkan: 'bg-red-100 text-red-800',
 };
 
 const statusLabels = {
-    pending: 'Pending',
+    menunggu: 'Menunggu',
+    dalam_perjalanan: 'Dalam Perjalanan',
+    diterima: 'Diterima',
     dikirim: 'Dikirim',
-    selesai: 'Diterima',
+    selesai: 'Selesai',
     dibatalkan: 'Dibatalkan',
 };
 
 export default function Index({ pengiriman, filters, flash }: Props) {
     const getStatusColor = (status: string) => {
-        return statusColors[status as keyof typeof statusColors] || statusColors.pending;
+        return statusColors[status as keyof typeof statusColors] || statusColors.menunggu;
     };
 
     const getStatusLabel = (status: string) => {
@@ -245,9 +249,11 @@ export default function Index({ pengiriman, filters, flash }: Props) {
                 type: 'select' as const,
                 options: [
                     { value: '', label: 'Semua Status' },
-                    { value: 'pending', label: 'Pending' },
+                    { value: 'menunggu', label: 'Menunggu' },
+                    { value: 'dalam_perjalanan', label: 'Dalam Perjalanan' },
+                    { value: 'diterima', label: 'Diterima' },
                     { value: 'dikirim', label: 'Dikirim' },
-                    { value: 'selesai', label: 'Diterima' },
+                    { value: 'selesai', label: 'Selesai' },
                     { value: 'dibatalkan', label: 'Dibatalkan' },
                 ],
             },

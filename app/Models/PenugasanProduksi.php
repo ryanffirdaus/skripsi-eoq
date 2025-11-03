@@ -27,9 +27,9 @@ class PenugasanProduksi extends Model
         'status',
         'deadline',
         'catatan',
-        'created_by',
-        'updated_by',
-        'deleted_by',
+        'dibuat_oleh',
+        'diupdate_oleh',
+        'dihapus_oleh',
     ];
 
     protected $casts = [
@@ -55,24 +55,24 @@ class PenugasanProduksi extends Model
             // Auto-generate penugasan_id
             if (!$model->penugasan_id) {
                 $latest = static::withTrashed()->orderBy('penugasan_id', 'desc')->first();
-                $nextId = $latest ? (int) substr($latest->penugasan_id, 3) + 1 : 1;
-                $model->penugasan_id = 'PPD' . str_pad($nextId, 5, '0', STR_PAD_LEFT);
+                $nextId = $latest ? (int) substr($latest->penugasan_id, 2) + 1 : 1;
+                $model->penugasan_id = 'PT' . str_pad($nextId, 7, '0', STR_PAD_LEFT);
             }
 
             if (Auth::check()) {
-                $model->created_by = Auth::user()->user_id;
+                $model->dibuat_oleh = Auth::user()->user_id;
             }
         });
 
         static::updating(function ($model) {
             if (Auth::check()) {
-                $model->updated_by = Auth::user()->user_id;
+                $model->diupdate_oleh = Auth::user()->user_id;
             }
         });
 
         static::deleting(function ($model) {
             if (Auth::check()) {
-                $model->deleted_by = Auth::user()->user_id;
+                $model->dihapus_oleh = Auth::user()->user_id;
                 $model->save();
             }
         });
@@ -92,17 +92,17 @@ class PenugasanProduksi extends Model
 
     public function createdBy()
     {
-        return $this->belongsTo(User::class, 'created_by', 'user_id');
+        return $this->belongsTo(User::class, 'dibuat_oleh', 'user_id');
     }
 
     public function updatedBy()
     {
-        return $this->belongsTo(User::class, 'updated_by', 'user_id');
+        return $this->belongsTo(User::class, 'diupdate_oleh', 'user_id');
     }
 
     public function deletedBy()
     {
-        return $this->belongsTo(User::class, 'deleted_by', 'user_id');
+        return $this->belongsTo(User::class, 'dihapus_oleh', 'user_id');
     }
 
     // Status Methods

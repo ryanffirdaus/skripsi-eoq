@@ -39,12 +39,12 @@ class PembelianFactory extends Factory
             'tanggal_pembelian' => $this->faker->dateTimeBetween('-1 month', 'now'),
             'tanggal_kirim_diharapkan' => $this->faker->dateTimeBetween('now', '+1 month'),
             'total_biaya' => 0, // Akan dihitung ulang oleh seeder
-            'status' => $this->faker->randomElement(['sent', 'confirmed', 'partially_received', 'fully_received', 'cancelled']),
+            'status' => $this->faker->randomElement(['draft', 'menunggu', 'dipesan', 'dikirim', 'dikonfirmasi', 'diterima', 'dibatalkan']),
             'catatan' => $this->faker->sentence,
             'metode_pembayaran' => $metodePembayaran,
             'termin_pembayaran' => $metodePembayaran === 'termin' ? $this->faker->randomElement(['2 termin (50%-50%)', '3 termin (40%-30%-30%)', 'DP 30% + Pelunasan']) : null,
             'jumlah_dp' => $metodePembayaran === 'termin' ? $this->faker->numberBetween(1000000, 5000000) : 0,
-            'created_by' => $user ? $user->user_id : null,
+            'dibuat_oleh' => $user ? $user->user_id : null,
         ];
     }
 }

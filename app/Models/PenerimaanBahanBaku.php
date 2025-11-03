@@ -20,9 +20,9 @@ class PenerimaanBahanBaku extends Model
         'penerimaan_id',
         'pembelian_detail_id',
         'qty_diterima',
-        'created_by',
-        'updated_by',
-        'deleted_by',
+        'dibuat_oleh',
+        'diupdate_oleh',
+        'dihapus_oleh',
     ];
 
     protected $casts = [
@@ -36,23 +36,23 @@ class PenerimaanBahanBaku extends Model
         static::creating(function ($model) {
             if (!$model->getKey()) {
                 $latest = static::withTrashed()->orderBy('penerimaan_id', 'desc')->first();
-                $nextNumber = $latest ? (int)substr($latest->penerimaan_id, 3) + 1 : 1;
-                $model->{$model->getKeyName()} = 'RBM' . str_pad($nextNumber, 7, '0', STR_PAD_LEFT);
+                $nextNumber = $latest ? (int)substr($latest->penerimaan_id, 2) + 1 : 1;
+                $model->{$model->getKeyName()} = 'PN' . str_pad($nextNumber, 7, '0', STR_PAD_LEFT);
             }
-            if (Auth::check() && !$model->created_by) {
-                $model->created_by = Auth::id();
+            if (Auth::check() && !$model->dibuat_oleh) {
+                $model->dibuat_oleh = Auth::id();
             }
         });
 
         static::updating(function ($model) {
-            if (Auth::check() && !$model->updated_by) {
-                $model->updated_by = Auth::id();
+            if (Auth::check() && !$model->diupdate_oleh) {
+                $model->diupdate_oleh = Auth::id();
             }
         });
 
         static::deleting(function ($model) {
             if (Auth::check()) {
-                $model->deleted_by = Auth::id();
+                $model->dihapus_oleh = Auth::id();
             }
 
             // Soft delete all detail items
@@ -90,18 +90,18 @@ class PenerimaanBahanBaku extends Model
     // Relasi ke user yang membuat
     public function createdBy()
     {
-        return $this->belongsTo(User::class, 'created_by', 'user_id');
+        return $this->belongsTo(User::class, 'dibuat_oleh', 'user_id');
     }
 
     // Relasi ke user yang mengubah
     public function updatedBy()
     {
-        return $this->belongsTo(User::class, 'updated_by', 'user_id');
+        return $this->belongsTo(User::class, 'diupdate_oleh', 'user_id');
     }
 
     // Relasi ke user yang menghapus
     public function deletedBy()
     {
-        return $this->belongsTo(User::class, 'deleted_by', 'user_id');
+        return $this->belongsTo(User::class, 'dihapus_oleh', 'user_id');
     }
 }

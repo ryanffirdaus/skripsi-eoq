@@ -24,9 +24,9 @@ class TransaksiPembayaran extends Model
         'total_pembayaran',
         'bukti_pembayaran',
         'catatan',
-        'created_by',
-        'updated_by',
-        'deleted_by',
+        'dibuat_oleh',
+        'diupdate_oleh',
+        'dihapus_oleh',
     ];
 
     protected $casts = [
@@ -41,25 +41,25 @@ class TransaksiPembayaran extends Model
         static::creating(function ($model) {
             if (!$model->transaksi_pembayaran_id) {
                 $latest = static::withTrashed()->orderBy('transaksi_pembayaran_id', 'desc')->first();
-                $nextNumber = $latest ? (int)substr($latest->transaksi_pembayaran_id, 3) + 1 : 1;
-                $model->transaksi_pembayaran_id = 'TRP' . str_pad($nextNumber, 8, '0', STR_PAD_LEFT);
+                $nextNumber = $latest ? (int)substr($latest->transaksi_pembayaran_id, 2) + 1 : 1;
+                $model->transaksi_pembayaran_id = 'TP' . str_pad($nextNumber, 8, '0', STR_PAD_LEFT);
             }
 
             if (Auth::check()) {
-                $model->created_by = Auth::user()->user_id;
-                $model->updated_by = Auth::user()->user_id;
+                $model->dibuat_oleh = Auth::user()->user_id;
+                $model->diupdate_oleh = Auth::user()->user_id;
             }
         });
 
         static::updating(function ($model) {
             if (Auth::check()) {
-                $model->updated_by = Auth::user()->user_id;
+                $model->diupdate_oleh = Auth::user()->user_id;
             }
         });
 
         static::deleting(function ($model) {
             if (Auth::check()) {
-                $model->deleted_by = Auth::user()->user_id;
+                $model->dihapus_oleh = Auth::user()->user_id;
             }
         });
     }
@@ -71,17 +71,17 @@ class TransaksiPembayaran extends Model
 
     public function createdBy()
     {
-        return $this->belongsTo(User::class, 'created_by', 'user_id');
+        return $this->belongsTo(User::class, 'dibuat_oleh', 'user_id');
     }
 
     public function updatedBy()
     {
-        return $this->belongsTo(User::class, 'updated_by', 'user_id');
+        return $this->belongsTo(User::class, 'diupdate_oleh', 'user_id');
     }
 
     public function deletedBy()
     {
-        return $this->belongsTo(User::class, 'deleted_by', 'user_id');
+        return $this->belongsTo(User::class, 'dihapus_oleh', 'user_id');
     }
 
     /**

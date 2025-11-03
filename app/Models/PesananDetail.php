@@ -37,8 +37,8 @@ class PesananDetail extends Model
         static::creating(function ($model) {
             if (!$model->pesanan_detail_id) {
                 $latest = static::withTrashed()->orderBy('pesanan_detail_id', 'desc')->first();
-                $nextNumber = $latest ? (int)substr($latest->pesanan_detail_id, 4) + 1 : 1;
-                $model->pesanan_detail_id = 'PSND' . str_pad($nextNumber, 7, '0', STR_PAD_LEFT);
+                $nextNumber = $latest ? (int)substr($latest->pesanan_detail_id, 3) + 1 : 1;
+                $model->pesanan_detail_id = 'PSD' . str_pad($nextNumber, 7, '0', STR_PAD_LEFT);
             }
 
             // Auto-calculate subtotal

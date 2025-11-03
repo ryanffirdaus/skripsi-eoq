@@ -12,16 +12,16 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('pemasok', function (Blueprint $table) {
-            $table->string('pemasok_id', 50)->primary();
-            $table->string('nama_pemasok', 100);
-            $table->string('narahubung', 100)->nullable();
-            $table->string('email')->nullable();
+            $table->string('pemasok_id', 5)->primary(); // PM001
+            $table->string('nama_pemasok', 50);
+            $table->string('narahubung', 50)->nullable();
+            $table->string('email', 50)->nullable();
             $table->string('nomor_telepon', 20)->nullable();
             $table->text('alamat')->nullable();
             $table->text('catatan')->nullable();
-            $table->string('created_by', 50)->nullable();
-            $table->string('updated_by', 50)->nullable();
-            $table->string('deleted_by', 50)->nullable();
+            $table->string('created_by', 6)->nullable();
+            $table->string('updated_by', 6)->nullable();
+            $table->string('deleted_by', 6)->nullable();
             $table->softDeletes();
             $table->timestamps();
 

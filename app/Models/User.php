@@ -47,9 +47,9 @@ class User extends Authenticatable
         'email',
         'password',
         'role_id',
-        'created_by',
-        'updated_by',
-        'deleted_by'
+        'dibuat_oleh',
+        'diupdate_oleh',
+        'dihapus_oleh'
     ];
 
     /**
@@ -88,18 +88,18 @@ class User extends Authenticatable
         });
 
         static::created(function ($model) {
-            $model->created_by = Auth::id() ?? null;
-            $model->updated_by = Auth::id() ?? null;
+            $model->dibuat_oleh = Auth::id() ?? null;
+            $model->diupdate_oleh = Auth::id() ?? null;
             $model->saveQuietly(); // Prevent triggering events again
         });
 
         static::updating(function ($model) {
-            $model->updated_by = Auth::id();
+            $model->diupdate_oleh = Auth::id();
             $model->saveQuietly(); // Prevent triggering events again
         });
 
         static::deleting(function ($model) {
-            $model->deleted_by = Auth::id();
+            $model->dihapus_oleh = Auth::id();
             $model->saveQuietly(); // Prevent triggering events again
         });
     }
@@ -114,73 +114,73 @@ class User extends Authenticatable
 
     public function bahanBakuCreatedBy()
     {
-        return $this->hasMany(BahanBaku::class, 'created_by', 'user_id');
+        return $this->hasMany(BahanBaku::class, 'dibuat_oleh', 'user_id');
     }
 
     public function bahanBakuUpdatedBy()
     {
-        return $this->hasMany(BahanBaku::class, 'updated_by', 'user_id');
+        return $this->hasMany(BahanBaku::class, 'diupdate_oleh', 'user_id');
     }
 
     public function bahanBakuDeletedBy()
     {
-        return $this->hasMany(BahanBaku::class, 'deleted_by', 'user_id');
+        return $this->hasMany(BahanBaku::class, 'dihapus_oleh', 'user_id');
     }
 
     public function produkCreatedBy()
     {
-        return $this->hasMany(Produk::class, 'created_by', 'user_id');
+        return $this->hasMany(Produk::class, 'dibuat_oleh', 'user_id');
     }
 
     public function produkUpdatedBy()
     {
-        return $this->hasMany(Produk::class, 'updated_by', 'user_id');
+        return $this->hasMany(Produk::class, 'diupdate_oleh', 'user_id');
     }
 
     public function produkDeletedBy()
     {
-        return $this->hasMany(Produk::class, 'deleted_by', 'user_id');
+        return $this->hasMany(Produk::class, 'dihapus_oleh', 'user_id');
     }
 
     public function pelangganCreatedBy()
     {
-        return $this->hasMany(Pelanggan::class, 'created_by', 'user_id');
+        return $this->hasMany(Pelanggan::class, 'dibuat_oleh', 'user_id');
     }
 
     public function pelangganUpdatedBy()
     {
-        return $this->hasMany(Pelanggan::class, 'updated_by', 'user_id');
+        return $this->hasMany(Pelanggan::class, 'diupdate_oleh', 'user_id');
     }
 
     public function pelangganDeletedBy()
     {
-        return $this->hasMany(Pelanggan::class, 'deleted_by', 'user_id');
+        return $this->hasMany(Pelanggan::class, 'dihapus_oleh', 'user_id');
     }
 
     public function pesananCreatedBy()
     {
-        return $this->hasMany(Pesanan::class, 'created_by', 'user_id');
+        return $this->hasMany(Pesanan::class, 'dibuat_oleh', 'user_id');
     }
 
     public function pesananUpdatedBy()
     {
-        return $this->hasMany(Pesanan::class, 'updated_by', 'user_id');
+        return $this->hasMany(Pesanan::class, 'diupdate_oleh', 'user_id');
     }
 
     public function pesananDeletedBy()
     {
-        return $this->hasMany(Pesanan::class, 'deleted_by', 'user_id');
+        return $this->hasMany(Pesanan::class, 'dihapus_oleh', 'user_id');
     }
 
     // Self-referencing relationships for Users
     public function createdBy()
     {
-        return $this->belongsTo(User::class, 'created_by', 'user_id');
+        return $this->belongsTo(User::class, 'dibuat_oleh', 'user_id');
     }
 
     public function updatedBy()
     {
-        return $this->belongsTo(User::class, 'updated_by', 'user_id');
+        return $this->belongsTo(User::class, 'diupdate_oleh', 'user_id');
     }
 
     // Relationships for PenugasanProduksi (Production Assignment)
@@ -193,19 +193,19 @@ class User extends Authenticatable
     // Penugasan yang dibuat/ditugaskan oleh user ini
     public function penugasanCreated()
     {
-        return $this->hasMany(PenugasanProduksi::class, 'created_by', 'user_id');
+        return $this->hasMany(PenugasanProduksi::class, 'dibuat_oleh', 'user_id');
     }
 
     // Penugasan yang di-update oleh user ini
     public function penugasanUpdated()
     {
-        return $this->hasMany(PenugasanProduksi::class, 'updated_by', 'user_id');
+        return $this->hasMany(PenugasanProduksi::class, 'diupdate_oleh', 'user_id');
     }
 
     // Penugasan yang dihapus oleh user ini
     public function penugasanDeleted()
     {
-        return $this->hasMany(PenugasanProduksi::class, 'deleted_by', 'user_id');
+        return $this->hasMany(PenugasanProduksi::class, 'dihapus_oleh', 'user_id');
     }
 
     /**

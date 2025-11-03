@@ -23,11 +23,11 @@ class Pengadaan extends Model
         'status',
         'catatan',
         'alasan_penolakan',
-        'rejected_by',
+        'ditolak_oleh',
         'rejected_at',
-        'created_by',
-        'updated_by',
-        'deleted_by'
+        'dibuat_oleh',
+        'diupdate_oleh',
+        'dihapus_oleh'
     ];
 
     protected $appends = ['total_biaya'];
@@ -39,24 +39,24 @@ class Pengadaan extends Model
         static::creating(function ($model) {
             if (!$model->pengadaan_id) {
                 $latest = static::withTrashed()->orderBy('pengadaan_id', 'desc')->first();
-                $nextNumber = $latest ? (int)substr($latest->pengadaan_id, 3) + 1 : 1;
-                $model->pengadaan_id = 'PGD' . str_pad($nextNumber, 7, '0', STR_PAD_LEFT);
+                $nextNumber = $latest ? (int)substr($latest->pengadaan_id, 2) + 1 : 1;
+                $model->pengadaan_id = 'PA' . str_pad($nextNumber, 7, '0', STR_PAD_LEFT);
             }
 
             if (Auth::check()) {
-                $model->created_by = Auth::user()->user_id;
+                $model->dibuat_oleh = Auth::user()->user_id;
             }
         });
 
         static::updating(function ($model) {
             if (Auth::check()) {
-                $model->updated_by = Auth::user()->user_id;
+                $model->diupdate_oleh = Auth::user()->user_id;
             }
         });
 
         static::deleting(function ($model) {
             if (Auth::check()) {
-                $model->deleted_by = Auth::user()->user_id;
+                $model->dihapus_oleh = Auth::user()->user_id;
                 $model->save();
             }
 
@@ -91,22 +91,22 @@ class Pengadaan extends Model
 
     public function createdBy()
     {
-        return $this->belongsTo(User::class, 'created_by', 'user_id');
+        return $this->belongsTo(User::class, 'dibuat_oleh', 'user_id');
     }
 
     public function updatedBy()
     {
-        return $this->belongsTo(User::class, 'updated_by', 'user_id');
+        return $this->belongsTo(User::class, 'diupdate_oleh', 'user_id');
     }
 
     public function deletedBy()
     {
-        return $this->belongsTo(User::class, 'deleted_by', 'user_id');
+        return $this->belongsTo(User::class, 'dihapus_oleh', 'user_id');
     }
 
     public function rejectedBy()
     {
-        return $this->belongsTo(User::class, 'rejected_by', 'user_id');
+        return $this->belongsTo(User::class, 'ditolak_oleh', 'user_id');
     }
 
     // Accessors
@@ -118,17 +118,17 @@ class Pengadaan extends Model
     }
 
     // Status constants (SOURCE OF TRUTH: migration)
-    // Flow: draft → pending_approval_gudang → pending_supplier_allocation → pending_approval_pengadaan → pending_approval_keuangan → processed → received
+    // Flow: draft → menunggu_persetujuan_gudang → menunggu_alokasi_pemasok → menunggu_persetujuan_pengadaan → menunggu_persetujuan_keuangan → diproses → diterima
     // At any stage: can be rejected (status = rejected)
     public const STATUS_DRAFT = 'draft';
-    public const STATUS_PENDING_APPROVAL_GUDANG = 'pending_approval_gudang'; // Menunggu approval Manajer Gudang
-    public const STATUS_PENDING_SUPPLIER_ALLOCATION = 'pending_supplier_allocation'; // Menunggu diisi pemasok
-    public const STATUS_PENDING_APPROVAL_PENGADAAN = 'pending_approval_pengadaan'; // Menunggu approval Manajer Pengadaan
-    public const STATUS_PENDING_APPROVAL_KEUANGAN = 'pending_approval_keuangan'; // Menunggu approval Manajer Keuangan
-    public const STATUS_PROCESSED = 'processed'; // Sudah disetujui keuangan, siap di-PO
-    public const STATUS_RECEIVED = 'received'; // Barang diterima
-    public const STATUS_CANCELLED = 'cancelled'; // Dibatalkan
-    public const STATUS_REJECTED = 'rejected'; // Ditolak (harus mengisi alasan penolakan)
+    public const STATUS_MENUNGGU_PERSETUJUAN_GUDANG = 'menunggu_persetujuan_gudang'; // Menunggu approval Manajer Gudang
+    public const STATUS_MENUNGGU_ALOKASI_PEMASOK = 'menunggu_alokasi_pemasok'; // Menunggu diisi pemasok
+    public const STATUS_MENUNGGU_PERSETUJUAN_PENGADAAN = 'menunggu_persetujuan_pengadaan'; // Menunggu approval Manajer Pengadaan
+    public const STATUS_MENUNGGU_PERSETUJUAN_KEUANGAN = 'menunggu_persetujuan_keuangan'; // Menunggu approval Manajer Keuangan
+    public const STATUS_DIPROSES = 'diproses'; // Sudah disetujui keuangan, siap di-PO
+    public const STATUS_DITERIMA = 'diterima'; // Barang diterima
+    public const STATUS_DIBATALKAN = 'dibatalkan'; // Dibatalkan
+    public const STATUS_DITOLAK = 'ditolak'; // Ditolak (harus mengisi alasan penolakan)
 
     // Status methods (SOURCE OF TRUTH: migration)
     public function isDraft()
@@ -136,44 +136,44 @@ class Pengadaan extends Model
         return $this->status === 'draft';
     }
 
-    public function isPendingApprovalGudang()
+    public function isMenungguPersetujuanGudang()
     {
-        return $this->status === 'pending_approval_gudang';
+        return $this->status === 'menunggu_persetujuan_gudang';
     }
 
-    public function isPendingSupplierAllocation()
+    public function isMenungguAlokasiPemasok()
     {
-        return $this->status === 'pending_supplier_allocation';
+        return $this->status === 'menunggu_alokasi_pemasok';
     }
 
-    public function isPendingApprovalPengadaan()
+    public function isMenungguPersetujuanPengadaan()
     {
-        return $this->status === 'pending_approval_pengadaan';
+        return $this->status === 'menunggu_persetujuan_pengadaan';
     }
 
-    public function isPendingApprovalKeuangan()
+    public function isMenungguPersetujuanKeuangan()
     {
-        return $this->status === 'pending_approval_keuangan';
+        return $this->status === 'menunggu_persetujuan_keuangan';
     }
 
-    public function isProcessed()
+    public function isDiproses()
     {
-        return $this->status === 'processed';
+        return $this->status === 'diproses';
     }
 
-    public function isReceived()
+    public function isDiterima()
     {
-        return $this->status === 'received';
+        return $this->status === 'diterima';
     }
 
-    public function isCancelled()
+    public function isDibatalkan()
     {
-        return $this->status === 'cancelled';
+        return $this->status === 'dibatalkan';
     }
 
-    public function isRejected()
+    public function isDitolak()
     {
-        return $this->status === 'rejected';
+        return $this->status === 'ditolak';
     }
 
     // Business logic methods
@@ -186,14 +186,14 @@ class Pengadaan extends Model
             return true;
         }
 
-        // Bisa edit di tahap: pending, disetujui_gudang
-        // Tidak bisa edit setelah disetujui_pengadaan, disetujui_keuangan, diproses, diterima, dibatalkan
-        return in_array($this->status, ['pending', 'disetujui_gudang']);
+        // Bisa edit di tahap: draft, menunggu_alokasi_pemasok (untuk input pemasok/harga)
+        // Tidak bisa edit setelah menunggu_persetujuan_pengadaan, menunggu_persetujuan_keuangan, diproses, diterima, dibatalkan
+        return in_array($this->status, ['draft', 'menunggu_persetujuan_gudang', 'menunggu_alokasi_pemasok']);
     }
 
     public function canBeCancelled()
     {
-        return !in_array($this->status, ['diterima', 'dibatalkan']);
+        return !in_array($this->status, ['diterima', 'dibatalkan', 'ditolak']);
     }
 
     /**
@@ -237,9 +237,9 @@ class Pengadaan extends Model
 
     /**
      * Validasi apakah status transition valid
-     * Flow: draft → pending_approval_gudang → pending_supplier_allocation → pending_approval_pengadaan → pending_approval_keuangan → processed → received
-     * Bisa rejected dari status manapun kecuali received atau sudah rejected
-     * Bisa cancelled dari status manapun kecuali received atau sudah cancelled
+     * Flow: draft → menunggu_persetujuan_gudang → menunggu_alokasi_pemasok → menunggu_persetujuan_pengadaan → menunggu_persetujuan_keuangan → diproses → diterima
+     * Bisa ditolak dari status manapun kecuali diterima atau sudah ditolak
+     * Bisa dibatalkan dari status manapun kecuali diterima atau sudah dibatalkan
      */
     public function isValidStatusTransition($newStatus)
     {
@@ -250,29 +250,29 @@ class Pengadaan extends Model
             return true;
         }
 
-        // Bisa rejected dari status manapun kecuali received atau sudah rejected
-        if ($newStatus === 'rejected') {
-            return !in_array($currentStatus, ['received', 'rejected']);
+        // Bisa ditolak dari status manapun kecuali diterima atau sudah ditolak
+        if ($newStatus === 'ditolak') {
+            return !in_array($currentStatus, ['diterima', 'ditolak']);
         }
 
-        // Bisa cancelled dari status manapun kecuali received atau sudah cancelled
-        if ($newStatus === 'cancelled') {
-            return !in_array($currentStatus, ['received', 'cancelled', 'rejected']);
+        // Bisa dibatalkan dari status manapun kecuali diterima atau sudah dibatalkan
+        if ($newStatus === 'dibatalkan') {
+            return !in_array($currentStatus, ['diterima', 'dibatalkan', 'ditolak']);
         }
 
-        // Tidak bisa update jika sudah received, cancelled, atau rejected
-        if (in_array($currentStatus, ['received', 'cancelled', 'rejected'])) {
+        // Tidak bisa update jika sudah diterima, dibatalkan, atau ditolak
+        if (in_array($currentStatus, ['diterima', 'dibatalkan', 'ditolak'])) {
             return false;
         }
 
         // Define valid transitions (WORKFLOW)
         $validTransitions = [
-            'draft' => ['pending_approval_gudang', 'cancelled'],
-            'pending_approval_gudang' => ['pending_supplier_allocation', 'cancelled'],
-            'pending_supplier_allocation' => ['pending_approval_pengadaan', 'cancelled'],
-            'pending_approval_pengadaan' => ['pending_approval_keuangan', 'cancelled'],
-            'pending_approval_keuangan' => ['processed', 'cancelled'],
-            'processed' => ['received', 'cancelled'],
+            'draft' => ['menunggu_persetujuan_gudang', 'dibatalkan'],
+            'menunggu_persetujuan_gudang' => ['menunggu_alokasi_pemasok', 'dibatalkan'],
+            'menunggu_alokasi_pemasok' => ['menunggu_persetujuan_pengadaan', 'dibatalkan'],
+            'menunggu_persetujuan_pengadaan' => ['menunggu_persetujuan_keuangan', 'dibatalkan'],
+            'menunggu_persetujuan_keuangan' => ['diproses', 'dibatalkan'],
+            'diproses' => ['diterima', 'dibatalkan'],
         ];
 
         return isset($validTransitions[$currentStatus]) &&
@@ -292,9 +292,9 @@ class Pengadaan extends Model
     public function reject($reason)
     {
         $this->update([
-            'status' => 'rejected',
+            'status' => 'ditolak',
             'alasan_penolakan' => $reason,
-            'rejected_by' => Auth::user()->user_id,
+            'ditolak_oleh' => Auth::user()->user_id,
             'rejected_at' => now(),
         ]);
 

@@ -28,9 +28,9 @@ class Pembelian extends Model
         'jumlah_dp',
         'status', // Contoh: draft, sent, confirmed, partially_received, fully_received, cancelled
         'catatan',
-        'created_by',
-        'updated_by',
-        'deleted_by'
+        'dibuat_oleh',
+        'diupdate_oleh',
+        'dihapus_oleh'
     ];
 
     protected $casts = [
@@ -45,27 +45,27 @@ class Pembelian extends Model
 
         static::creating(function ($model) {
             if (!$model->pembelian_id) {
-                // Membuat ID pembelian dengan format PO: PO-YYYYMM-XXXX
-                $yearMonth = date('Ym');
+                // Membuat ID pembelian dengan format PO: PO-YYMM-XXXX
+                $yearMonth = date('ym');
                 $latestInMonth = static::withTrashed()->where('pembelian_id', 'like', "PO-{$yearMonth}-%")->count();
                 $nextPoNumber = $latestInMonth + 1;
                 $model->pembelian_id = "PO-" . $yearMonth . "-" . str_pad($nextPoNumber, 4, '0', STR_PAD_LEFT);
             }
 
             if (Auth::check()) {
-                $model->created_by = Auth::user()->user_id;
+                $model->dibuat_oleh = Auth::user()->user_id;
             }
         });
 
         static::updating(function ($model) {
             if (Auth::check()) {
-                $model->updated_by = Auth::user()->user_id;
+                $model->diupdate_oleh = Auth::user()->user_id;
             }
         });
 
         static::deleting(function ($model) {
             if (Auth::check()) {
-                $model->deleted_by = Auth::user()->user_id;
+                $model->dihapus_oleh = Auth::user()->user_id;
                 $model->save();
             }
 
@@ -109,17 +109,17 @@ class Pembelian extends Model
 
     public function createdBy()
     {
-        return $this->belongsTo(User::class, 'created_by', 'user_id');
+        return $this->belongsTo(User::class, 'dibuat_oleh', 'user_id');
     }
 
     public function updatedBy()
     {
-        return $this->belongsTo(User::class, 'updated_by', 'user_id');
+        return $this->belongsTo(User::class, 'diupdate_oleh', 'user_id');
     }
 
     public function deletedBy()
     {
-        return $this->belongsTo(User::class, 'deleted_by', 'user_id');
+        return $this->belongsTo(User::class, 'dihapus_oleh', 'user_id');
     }
 
     // Business Logic Methods

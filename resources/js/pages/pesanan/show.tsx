@@ -37,13 +37,13 @@ interface Pesanan {
     pelanggan_id: string;
     tanggal_pemesanan: string;
     total_harga: number;
-    status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+    status: 'menunggu' | 'dikonfirmasi' | 'diproses' | 'dikirim' | 'selesai' | 'dibatalkan';
     pelanggan: Pelanggan;
     produk: Produk[];
     created_at: string;
     updated_at: string;
-    created_by?: UserRef;
-    updated_by?: UserRef;
+    dibuat_oleh?: UserRef;
+    diupdate_oleh?: UserRef;
 }
 
 interface Props {
@@ -56,21 +56,21 @@ interface Props {
 }
 
 const statusColors = {
-    pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-    confirmed: 'bg-blue-100 text-blue-800 border-blue-200',
-    processing: 'bg-purple-100 text-purple-800 border-purple-200',
-    shipped: 'bg-indigo-100 text-indigo-800 border-indigo-200',
-    delivered: 'bg-green-100 text-green-800 border-green-200',
-    cancelled: 'bg-red-100 text-red-800 border-red-200',
+    menunggu: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+    dikonfirmasi: 'bg-blue-100 text-blue-800 border-blue-200',
+    diproses: 'bg-purple-100 text-purple-800 border-purple-200',
+    dikirim: 'bg-indigo-100 text-indigo-800 border-indigo-200',
+    selesai: 'bg-green-100 text-green-800 border-green-200',
+    dibatalkan: 'bg-red-100 text-red-800 border-red-200',
 };
 
 const statusLabels = {
-    pending: 'Pending',
-    confirmed: 'Dikonfirmasi',
-    processing: 'Diproses',
-    shipped: 'Dikirim',
-    delivered: 'Diterima',
-    cancelled: 'Dibatalkan',
+    menunggu: 'Menunggu',
+    dikonfirmasi: 'Dikonfirmasi',
+    diproses: 'Diproses',
+    dikirim: 'Dikirim',
+    selesai: 'Selesai',
+    dibatalkan: 'Dibatalkan',
 };
 
 export default function Show({ pesanan, permissions = {} }: Props) {
@@ -243,8 +243,8 @@ export default function Show({ pesanan, permissions = {} }: Props) {
                         <TimestampSection
                             createdAt={pesanan.created_at}
                             updatedAt={pesanan.updated_at}
-                            createdBy={pesanan.created_by?.nama_lengkap}
-                            updatedBy={pesanan.updated_by?.nama_lengkap}
+                            createdBy={pesanan.dibuat_oleh?.nama_lengkap}
+                            updatedBy={pesanan.diupdate_oleh?.nama_lengkap}
                         />
                     </div>
                 </div>

@@ -26,9 +26,9 @@ class Pelanggan extends Model
         'nomor_telepon',
         'alamat_pembayaran',
         'alamat_pengiriman',
-        'created_by',
-        'updated_by',
-        'deleted_by'
+        'dibuat_oleh',
+        'diupdate_oleh',
+        'dihapus_oleh'
     ];
 
     protected static function boot()
@@ -40,41 +40,41 @@ class Pelanggan extends Model
             if (!$model->pelanggan_id) {
                 $latest = static::withTrashed()->orderBy('pelanggan_id', 'desc')->first();
                 $nextId = $latest ? (int) substr($latest->pelanggan_id, 2) + 1 : 1;
-                $model->pelanggan_id = 'CU' . str_pad($nextId, 3, '0', STR_PAD_LEFT);
+                $model->pelanggan_id = 'PL' . str_pad($nextId, 3, '0', STR_PAD_LEFT);
             }
 
             if (Auth::id()) {
-                $model->created_by = Auth::id();
-                $model->updated_by = Auth::id();
+                $model->dibuat_oleh = Auth::id();
+                $model->diupdate_oleh = Auth::id();
             }
         });
 
         static::updating(function ($model) {
             if (Auth::id()) {
-                $model->updated_by = Auth::id();
+                $model->diupdate_oleh = Auth::id();
             }
         });
 
         static::deleting(function ($model) {
             if (Auth::id()) {
-                $model->deleted_by = Auth::id();
+                $model->dihapus_oleh = Auth::id();
             }
         });
     }
 
     public function createdBy()
     {
-        return $this->belongsTo(User::class, 'created_by', 'user_id');
+        return $this->belongsTo(User::class, 'dibuat_oleh', 'user_id');
     }
 
     public function updatedBy()
     {
-        return $this->belongsTo(User::class, 'updated_by', 'user_id');
+        return $this->belongsTo(User::class, 'diupdate_oleh', 'user_id');
     }
 
     public function deletedBy()
     {
-        return $this->belongsTo(User::class, 'deleted_by', 'user_id');
+        return $this->belongsTo(User::class, 'dihapus_oleh', 'user_id');
     }
 
     public function pesanan()

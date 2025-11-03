@@ -45,9 +45,9 @@ class PenugasanProduksiSeeder extends Seeder
                     'status' => $status,
                     'deadline' => $deadline,
                     'catatan' => 'Penugasan produksi untuk item ' . $detail->nama_item,
-                    'created_by' => $creator->user_id,
-                    'updated_by' => $status === 'proses' ? $user->user_id : null,
-                    'deleted_by' => null,
+                    'dibuat_oleh' => $creator->user_id,
+                    'diupdate_oleh' => $status === 'proses' ? $user->user_id : null,
+                    'dihapus_oleh' => null,
                 ]);
 
                 if ($counter > 10) break;
