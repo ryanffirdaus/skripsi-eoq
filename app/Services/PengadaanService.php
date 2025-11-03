@@ -233,7 +233,7 @@ class PengadaanService
         }
 
         // Pending orders that need materials
-        $pendingPesanan = Pesanan::where('status', 'confirmed')
+        $pendingPesanan = Pesanan::where('status', 'dikonfirmasi')
             ->whereDoesntHave('pengadaan')
             ->get();
 

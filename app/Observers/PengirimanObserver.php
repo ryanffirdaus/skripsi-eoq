@@ -14,8 +14,8 @@ class PengirimanObserver
      */
     public function updated(Pengiriman $pengiriman): void
     {
-        // Check if status changed to 'delivered'
-        if ($pengiriman->wasChanged('status') && $pengiriman->status === 'delivered') {
+        // Check if status changed to 'diterima' (delivered)
+        if ($pengiriman->wasChanged('status') && $pengiriman->status === 'diterima') {
             $this->reduceStock($pengiriman);
         }
     }

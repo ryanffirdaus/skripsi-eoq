@@ -79,22 +79,22 @@ class Pengiriman extends Model
     // Status Methods
     public function isPending(): bool
     {
-        return $this->status === 'pending';
+        return $this->status === 'menunggu';
     }
 
     public function isShipped(): bool
     {
-        return $this->status === 'shipped';
+        return $this->status === 'dikirim';
     }
 
     public function isDelivered(): bool
     {
-        return $this->status === 'delivered';
+        return $this->status === 'diterima';
     }
 
     public function isCancelled(): bool
     {
-        return $this->status === 'cancelled';
+        return $this->status === 'dibatalkan';
     }
 
     // Accessors

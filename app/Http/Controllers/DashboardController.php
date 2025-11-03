@@ -25,13 +25,13 @@ class DashboardController extends Controller
             'totalBahanBaku' => BahanBaku::count(),
             'lowStockItems' => BahanBaku::whereColumn('stok_bahan', '<', 'safety_stock_bahan')->count(),
             'totalPesanan' => Pesanan::count(),
-            'pesananPending' => Pesanan::where('status', 'pending')->count(),
+            'pesananPending' => Pesanan::where('status', 'menunggu')->count(),
             'totalPengiriman' => Pengiriman::count(),
-            'pengirimanPending' => Pengiriman::where('status', 'pending')->count(),
+            'pengirimanPending' => Pengiriman::where('status', 'menunggu')->count(),
             'totalProduk' => Produk::count(),
             'totalUsers' => User::count(),
             'totalPengadaan' => Pengadaan::count(),
-            'pengadaanPending' => Pengadaan::where('status', 'pending')->count(),
+            'pengadaanPending' => Pengadaan::where('status', 'draft')->count(),
         ];
 
         return Inertia::render('dashboard', [

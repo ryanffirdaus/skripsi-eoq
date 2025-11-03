@@ -35,7 +35,7 @@ class PengadaanDetail extends Model
         'harga_satuan' => 'decimal:2',
     ];
 
-    protected $appends = ['total_harga', 'nama_item', 'satuan'];
+    protected $appends = ['total_harga', 'nama_item', 'satuan', 'total_ditugaskan', 'sisa_quota_produksi'];
 
     protected static function boot()
     {
@@ -145,5 +145,25 @@ class PengadaanDetail extends Model
     public function penugasan()
     {
         return $this->hasMany(PenugasanProduksi::class, 'pengadaan_detail_id', 'pengadaan_detail_id');
+    }
+
+    /**
+     * Get total jumlah produksi yang sudah ditugaskan (tidak termasuk yang dibatalkan)
+     */
+    public function getTotalDitugaskanAttribute()
+    {
+        return $this->penugasan()
+            ->where('status', '!=', 'dibatalkan')
+            ->sum('jumlah_produksi');
+    }
+
+    /**
+     * Get sisa quota produksi yang bisa ditugaskan
+     */
+    public function getSisaQuotaProduksiAttribute()
+    {
+        $maxQty = $this->qty_disetujui ?? $this->qty_diminta;
+        $totalDitugaskan = $this->getTotalDitugaskanAttribute();
+        return $maxQty - $totalDitugaskan;
     }
 }

@@ -147,11 +147,12 @@ class PengadaanController extends Controller
         // Add pesanan dropdown - ONLY show orders where products exceed stock
         $pesanan = Pesanan::with(['pelanggan:pelanggan_id,nama_pelanggan', 'detail.produk'])
             ->select('pesanan_id', 'pelanggan_id', 'tanggal_pemesanan', 'total_harga', 'status')
-            ->whereIn('status', ['pending', 'confirmed', 'processing']) // Only active orders
+            ->whereIn('status', ['menunggu', 'dikonfirmasi', 'diproses']) // Only active orders (Indonesian status)
             ->whereDoesntHave('pengadaan') // Filter pesanan yang BELUM ada pengadaan
             ->whereHas('detail', function ($query) { // Filter stok di level DB
-                $query->join('produk', 'pesanan_detail.produk_id', '=', 'produk.produk_id')
-                    ->whereColumn('pesanan_detail.jumlah_produk', '>', 'produk.stok_produk');
+                $query->whereHas('produk', function ($q) {
+                    $q->whereColumn('pesanan_detail.jumlah_produk', '>', 'produk.stok_produk');
+                });
             })
             ->orderBy('tanggal_pemesanan', 'desc')
             ->get()

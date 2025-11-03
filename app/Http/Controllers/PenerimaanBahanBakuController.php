@@ -43,7 +43,7 @@ class PenerimaanBahanBakuController extends Controller
                 'nomor_penerimaan' => $item->penerimaan_id, // Using ID as nomor for now
                 'nomor_surat_jalan' => 'SJ-' . $item->penerimaan_id, // Generate placeholder
                 'tanggal_penerimaan' => $item->created_at?->format('Y-m-d'),
-                'status' => 'confirmed', // Default status
+                'status' => $pembelian?->status ?? '-', // Get status from Pembelian
                 'qty_diterima' => $item->qty_diterima,
                 'nama_item' => $pengadaanDetail?->nama_item ?? '-',
                 'pembelian' => [
@@ -69,7 +69,7 @@ class PenerimaanBahanBakuController extends Controller
             abort(403, 'Anda tidak memiliki izin untuk membuat penerimaan bahan baku baru.');
         }
 
-        $pembelians = Pembelian::whereIn('status', ['confirmed', 'partially_received'])
+        $pembelians = Pembelian::whereIn('status', ['dikonfirmasi', 'dipesan', 'dikirim'])
             ->with(['pemasok:pemasok_id,nama_pemasok', 'detail.pengadaanDetail'])
             ->orderBy('tanggal_pembelian', 'desc')
             ->get()
@@ -147,7 +147,7 @@ class PenerimaanBahanBakuController extends Controller
             $pembelianId = PembelianDetail::find($itemsToProcess[0]['pembelian_detail_id'])->pembelian_id;
             $pembelian = Pembelian::with('detail')->find($pembelianId);
             $allReceived = $pembelian->detail->every(fn($detail) => $detail->isFullyReceived());
-            $pembelian->status = $allReceived ? 'fully_received' : 'partially_received';
+            $pembelian->status = $allReceived ? 'diterima' : 'dikirim';
             $pembelian->save();
 
             DB::commit();

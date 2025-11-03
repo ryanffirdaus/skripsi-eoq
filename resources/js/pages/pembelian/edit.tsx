@@ -50,6 +50,12 @@ interface Props {
     pembelian: Pembelian;
     pemasoks: Pemasok[];
     statusOptions: StatusOption[];
+    auth?: {
+        user: {
+            user_id: string;
+            role_id: string;
+        };
+    };
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -58,7 +64,10 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Ubah Pembelian', href: '#' },
 ];
 
-export default function Edit({ pembelian, pemasoks, statusOptions }: Props) {
+export default function Edit({ pembelian, pemasoks, statusOptions, auth }: Props) {
+    const isAdmin = auth?.user?.role_id === 'R01';
+    const canEdit = isAdmin || pembelian.can_be_edited;
+
     const { data, setData, put, processing, errors } = useForm({
         status: pembelian.status,
         pemasok_id: pembelian.pemasok_id,
@@ -100,7 +109,7 @@ export default function Edit({ pembelian, pemasoks, statusOptions }: Props) {
         >
             <Head title={`Edit PO ${pembelian.pembelian_id}`} />
 
-            {!pembelian.can_be_edited && (
+            {!canEdit && (
                 <div className="mb-6 flex items-start gap-3 rounded-lg border border-yellow-200 bg-yellow-50 p-4">
                     <AlertTriangleIcon className="h-5 w-5 flex-shrink-0 text-yellow-500" />
                     <div>

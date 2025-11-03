@@ -104,7 +104,7 @@ class PengirimanController extends Controller
         }
 
         $pesananList = Pesanan::with(['pelanggan', 'detail.produk'])
-            ->whereIn('status', ['pending', 'diproses'])
+            ->whereIn('status', ['menunggu', 'diproses'])
             ->whereDoesntHave('pengiriman')
             ->get();
 

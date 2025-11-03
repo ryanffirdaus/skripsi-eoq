@@ -68,9 +68,9 @@ class TransaksiPembayaranController extends Controller
                 'pemasok_nama'            => $item->pembelian->pemasok->nama_pemasok ?? 'N/A',
                 'tanggal_pembayaran'      => $item->tanggal_pembayaran?->format('d M Y'),
                 'jenis_pembayaran'        => $item->jenis_pembayaran,
-                'jumlah_pembayaran'       => (float) $item->jumlah_pembayaran,
+                'total_pembayaran'        => (float) $item->total_pembayaran, // Fix: send as total_pembayaran to match frontend
                 'bukti_pembayaran'        => $item->bukti_pembayaran,
-                'catatan'               => $item->catatan,
+                'catatan'                 => $item->catatan,
                 'created_at'              => $item->created_at?->format('Y-m-d H:i:s'),
             ];
         });
@@ -78,7 +78,7 @@ class TransaksiPembayaranController extends Controller
         // Data untuk filter di frontend
         $pembelians = Pembelian::with('pemasok:pemasok_id,nama_pemasok')
             ->select('pembelian_id', 'pemasok_id')
-            ->whereIn('status', ['confirmed', 'partially_received', 'fully_received'])
+            ->whereIn('status', ['dikonfirmasi', 'diterima'])
             ->orderBy('pembelian_id')
             ->get()
             ->map(function ($item) {
@@ -125,8 +125,7 @@ class TransaksiPembayaranController extends Controller
 
         // Ambil pembelian yang sudah dikonfirmasi (semua dulu)
         $allPembelians = Pembelian::with('pemasok:pemasok_id,nama_pemasok')
-            ->whereIn('status', ['confirmed', 'partially_received', 'fully_received'])
-            ->select('pembelian_id', 'pemasok_id', 'total_biaya', 'tanggal_pembelian', 'metode_pembayaran', 'termin_pembayaran', 'jumlah_dp')
+            ->whereIn('status', ['dikonfirmasi', 'dipesan', 'dikirim', 'diterima'])
             ->orderBy('tanggal_pembelian', 'desc')
             ->get();
 
@@ -175,7 +174,6 @@ class TransaksiPembayaranController extends Controller
             'jenis_pembayaran'   => 'required|in:dp,termin,pelunasan',
             'tanggal_pembayaran' => 'required|date',
             'jumlah_pembayaran'  => 'required|numeric|min:0',
-            'metode_pembayaran'  => 'required|in:tunai,transfer,cek,giro',
             'bukti_pembayaran'   => 'required|file|mimes:jpeg,png,jpg,pdf|max:2048',
             'catatan'          => 'nullable|string|max:1000',
         ], [
@@ -253,10 +251,9 @@ class TransaksiPembayaranController extends Controller
             'pembelian_id'            => $request->pembelian_id,
             'jenis_pembayaran'        => $request->jenis_pembayaran,
             'tanggal_pembayaran'      => $request->tanggal_pembayaran,
-            'jumlah_pembayaran'       => $request->jumlah_pembayaran,
-            'metode_pembayaran'       => $request->metode_pembayaran,
+            'total_pembayaran'        => $request->jumlah_pembayaran, // Fix: use total_pembayaran
             'bukti_pembayaran'        => $buktiPath,
-            'catatan'               => $request->catatan,
+            'catatan'                 => $request->catatan,
         ]);
 
         return redirect()->route('transaksi-pembayaran.index')
@@ -310,12 +307,11 @@ class TransaksiPembayaranController extends Controller
             ],
             'jenis_pembayaran'        => $transaksiPembayaran->jenis_pembayaran,
             'tanggal_pembayaran'      => $transaksiPembayaran->tanggal_pembayaran,
-            'jumlah_pembayaran'       => (float) $transaksiPembayaran->jumlah_pembayaran,
-            'metode_pembayaran'       => $transaksiPembayaran->metode_pembayaran,
+            'total_pembayaran'        => (float) $transaksiPembayaran->total_pembayaran, // Fix: send as total_pembayaran to match frontend
             'bukti_pembayaran'        => $transaksiPembayaran->bukti_pembayaran
                 ? Storage::url($transaksiPembayaran->bukti_pembayaran)
                 : null,
-            'catatan'               => $transaksiPembayaran->catatan,
+            'catatan'                 => $transaksiPembayaran->catatan,
             'created_at'              => $transaksiPembayaran->created_at?->format('d M Y H:i'),
         ];
 
@@ -337,7 +333,7 @@ class TransaksiPembayaranController extends Controller
         $transaksiPembayaran->load('pembelian.pemasok:pemasok_id,nama_pemasok');
 
         $pembelians = Pembelian::with('pemasok:pemasok_id,nama_pemasok')
-            ->whereIn('status', ['confirmed', 'partially_received', 'fully_received'])
+            ->whereIn('status', ['dikonfirmasi', 'diterima'])
             ->select('pembelian_id', 'pemasok_id', 'total_biaya')
             ->orderBy('pembelian_id')
             ->get()
@@ -356,12 +352,11 @@ class TransaksiPembayaranController extends Controller
             'pemasok_nama'            => $transaksiPembayaran->pembelian->pemasok->nama_pemasok ?? 'N/A',
             'jenis_pembayaran'        => $transaksiPembayaran->jenis_pembayaran,
             'tanggal_pembayaran'      => $transaksiPembayaran->tanggal_pembayaran,
-            'jumlah_pembayaran'       => (float) $transaksiPembayaran->jumlah_pembayaran,
-            'metode_pembayaran'       => $transaksiPembayaran->metode_pembayaran,
+            'jumlah_pembayaran'       => (float) $transaksiPembayaran->total_pembayaran, // Fix: use total_pembayaran
             'bukti_pembayaran'        => $transaksiPembayaran->bukti_pembayaran
                 ? Storage::url($transaksiPembayaran->bukti_pembayaran)
                 : null,
-            'catatan'               => $transaksiPembayaran->catatan,
+            'catatan'                 => $transaksiPembayaran->catatan,
         ];
 
         return Inertia::render('transaksi-pembayaran/edit', [
@@ -384,7 +379,6 @@ class TransaksiPembayaranController extends Controller
             'jenis_pembayaran'   => 'required|in:dp,termin,pelunasan',
             'tanggal_pembayaran' => 'required|date',
             'jumlah_pembayaran'  => 'required|numeric|min:0',
-            'metode_pembayaran'  => 'required|in:tunai,transfer',
             'bukti_pembayaran'   => [
                 function ($attribute, $value, $fail) use ($transaksiPembayaran) {
                     if (!$transaksiPembayaran->bukti_pembayaran && !$value) {
@@ -412,9 +406,8 @@ class TransaksiPembayaranController extends Controller
         $data = [
             'jenis_pembayaran'   => $request->jenis_pembayaran,
             'tanggal_pembayaran' => $request->tanggal_pembayaran,
-            'jumlah_pembayaran'  => $request->jumlah_pembayaran,
-            'metode_pembayaran'  => $request->metode_pembayaran,
-            'catatan'          => $request->catatan,
+            'total_pembayaran'   => $request->jumlah_pembayaran, // Fix: use total_pembayaran
+            'catatan'            => $request->catatan,
         ];
 
         // Upload bukti pembayaran baru jika ada

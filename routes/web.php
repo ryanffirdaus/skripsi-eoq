@@ -20,6 +20,9 @@ Route::get('/', function () {
     return Inertia::render('welcome');
 })->name('home');
 
+// Debug route - HAPUS SETELAH SELESAI DEBUG
+require __DIR__ . '/debug.php';
+
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 

@@ -132,9 +132,12 @@ export default function Edit({ pesanan, pelanggan, produk }: Props) {
     }
 
     const statusOptions = [
-        { value: 'pending', label: 'Pending' },
+        { value: 'menunggu', label: 'Menunggu' },
+        { value: 'dikonfirmasi', label: 'Dikonfirmasi' },
+        { value: 'siap', label: 'Siap' },
         { value: 'diproses', label: 'Diproses' },
         { value: 'dikirim', label: 'Dikirim' },
+        { value: 'diterima', label: 'Diterima' },
         { value: 'selesai', label: 'Selesai' },
         { value: 'dibatalkan', label: 'Dibatalkan' },
     ];

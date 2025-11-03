@@ -215,7 +215,7 @@ class PesananController extends Controller
         $validated = $request->validate([
             'pelanggan_id' => 'required|exists:pelanggan,pelanggan_id',
             'tanggal_pemesanan' => 'required|date',
-            'status' => 'required|in:pending,diproses,dikirim,selesai,dibatalkan',
+            'status' => 'required|in:menunggu,dikonfirmasi,siap,diproses,dikirim,diterima,selesai,dibatalkan',
             'catatan' => 'nullable|string',
             'products' => 'required|array|min:1',
             'products.*.produk_id' => 'required|exists:produk,produk_id',

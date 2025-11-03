@@ -27,7 +27,7 @@ return new class extends Migration
             $table->string('metode_pembayaran', 15)->default('tunai')->comment('tunai, transfer, termin');
             $table->string('termin_pembayaran', 50)->nullable()->comment('contoh: 30% DP, 70% saat kirim');
             $table->decimal('jumlah_dp', 15, 2)->default(0)->comment('Jumlah uang muka / down payment');
-            $table->string('status', 25)->default('draft')->comment('draft, sent, confirmed, partially_received, fully_received, cancelled');
+            $table->enum('status', ['draft', 'menunggu', 'dipesan', 'dikirim', 'dikonfirmasi', 'diterima', 'dibatalkan'])->default('draft');
             $table->text('catatan')->nullable();
 
             // Foreign keys untuk tracking user

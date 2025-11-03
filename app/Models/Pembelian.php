@@ -146,8 +146,8 @@ class Pembelian extends Model
             return true;
         }
 
-        // Edit button tampil untuk semua status kecuali cancelled dan fully_received
-        return !in_array($this->status, ['cancelled', 'fully_received']);
+        // Edit button tampil untuk semua status kecuali dibatalkan dan diterima
+        return !in_array($this->status, ['dibatalkan', 'diterima']);
     }
 
     public function canBeCancelled()
@@ -157,16 +157,22 @@ class Pembelian extends Model
             return true;
         }
 
-        return !in_array($this->status, ['fully_received', 'cancelled']);
+        return !in_array($this->status, ['diterima', 'dibatalkan']);
     }
 
     /**
      * Validasi apakah status transition valid
-     * Flow: draft → sent → confirmed → partially_received → fully_received
-     * Bisa cancelled dari status manapun kecuali fully_received
+     * Flow: draft → menunggu → dipesan → dikirim → dikonfirmasi → diterima
+     * Bisa dibatalkan dari status manapun kecuali diterima
+     * Admin (R01) bisa bypass dan loncat ke status manapun
      */
     public function isValidStatusTransition($newStatus)
     {
+        // Admin (R01) dapat bypass status transition
+        if (Auth::check() && Auth::user()->role_id === 'R01') {
+            return true;
+        }
+
         $currentStatus = $this->status;
 
         // Jika status sama, tidak perlu validasi
@@ -174,22 +180,23 @@ class Pembelian extends Model
             return true;
         }
 
-        // Bisa cancelled dari status manapun kecuali fully_received atau sudah cancelled
-        if ($newStatus === 'cancelled') {
-            return !in_array($currentStatus, ['fully_received', 'cancelled']);
+        // Bisa dibatalkan dari status manapun kecuali diterima atau sudah dibatalkan
+        if ($newStatus === 'dibatalkan') {
+            return !in_array($currentStatus, ['diterima', 'dibatalkan']);
         }
 
-        // Tidak bisa update jika sudah fully_received atau cancelled
-        if (in_array($currentStatus, ['fully_received', 'cancelled'])) {
+        // Tidak bisa update jika sudah diterima atau dibatalkan
+        if (in_array($currentStatus, ['diterima', 'dibatalkan'])) {
             return false;
         }
 
-        // Define valid transitions
+        // Define valid transitions (Indonesian)
         $validTransitions = [
-            'draft' => ['sent', 'cancelled'],
-            'sent' => ['confirmed', 'cancelled'],
-            'confirmed' => ['partially_received', 'fully_received', 'cancelled'],
-            'partially_received' => ['fully_received', 'cancelled'],
+            'draft' => ['menunggu', 'dipesan', 'dibatalkan'],
+            'menunggu' => ['dipesan', 'dibatalkan'],
+            'dipesan' => ['dikirim', 'dibatalkan'],
+            'dikirim' => ['dikonfirmasi', 'dibatalkan'],
+            'dikonfirmasi' => ['diterima', 'dibatalkan'],
         ];
 
         return isset($validTransitions[$currentStatus]) &&
@@ -201,7 +208,8 @@ class Pembelian extends Model
      */
     public function getTotalDibayarAttribute()
     {
-        return $this->transaksiPembayaran()->sum('total_pembayaran');
+        // Query fresh from database to get accurate sum
+        return TransaksiPembayaran::where('pembelian_id', $this->pembelian_id)->sum('total_pembayaran');
     }
 
     /**
@@ -209,7 +217,7 @@ class Pembelian extends Model
      */
     public function getSisaPembayaranAttribute()
     {
-        return $this->total_biaya - $this->total_dibayar;
+        return (float)$this->total_biaya - (float)$this->total_dibayar;
     }
 
     /**

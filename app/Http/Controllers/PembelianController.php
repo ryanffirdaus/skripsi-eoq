@@ -112,11 +112,14 @@ class PembelianController extends Controller
     {
         // Authorization: Admin (R01), Staf Keuangan (R06) dan Manajer Keuangan (R10) yang bisa create
         if (!$this->isAdmin() && !$this->isKeuanganRelated()) {
-            abort(403, 'Anda tidak memiliki izin untuk membuat pembelian baru.');
+            return redirect()->route('pembelian.index')->with('flash', [
+                'message' => 'Anda tidak memiliki izin untuk membuat pembelian baru.',
+                'type' => 'error',
+            ]);
         }
 
         // 1. Ambil data Pengadaan yang sudah disetujui keuangan dan belum diproses menjadi PO.
-        $pengadaans = Pengadaan::where('status', 'disetujui_keuangan')
+        $pengadaans = Pengadaan::where('status', 'diproses')
             ->with(['detail.pemasok:pemasok_id,nama_pemasok'])
             ->orderBy('created_at', 'desc')
             ->get()
@@ -162,7 +165,10 @@ class PembelianController extends Controller
     {
         // Authorization: Admin (R01), Staf Keuangan (R06) dan Manajer Keuangan (R10) yang bisa store
         if (!$this->isAdmin() && !$this->isKeuanganRelated()) {
-            abort(403, 'Anda tidak memiliki izin untuk membuat pembelian baru.');
+            return redirect()->route('pembelian.index')->with('flash', [
+                'message' => 'Anda tidak memiliki izin untuk membuat pembelian baru.',
+                'type' => 'error',
+            ]);
         }
 
         // 1. Validasi input dari user
@@ -307,7 +313,10 @@ class PembelianController extends Controller
     {
         // Authorization: Admin (R01), Staf Keuangan (R06) dan Manajer Keuangan (R10) yang bisa edit
         if (!$this->isAdmin() && !$this->isKeuanganRelated()) {
-            abort(403, 'Anda tidak memiliki izin untuk mengedit pembelian.');
+            return redirect()->route('pembelian.index')->with('flash', [
+                'message' => 'Anda tidak memiliki izin untuk mengedit pembelian.',
+                'type' => 'error',
+            ]);
         }
 
         // 1. Eager load relasi yang dibutuhkan
@@ -319,11 +328,12 @@ class PembelianController extends Controller
         // 2b. Status options untuk update status di halaman edit
         $statusOptions = [
             ['value' => 'draft', 'label' => 'Draft'],
-            ['value' => 'sent', 'label' => 'Terkirim'],
-            ['value' => 'confirmed', 'label' => 'Dikonfirmasi'],
-            ['value' => 'partially_received', 'label' => 'Diterima Sebagian'],
-            ['value' => 'fully_received', 'label' => 'Diterima Penuh'],
-            ['value' => 'cancelled', 'label' => 'Dibatalkan'],
+            ['value' => 'menunggu', 'label' => 'Menunggu'],
+            ['value' => 'dipesan', 'label' => 'Dipesan'],
+            ['value' => 'dikirim', 'label' => 'Dikirim'],
+            ['value' => 'dikonfirmasi', 'label' => 'Dikonfirmasi'],
+            ['value' => 'diterima', 'label' => 'Diterima'],
+            ['value' => 'dibatalkan', 'label' => 'Dibatalkan'],
         ];
 
         // 3. Format data untuk dikirim ke frontend
@@ -367,10 +377,14 @@ class PembelianController extends Controller
     {
         // Authorization: Admin (R01), Staf Keuangan (R06) dan Manajer Keuangan (R10) yang bisa update
         if (!$this->isAdmin() && !$this->isKeuanganRelated()) {
-            abort(403, 'Anda tidak memiliki izin untuk mengubah pembelian.');
+            return redirect()->route('pembelian.index')->with('flash', [
+                'message' => 'Anda tidak memiliki izin untuk mengubah pembelian.',
+                'type' => 'error',
+            ]);
         }
 
-        if (!$pembelian->canBeEdited()) {
+        // Admin bisa edit kapan saja, bypass canBeEdited check
+        if (!$this->isAdmin() && !$pembelian->canBeEdited()) {
             return redirect()->back()->with('flash', [
                 'message' => 'Pembelian dengan status "' . $pembelian->status . '" tidak dapat diubah.',
                 'type' => 'error',
@@ -378,7 +392,7 @@ class PembelianController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'status' => 'nullable|in:draft,sent,confirmed,partially_received,fully_received,cancelled',
+            'status' => 'nullable|in:draft,menunggu,dipesan,dikirim,dikonfirmasi,diterima,dibatalkan',
             'pemasok_id' => 'required|exists:pemasok,pemasok_id',
             'tanggal_pembelian' => 'required|date',
             'tanggal_kirim_diharapkan' => 'nullable|date|after_or_equal:tanggal_pembelian',
@@ -392,9 +406,9 @@ class PembelianController extends Controller
             return redirect()->back()->withErrors($validator)->withInput();
         }
 
-        // Validasi status transition
+        // Validasi status transition (Admin bisa bypass)
         if ($request->has('status') && $request->status !== $pembelian->status) {
-            if (!$pembelian->isValidStatusTransition($request->status)) {
+            if (!$this->isAdmin() && !$pembelian->isValidStatusTransition($request->status)) {
                 return redirect()->back()
                     ->with('flash', [
                         'message' => 'Perubahan status dari "' . $pembelian->status . '" ke "' . $request->status . '" tidak diperbolehkan.',
@@ -448,10 +462,14 @@ class PembelianController extends Controller
     {
         // Authorization: Admin (R01), Staf Keuangan (R06) dan Manajer Keuangan (R10) yang bisa destroy
         if (!$this->isAdmin() && !$this->isKeuanganRelated()) {
-            abort(403, 'Anda tidak memiliki izin untuk menghapus pembelian.');
+            return redirect()->route('pembelian.index')->with('flash', [
+                'message' => 'Anda tidak memiliki izin untuk menghapus pembelian.',
+                'type' => 'error',
+            ]);
         }
 
-        if (!$pembelian->canBeCancelled()) {
+        // Admin bisa cancel kapan saja, bypass canBeCancelled check
+        if (!$this->isAdmin() && !$pembelian->canBeCancelled()) {
             return redirect()->route('pembelian.index')
                 ->with('flash', ['message' => 'PO tidak dapat dibatalkan karena statusnya.', 'type' => 'error']);
         }
@@ -472,7 +490,7 @@ class PembelianController extends Controller
         $pembelian = Pembelian::where('pembelian_id', $pembelian_id)->firstOrFail();
 
         $validated = $request->validate([
-            'status' => 'required|in:draft,sent,confirmed,partially_received,fully_received,cancelled',
+            'status' => 'required|in:draft,menunggu,dipesan,dikirim,dikonfirmasi,diterima,dibatalkan',
         ]);
 
         $pembelian->update(['status' => $validated['status']]);
@@ -490,11 +508,12 @@ class PembelianController extends Controller
     {
         return match ($status) {
             'draft' => 'Draft',
-            'sent' => 'Terkirim ke Pemasok',
-            'confirmed' => 'Dikonfirmasi Pemasok',
-            'partially_received' => 'Diterima Sebagian',
-            'fully_received' => 'Diterima Lengkap',
-            'cancelled' => 'Dibatalkan',
+            'menunggu' => 'Menunggu Konfirmasi',
+            'dipesan' => 'Dipesan',
+            'dikirim' => 'Sedang Dikirim',
+            'dikonfirmasi' => 'Dikonfirmasi Pemasok',
+            'diterima' => 'Diterima Lengkap',
+            'dibatalkan' => 'Dibatalkan',
             default => ucfirst($status),
         };
     }

@@ -1,6 +1,5 @@
 import { createViewAction } from '@/components/table/table-actions';
 import TableTemplate from '@/components/table/table-template';
-import { Badge } from '@/components/ui/badge';
 import { formatDate } from '@/lib/formatters';
 import { type BreadcrumbItem } from '@/types';
 import { useMemo } from 'react';
@@ -61,15 +60,6 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function Index({ penerimaan, filters, flash }: Props) {
-    const getStatusBadge = (status: string) => {
-        const statusMap: Record<string, { variant: 'default' | 'outline'; label: string }> = {
-            confirmed: { variant: 'default', label: 'Dikonfirmasi' },
-            draft: { variant: 'outline', label: 'Draft' },
-        };
-        const { variant, label } = statusMap[status] || { variant: 'outline', label: 'Unknown' };
-        return <Badge variant={variant}>{label}</Badge>;
-    };
-
     const columns = useMemo(
         () => [
             {
@@ -99,12 +89,6 @@ export default function Index({ penerimaan, filters, flash }: Props) {
                 label: 'Tanggal Diterima',
                 sortable: true,
                 render: (item: Penerimaan) => formatDate(item.tanggal_penerimaan),
-            },
-            {
-                key: 'status',
-                label: 'Status',
-                sortable: false,
-                render: (item: Penerimaan) => getStatusBadge(item.status),
             },
         ],
         [],

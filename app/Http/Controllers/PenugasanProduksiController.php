@@ -103,7 +103,9 @@ class PenugasanProduksiController extends Controller
         }
 
         // Get outstanding PengadaanDetails untuk PRODUK saja (yang belum selesai diproduksi)
-        $pengadaanDetails = PengadaanDetail::with(['pengadaan', 'produk'])
+        $pengadaanDetails = PengadaanDetail::with(['pengadaan', 'produk', 'penugasan' => function ($query) {
+            $query->where('status', '!=', 'dibatalkan');
+        }])
             ->where('jenis_barang', 'produk')
             ->whereHas('pengadaan', function ($query) {
                 $query->whereIn('status', ['disetujui_keuangan', 'diproses']);
@@ -148,11 +150,14 @@ class PenugasanProduksiController extends Controller
             ])->withInput();
         }
 
-        // Validasi jumlah tidak melebihi qty_disetujui
+        // Validasi jumlah tidak melebihi sisa quota produksi
         $maxQty = $pengadaanDetail->qty_disetujui ?? $pengadaanDetail->qty_diminta;
-        if ($validated['jumlah_produksi'] > $maxQty) {
+        $sisaQty = $pengadaanDetail->sisa_quota_produksi;
+
+        if ($validated['jumlah_produksi'] > $sisaQty) {
+            $totalDitugaskan = $pengadaanDetail->total_ditugaskan;
             return back()->withErrors([
-                'jumlah_produksi' => "Jumlah produksi tidak boleh melebihi $maxQty"
+                'jumlah_produksi' => "Jumlah produksi tidak boleh melebihi sisa kuota. Total yang harus diproduksi: $maxQty, Sudah ditugaskan: $totalDitugaskan, Sisa: $sisaQty"
             ])->withInput();
         }
 
@@ -293,9 +298,17 @@ class PenugasanProduksiController extends Controller
             $pengadaanDetail = $penugasan_produksi->pengadaanDetail;
             $maxQty = $pengadaanDetail->qty_disetujui ?? $pengadaanDetail->qty_diminta;
 
-            if ($validated['jumlah_produksi'] > $maxQty) {
+            // Hitung total yang sudah ditugaskan (tidak termasuk yang dibatalkan dan penugasan saat ini)
+            $totalSudahDitugaskan = PenugasanProduksi::where('pengadaan_detail_id', $penugasan_produksi->pengadaan_detail_id)
+                ->where('penugasan_id', '!=', $penugasan_produksi->penugasan_id)
+                ->where('status', '!=', 'dibatalkan')
+                ->sum('jumlah_produksi');
+
+            $sisaQty = $maxQty - $totalSudahDitugaskan;
+
+            if ($validated['jumlah_produksi'] > $sisaQty) {
                 return back()->withErrors([
-                    'jumlah_produksi' => "Jumlah produksi tidak boleh melebihi $maxQty"
+                    'jumlah_produksi' => "Jumlah produksi tidak boleh melebihi sisa kuota. Total yang harus diproduksi: $maxQty, Sudah ditugaskan (lainnya): $totalSudahDitugaskan, Sisa yang tersedia: $sisaQty"
                 ])->withInput();
             }
 

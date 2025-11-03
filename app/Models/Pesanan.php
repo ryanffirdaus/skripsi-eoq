@@ -43,7 +43,7 @@ class Pesanan extends Model
             }
 
             if (!$model->status) {
-                $model->status = 'pending';
+                $model->status = 'menunggu';
             }
 
             if (Auth::id()) {
