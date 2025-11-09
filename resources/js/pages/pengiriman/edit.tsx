@@ -78,17 +78,6 @@ export default function Edit({ pengiriman }: Props) {
                     />
                 </FormField>
 
-                <FormField id="nomor_resi" label="Nomor Resi" error={errors.nomor_resi}>
-                    <TextInput
-                        id="nomor_resi"
-                        type="text"
-                        value={data.nomor_resi}
-                        onChange={(e) => setData('nomor_resi', e.target.value)}
-                        placeholder="Masukkan nomor resi (opsional)"
-                        error={errors.nomor_resi}
-                    />
-                </FormField>
-
                 <FormField id="biaya_pengiriman" label="Biaya Pengiriman" error={errors.biaya_pengiriman} required>
                     <TextInput
                         id="biaya_pengiriman"
@@ -111,6 +100,17 @@ export default function Edit({ pengiriman }: Props) {
                         placeholder="1"
                         min="1"
                         error={errors.estimasi_hari}
+                    />
+                </FormField>
+
+                <FormField id="nomor_resi" label="Nomor Resi" error={errors.nomor_resi}>
+                    <TextInput
+                        id="nomor_resi"
+                        type="text"
+                        value={data.nomor_resi}
+                        onChange={(e) => setData('nomor_resi', e.target.value)}
+                        placeholder="Masukkan nomor resi (opsional)"
+                        error={errors.nomor_resi}
                     />
                 </FormField>
 

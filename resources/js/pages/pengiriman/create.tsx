@@ -87,8 +87,9 @@ export default function Create({ pesanan }: Props) {
             processing={processing}
             processingText="Membuat..."
         >
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                <div className="sm:col-span-2">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                {/* KOLOM 1: Pesanan Dropdown & Detail */}
+                <div className="space-y-4">
                     <FormField id="pesanan_id" label="Pesanan" error={errors.pesanan_id} required>
                         <Select
                             id="pesanan_id"
@@ -101,7 +102,7 @@ export default function Create({ pesanan }: Props) {
                     </FormField>
 
                     {selectedPesanan && (
-                        <div className="mt-4 space-y-4">
+                        <div className="space-y-4">
                             {/* Detail Pesanan */}
                             <div className="rounded-lg border bg-muted/50 p-4">
                                 <h4 className="mb-3 font-semibold">Detail Pesanan</h4>
@@ -140,11 +141,6 @@ export default function Create({ pesanan }: Props) {
                                                 </div>
                                                 <div className="text-right">
                                                     <p className="text-sm font-medium">Stok: {detail.stok_produk} unit</p>
-                                                    {detail.stok_cukup ? (
-                                                        <p className="text-sm text-green-600 dark:text-green-400">✓ Stok cukup</p>
-                                                    ) : (
-                                                        <p className="text-sm text-red-600 dark:text-red-400">✗ Stok kurang</p>
-                                                    )}
                                                 </div>
                                             </div>
                                         </div>
@@ -156,14 +152,14 @@ export default function Create({ pesanan }: Props) {
 
                     {/* Peringatan stok tidak cukup */}
                     {Object.keys(errors).includes('stock') && errors['stock' as keyof typeof errors] && (
-                        <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-900 dark:bg-red-950">
+                        <div className="rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-900 dark:bg-red-950">
                             <p className="text-sm font-medium text-red-800 dark:text-red-200">{errors['stock' as keyof typeof errors]}</p>
                         </div>
                     )}
 
                     {/* Info pesanan tanpa stok cukup */}
                     {pesanan.some((p) => !p.all_stock_sufficient) && pesananOptions.length === 0 && (
-                        <div className="mt-4 rounded-lg border border-yellow-200 bg-yellow-50 p-3 dark:border-yellow-900 dark:bg-yellow-950">
+                        <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-3 dark:border-yellow-900 dark:bg-yellow-950">
                             <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
                                 Semua pesanan tidak dapat dikirim karena stok produk tidak cukup.
                             </p>
@@ -171,52 +167,59 @@ export default function Create({ pesanan }: Props) {
                     )}
                 </div>
 
-                <FormField id="kurir" label="Kurir" error={errors.kurir} required>
-                    <Select
-                        id="kurir"
-                        value={data.kurir}
-                        onChange={(e) => setData('kurir', e.target.value)}
-                        options={kurirOptions}
-                        placeholder="Pilih kurir"
-                        error={errors.kurir}
-                    />
-                </FormField>
+                {/* KOLOM 2: Form Pengiriman */}
+                <div className="space-y-4">
+                    {/* Baris 1: Kurir */}
+                    <FormField id="kurir" label="Kurir" error={errors.kurir} required>
+                        <Select
+                            id="kurir"
+                            value={data.kurir}
+                            onChange={(e) => setData('kurir', e.target.value)}
+                            options={kurirOptions}
+                            placeholder="Pilih kurir"
+                            error={errors.kurir}
+                        />
+                    </FormField>
 
-                <FormField id="nomor_resi" label="Nomor Resi" error={errors.nomor_resi}>
-                    <TextInput
-                        id="nomor_resi"
-                        type="text"
-                        value={data.nomor_resi}
-                        onChange={(e) => setData('nomor_resi', e.target.value)}
-                        placeholder="Masukkan nomor resi (opsional)"
-                        error={errors.nomor_resi}
-                    />
-                </FormField>
+                    {/* Baris 2: Nomor Resi */}
+                    <FormField id="nomor_resi" label="Nomor Resi (Opsional)" error={errors.nomor_resi}>
+                        <TextInput
+                            id="nomor_resi"
+                            type="text"
+                            value={data.nomor_resi}
+                            onChange={(e) => setData('nomor_resi', e.target.value)}
+                            placeholder="Masukkan nomor resi (opsional)"
+                            error={errors.nomor_resi}
+                        />
+                    </FormField>
 
-                <FormField id="biaya_pengiriman" label="Biaya Pengiriman" error={errors.biaya_pengiriman} required>
-                    <TextInput
-                        id="biaya_pengiriman"
-                        type="number"
-                        value={data.biaya_pengiriman}
-                        onChange={(e) => setData('biaya_pengiriman', e.target.value)}
-                        placeholder="0"
-                        error={errors.biaya_pengiriman}
-                    />
-                </FormField>
+                    {/* Baris 3: Biaya Pengiriman & Estimasi */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <FormField id="biaya_pengiriman" label="Biaya Pengiriman" error={errors.biaya_pengiriman} required>
+                            <TextInput
+                                id="biaya_pengiriman"
+                                type="number"
+                                value={data.biaya_pengiriman}
+                                onChange={(e) => setData('biaya_pengiriman', e.target.value)}
+                                placeholder="0"
+                                error={errors.biaya_pengiriman}
+                            />
+                        </FormField>
 
-                <FormField id="estimasi_hari" label="Estimasi (Hari)" error={errors.estimasi_hari} required>
-                    <TextInput
-                        id="estimasi_hari"
-                        type="number"
-                        value={data.estimasi_hari}
-                        onChange={(e) => setData('estimasi_hari', e.target.value)}
-                        placeholder="1"
-                        min="1"
-                        error={errors.estimasi_hari}
-                    />
-                </FormField>
+                        <FormField id="estimasi_hari" label="Estimasi (Hari)" error={errors.estimasi_hari} required>
+                            <TextInput
+                                id="estimasi_hari"
+                                type="number"
+                                value={data.estimasi_hari}
+                                onChange={(e) => setData('estimasi_hari', e.target.value)}
+                                placeholder="1"
+                                min="1"
+                                error={errors.estimasi_hari}
+                            />
+                        </FormField>
+                    </div>
 
-                <div className="sm:col-span-2">
+                    {/* Baris 4: Catatan */}
                     <FormField id="catatan" label="Catatan" error={errors.catatan}>
                         <TextArea
                             id="catatan"

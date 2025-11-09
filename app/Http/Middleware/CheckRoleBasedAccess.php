@@ -46,11 +46,11 @@ class CheckRoleBasedAccess
             'penugasan-produksi' => [], // Tidak akses
         ],
         'R03' => [ // Staf RnD
-            'penugasan-produksi' => ['index', 'show', 'edit', 'update'], // Bisa lihat dan edit penugasan mereka
+            'penugasan-produksi' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'], // Bisa lihat dan edit penugasan mereka
         ],
         'R04' => [ // Staf Pengadaan
             'pemasok' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'], // CRUD pemasok
-            'pengadaan' => ['index', 'show'], // Hanya view & isi detail disetujui_gudang
+            'pengadaan' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'], // Hanya view & isi detail disetujui_gudang
             'pembelian' => [], // Tidak akses
             'penerimaan-bahan-baku' => [], // Tidak akses
             'users' => [], // Tidak akses
@@ -65,7 +65,7 @@ class CheckRoleBasedAccess
         'R05' => [ // Staf Penjualan
             'pelanggan' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'], // CRUD pelanggan
             'pesanan' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'], // CRUD pesanan
-            'produk' => ['index', 'show'], // Hanya view produk
+            'produk' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'], // Hanya view produk
             'users' => [], // Tidak akses
             'bahan-baku' => [], // Tidak akses
             'pemasok' => [], // Tidak akses
@@ -79,7 +79,7 @@ class CheckRoleBasedAccess
         'R06' => [ // Staf Keuangan
             'pembelian' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'], // CRUD pembelian
             'transaksi-pembayaran' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'], // CRUD transaksi
-            'pengadaan' => ['index', 'show'], // Hanya view pengadaan
+            'pengadaan' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'], // Hanya view pengadaan
             'users' => [], // Tidak akses
             'bahan-baku' => [], // Tidak akses
             'produk' => [], // Tidak akses
@@ -106,9 +106,9 @@ class CheckRoleBasedAccess
         ],
         'R08' => [ // Manajer RnD
             'penugasan-produksi' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'], // CRUD penugasan
-            'bahan-baku' => ['index', 'show'], // Hanya view
-            'produk' => ['index', 'show'], // Hanya view
-            'pengadaan' => ['index', 'show'], // Hanya view
+            'bahan-baku' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'], // Hanya view
+            'produk' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'], // Hanya view
+            'pengadaan' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'], // Hanya view
             'users' => [], // Tidak akses
             'pelanggan' => [], // Tidak akses
             'pemasok' => [], // Tidak akses
@@ -120,7 +120,7 @@ class CheckRoleBasedAccess
         ],
         'R09' => [ // Manajer Pengadaan
             'pemasok' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'], // CRUD pemasok
-            'pengadaan' => ['index', 'edit', 'update', 'show'], // Isi detail & approve status
+            'pengadaan' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'], // Isi detail & approve status
             'users' => [], // Tidak akses
             'bahan-baku' => [], // Tidak akses
             'produk' => [], // Tidak akses
@@ -135,7 +135,7 @@ class CheckRoleBasedAccess
         'R10' => [ // Manajer Keuangan
             'pembelian' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'], // CRUD pembelian
             'transaksi-pembayaran' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'], // CRUD transaksi
-            'pengadaan' => ['index', 'edit', 'update', 'show'], // View & update status to disetujui_keuangan
+            'pengadaan' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'], // View & update status to disetujui_keuangan
             'users' => [], // Tidak akses
             'bahan-baku' => [], // Tidak akses
             'produk' => [], // Tidak akses

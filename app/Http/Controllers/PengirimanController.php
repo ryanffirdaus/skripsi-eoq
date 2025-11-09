@@ -16,9 +16,7 @@ class PengirimanController extends Controller
     public function index(Request $request)
     {
         $query = Pengiriman::with([
-            'pesanan.pelanggan',
-            'createdBy:user_id,nama_lengkap',
-            'updatedBy:user_id,nama_lengkap'
+            'pesanan.pelanggan'
         ]);
 
         // Apply search filter
@@ -26,22 +24,14 @@ class PengirimanController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('pengiriman_id', 'like', "%{$search}%")
+                    ->orWhere('pesanan_id', 'like', "%{$search}%")
                     ->orWhere('nomor_resi', 'like', "%{$search}%")
+                    ->orWhere('status', 'like', "%{$search}%")
                     ->orWhere('kurir', 'like', "%{$search}%")
                     ->orWhereHas('pesanan.pelanggan', function ($q) use ($search) {
                         $q->where('nama_pelanggan', 'like', "%{$search}%");
                     });
             });
-        }
-
-        // Apply status filter
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        // Apply kurir filter
-        if ($request->filled('kurir')) {
-            $query->where('kurir', $request->kurir);
         }
 
         // Apply sorting
@@ -58,23 +48,15 @@ class PengirimanController extends Controller
             return [
                 'pengiriman_id' => $item->pengiriman_id,
                 'pesanan_id' => $item->pesanan_id,
-                'nomor_resi' => $item->nomor_resi,
                 'kurir' => $item->kurir,
-                'biaya_pengiriman' => $item->biaya_pengiriman,
-                'estimasi_hari' => $item->estimasi_hari,
                 'status' => $item->status,
                 'status_label' => $item->status_label,
-                'tanggal_kirim' => $item->tanggal_kirim?->format('Y-m-d'),
-                'tanggal_diterima' => $item->tanggal_diterima?->format('Y-m-d'),
                 'pesanan' => $item->pesanan ? [
                     'pesanan_id' => $item->pesanan->pesanan_id,
-                    'total_harga' => $item->pesanan->total_harga,
                     'pelanggan' => $item->pesanan->pelanggan ? [
                         'nama' => $item->pesanan->pelanggan->nama_pelanggan,
                     ] : null,
                 ] : null,
-                'created_at' => $item->created_at?->format('Y-m-d H:i:s'),
-                'updated_at' => $item->updated_at?->format('Y-m-d H:i:s'),
             ];
         });
 

@@ -1,6 +1,5 @@
 import { createDeleteAction, createEditAction } from '@/components/table/table-actions';
 import TableTemplate from '@/components/table/table-template';
-import { formatCurrency, formatDate } from '@/lib/formatters';
 import { type BreadcrumbItem } from '@/types';
 import { router } from '@inertiajs/react';
 import { useMemo } from 'react';
@@ -103,14 +102,7 @@ export default function Index({ pengiriman, filters, flash }: Props) {
         () => [
             {
                 key: 'pengiriman_id',
-                label: 'ID Pengiriman',
-                sortable: true,
-                hideable: true,
-                defaultVisible: true,
-            },
-            {
-                key: 'nomor_resi',
-                label: 'Nomor Resi',
+                label: 'ID',
                 sortable: true,
                 hideable: true,
                 defaultVisible: true,
@@ -147,35 +139,6 @@ export default function Index({ pengiriman, filters, flash }: Props) {
                 },
             },
             {
-                key: 'pelanggan',
-                label: 'Pelanggan',
-                sortable: false,
-                hideable: true,
-                defaultVisible: true,
-                render: (item: Record<string, unknown>) => {
-                    const pengiriman = item as Pengiriman;
-                    return (
-                        <div>
-                            <div className="font-medium">{pengiriman.pesanan?.pelanggan?.nama || 'N/A'}</div>
-                            <div className="text-sm text-gray-500">
-                                {pengiriman.pesanan ? `Pesanan: ${pengiriman.pesanan.pesanan_id}` : 'Data tidak tersedia'}
-                            </div>
-                        </div>
-                    );
-                },
-            },
-            {
-                key: 'biaya_pengiriman',
-                label: 'Biaya',
-                sortable: true,
-                hideable: true,
-                defaultVisible: true,
-                render: (item: Record<string, unknown>) => {
-                    const pengiriman = item as Pengiriman;
-                    return formatCurrency(pengiriman.biaya_pengiriman);
-                },
-            },
-            {
                 key: 'status',
                 label: 'Status',
                 sortable: true,
@@ -190,51 +153,6 @@ export default function Index({ pengiriman, filters, flash }: Props) {
                             {getStatusLabel(pengiriman.status)}
                         </span>
                     );
-                },
-            },
-            {
-                key: 'tanggal_kirim',
-                label: 'Tanggal Kirim',
-                sortable: true,
-                hideable: true,
-                defaultVisible: true,
-                render: (item: Record<string, unknown>) => {
-                    const pengiriman = item as Pengiriman;
-                    return pengiriman.tanggal_kirim
-                        ? formatDate(pengiriman.tanggal_kirim, {
-                              year: 'numeric',
-                              month: 'short',
-                              day: 'numeric',
-                          })
-                        : '-';
-                },
-            },
-            {
-                key: 'estimasi_hari',
-                label: 'Estimasi',
-                sortable: true,
-                hideable: true,
-                defaultVisible: false,
-                render: (item: Record<string, unknown>) => {
-                    const pengiriman = item as Pengiriman;
-                    return `${pengiriman.estimasi_hari} hari`;
-                },
-            },
-            {
-                key: 'tanggal_diterima',
-                label: 'Tanggal Diterima',
-                sortable: true,
-                hideable: true,
-                defaultVisible: false,
-                render: (item: Record<string, unknown>) => {
-                    const pengiriman = item as Pengiriman;
-                    return pengiriman.tanggal_diterima
-                        ? formatDate(pengiriman.tanggal_diterima, {
-                              year: 'numeric',
-                              month: 'short',
-                              day: 'numeric',
-                          })
-                        : '-';
                 },
             },
         ],
