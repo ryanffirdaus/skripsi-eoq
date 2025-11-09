@@ -51,46 +51,15 @@ export default function Edit({ user, roles }: Props) {
         label: role.name,
     }));
 
-    const passwordSection = {
-        title: 'Ubah Kata Sandi',
-        children: (
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                <FormField id="password" label="Kata Sandi Baru" error={errors.password}>
-                    <TextInput
-                        id="password"
-                        type="password"
-                        value={data.password}
-                        onChange={(e) => setData('password', e.target.value)}
-                        placeholder="Masukkan kata sandi baru"
-                        error={errors.password}
-                    />
-                    <span className="text-xs text-gray-500 dark:text-gray-400">(biarkan kosong untuk mempertahankan kata sandi saat ini)</span>
-                </FormField>
-
-                <FormField id="password_confirmation" label="Konfirmasi Kata Sandi" error={errors.password_confirmation}>
-                    <TextInput
-                        id="password_confirmation"
-                        type="password"
-                        value={data.password_confirmation}
-                        onChange={(e) => setData('password_confirmation', e.target.value)}
-                        placeholder="Masukkan konfirmasi kata sandi baru"
-                        error={errors.password_confirmation}
-                    />
-                </FormField>
-            </div>
-        ),
-    };
-
     return (
         <FormTemplate
-            title={`Ubah Pengguna: ${user.nama_lengkap}`}
+            title={`Edit Pengguna: ${user.nama_lengkap}`}
             breadcrumbs={breadcrumbs}
             backUrl="/users"
             onSubmit={handleSubmit}
             processing={processing}
             submitText="Simpan"
             processingText="Memperbarui..."
-            sections={[passwordSection]}
         >
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                 <FormField id="nama_lengkap" label="Nama Lengkap" error={errors.nama_lengkap} required>
@@ -115,7 +84,7 @@ export default function Edit({ user, roles }: Props) {
                     />
                 </FormField>
 
-                <FormField id="role_id" label="Jenis Peran" error={errors.role_id} required>
+                <FormField id="role_id" label="Role" error={errors.role_id} required>
                     <Select
                         id="role_id"
                         value={data.role_id}

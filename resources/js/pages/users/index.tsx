@@ -6,7 +6,7 @@ import { useMemo } from 'react';
 
 interface Role {
     role_id: string;
-    name: string;
+    nama: string;
 }
 
 interface User extends Record<string, unknown> {
@@ -64,7 +64,7 @@ export default function Index({ users, roles, filters, flash }: Props) {
     const columns = [
         {
             key: 'nama_lengkap',
-            label: 'Name',
+            label: 'Nama',
             sortable: true,
             hideable: true,
             defaultVisible: true,
@@ -78,26 +78,11 @@ export default function Index({ users, roles, filters, flash }: Props) {
         },
         {
             key: 'role',
-            label: 'Jenis Peran',
+            label: 'Role',
             sortable: true,
             hideable: true,
             defaultVisible: true,
-            render: (user: User) => user.role?.name || '-',
-        },
-        {
-            key: 'user_id',
-            label: 'Kode User',
-            sortable: true,
-            hideable: true,
-            defaultVisible: false, // Hidden by default
-        },
-        {
-            key: 'created_at',
-            label: 'Created At',
-            sortable: true,
-            hideable: true,
-            defaultVisible: false, // Hidden by default
-            render: (user: User) => new Date(user.created_at).toLocaleDateString('id-ID'),
+            render: (user: User) => user.role?.nama || '-',
         },
     ];
 
@@ -109,7 +94,7 @@ export default function Index({ users, roles, filters, flash }: Props) {
             placeholder: 'All Roles',
             options: roles.map((role) => ({
                 value: role.role_id,
-                label: role.name,
+                label: role.nama,
             })),
         },
     ];
@@ -138,7 +123,6 @@ export default function Index({ users, roles, filters, flash }: Props) {
             columns={columns}
             createUrl="/users/create"
             createButtonText="Tambah"
-            searchPlaceholder="Cari pengguna..."
             filters={filters}
             filterOptions={filterOptions}
             actions={actions}

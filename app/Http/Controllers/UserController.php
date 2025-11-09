@@ -42,7 +42,10 @@ class UserController extends Controller
         // Apply search filter if a search term is present
         if ($search) {
             $query->where('nama_lengkap', 'like', '%' . $search . '%')
-                ->orWhere('email', 'like', '%' . $search . '%');
+                ->orWhere('email', 'like', '%' . $search . '%')
+                ->orWhereHas('role', function ($q) use ($search) {
+                    $q->where('nama', 'like', '%' . $search . '%');
+                });
         }
 
         if ($roleFilter && $roleFilter !== 'all') {
@@ -146,7 +149,7 @@ class UserController extends Controller
         ]);
 
         return redirect()->route('users.index')
-            ->with('message', "User '{$validated['nama_lengkap']}' has been successfully created with ID: {$user->user_id}.")
+            ->with('message', "Pengguna '{$validated['nama_lengkap']}' telah berhasil dibuat dengan ID: {$user->user_id}.")
             ->with('type', 'success');
     }
 
@@ -181,8 +184,6 @@ class UserController extends Controller
         $validated = $request->validate([
             'nama_lengkap' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->user_id, 'user_id')],
-            'password' => ['nullable', 'string', 'min:8'],
-            'password_confirmation' => ['nullable', 'string', 'min:8', 'same:password'],
             'role_id' => ['required', 'exists:roles,role_id'],
         ]);
 
@@ -192,15 +193,10 @@ class UserController extends Controller
             'role_id' => $validated['role_id'],
         ];
 
-        // Only update password if it's provided
-        if (!empty($validated['password'])) {
-            $userData['password'] = Hash::make($validated['password']);
-        }
-
         $user->update($userData);
 
         return redirect()->route('users.index')
-            ->with('message', "User '{$validated['nama_lengkap']}' has been successfully updated.")
+            ->with('message', "Pengguna '{$validated['nama_lengkap']}' telah berhasil diperbarui.")
             ->with('type', 'success');
     }
 
@@ -222,11 +218,11 @@ class UserController extends Controller
             $user->delete();
 
             return redirect()->route('users.index')
-                ->with('message', "User '{$userName}' (ID: {$userId}) telah dihapus.")
+                ->with('message', "Pengguna '{$userName}' dengan ID: {$userId} telah dihapus.")
                 ->with('type', 'success');
         } catch (\Exception $e) {
             return redirect()->route('users.index')
-                ->with('message', 'Gagal menghapus user. Silakan coba lagi.')
+                ->with('message', 'Gagal menghapus pengguna. Silakan coba lagi.')
                 ->with('type', 'error');
         }
     }
