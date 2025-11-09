@@ -3,7 +3,7 @@ import AppLayout from '@/layouts/app-layout';
 import { colors } from '@/lib/colors';
 import { cn } from '@/lib/utils';
 import { type BreadcrumbItem } from '@/types';
-import { CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { CheckIcon } from '@heroicons/react/24/outline';
 import { Head, Link } from '@inertiajs/react';
 import React from 'react';
 
@@ -44,15 +44,6 @@ export default function FormTemplate({
                 {/* Header */}
                 <div className="mb-4 flex items-center justify-between">
                     <h1 className={cn(colors.text.primary, 'text-2xl font-bold')}>{title}</h1>
-                    <Link href={backUrl}>
-                        <Button
-                            variant="outline"
-                            className={cn('flex items-center gap-2', colors.background.primary, colors.border.primary, colors.hover.primary)}
-                        >
-                            <XMarkIcon className="h-4 w-4" />
-                            <span>Batal</span>
-                        </Button>
-                    </Link>
                 </div>
 
                 {/* Form Card */}

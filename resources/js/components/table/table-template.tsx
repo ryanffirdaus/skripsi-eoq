@@ -289,7 +289,7 @@ export default function TableTemplate<T extends Record<string, unknown>>({
                             {hasActiveFilters && (
                                 <Button type="button" variant="outline" onClick={clearFilters} className="flex items-center gap-2">
                                     <XMarkIcon className="h-4 w-4" />
-                                    Clear
+                                    Bersihkan
                                 </Button>
                             )}
                         </div>
