@@ -40,8 +40,19 @@ interface PaginatedBahanBaku {
     links: PaginationLink[];
 }
 
+interface Filters {
+    search?: string;
+    sort_by: string;
+    sort_direction: 'asc' | 'desc';
+    per_page: number;
+    lokasi_bahan?: string;
+    satuan_bahan?: string;
+    [key: string]: string | number | undefined;
+}
+
 interface Props {
     bahanBaku: PaginatedBahanBaku;
+    filters: Filters;
     permissions: {
         canCreate?: boolean;
         canEdit?: boolean;
@@ -60,7 +71,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function Index({ bahanBaku, permissions, flash }: Props) {
+export default function Index({ bahanBaku, filters, permissions, flash }: Props) {
     const columns = [
         {
             key: 'bahan_baku_id',
@@ -144,6 +155,7 @@ export default function Index({ bahanBaku, permissions, flash }: Props) {
             data={bahanBaku}
             columns={columns}
             createUrl={permissions.canCreate ? '/bahan-baku/create' : undefined}
+            filters={filters}
             baseUrl="/bahan-baku"
             actions={actions}
             flash={flash}

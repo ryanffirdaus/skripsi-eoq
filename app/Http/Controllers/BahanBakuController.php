@@ -25,11 +25,9 @@ class BahanBakuController extends Controller
 
         // Apply search filter if a search term is present
         if ($search) {
-            $query->where(function ($q) use ($search) {
-                $q->where('nama_bahan', 'like', '%' . $search . '%')
-                    ->orWhere('lokasi_bahan', 'like', '%' . $search . '%')
-                    ->orWhere('bahan_baku_id', 'like', '%' . $search . '%');
-            });
+            $query->where('nama_bahan', 'like', '%' . $search . '%')
+                ->orWhere('lokasi_bahan', 'like', '%' . $search . '%')
+                ->orWhere('bahan_baku_id', 'like', '%' . $search . '%');
         }
 
         // Apply sorting
