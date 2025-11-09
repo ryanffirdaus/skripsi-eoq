@@ -228,41 +228,6 @@ export default function TableTemplate<T extends Record<string, unknown>>({
         }
     };
 
-    const handlePerPageChange = (newPerPage: number) => {
-        // Prevent double execution with same value
-        if (newPerPage === perPage) {
-            return;
-        }
-
-        // Clear any existing per_page timeout
-        if (debounceTimeouts.current['per_page']) {
-            clearTimeout(debounceTimeouts.current['per_page']);
-        }
-
-        // Update state immediately for UI responsiveness
-        setPerPage(newPerPage);
-
-        // Debounce the actual navigation to prevent rapid calls
-        debounceTimeouts.current['per_page'] = setTimeout(() => {
-            const params: Record<string, string> = {
-                sort_by: sortBy,
-                sort_direction: sortDirection,
-                per_page: newPerPage.toString(),
-            };
-
-            if (search.trim()) {
-                params.search = search.trim();
-            }
-
-            router.get(baseUrl, params, {
-                preserveState: true,
-                replace: true,
-            });
-
-            delete debounceTimeouts.current['per_page'];
-        }, 200); // Slightly longer delay for per page
-    };
-
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={title} />
@@ -329,27 +294,6 @@ export default function TableTemplate<T extends Record<string, unknown>>({
                             )}
                         </div>
                     </form>
-                </div>
-
-                {/* Results Summary */}
-                <div className={cn('flex items-center justify-between text-sm', colors.text.secondary)}>
-                    <div>
-                        Menampilkan {data.from || 0} hingga {data.to || 0} dari {data.total} hasil
-                        {hasActiveFilters && <span className="ml-2 text-blue-600">(filtered)</span>}
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <label className="text-sm">Per halaman:</label>
-                        <select
-                            value={perPage}
-                            onChange={(e) => handlePerPageChange(Number(e.target.value))}
-                            className="rounded border border-gray-300 px-2 py-1 text-sm dark:border-gray-600 dark:bg-gray-800"
-                        >
-                            <option value={10}>10</option>
-                            <option value={25}>25</option>
-                            <option value={50}>50</option>
-                            <option value={100}>100</option>
-                        </select>
-                    </div>
                 </div>
 
                 {/* Table */}
