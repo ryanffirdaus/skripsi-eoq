@@ -21,28 +21,14 @@ class ProdukController extends Controller
         $sortDirection = $request->input('sort_direction', 'asc');
         $perPage = $request->input('per_page', 10);
 
-        // Get location and unit filters
-        $lokasiProduk = $request->input('lokasi_produk');
-        $satuanProduk = $request->input('satuan_produk');
-
         // Build the query
         $query = Produk::query();
 
         // Apply search filter if a search term is present
         if ($search) {
-            $query->where(function ($q) use ($search) {
-                $q->where('nama_produk', 'like', '%' . $search . '%')
-                    ->orWhere('lokasi_produk', 'like', '%' . $search . '%');
-            });
-        }
-
-        // Apply location and unit filters
-        if ($lokasiProduk && $lokasiProduk !== 'all') {
-            $query->where('lokasi_produk', $lokasiProduk);
-        }
-
-        if ($satuanProduk && $satuanProduk !== 'all') {
-            $query->where('satuan_produk', $satuanProduk);
+            $query->where('nama_produk', 'like', '%' . $search . '%')
+                ->orWhere('lokasi_produk', 'like', '%' . $search . '%')
+                ->orWhere('produk_id', 'like', '%' . $search . '%');
         }
 
         // Apply sorting
@@ -52,9 +38,9 @@ class ProdukController extends Controller
         $produks = $query->paginate($perPage)->withQueryString();
 
         // Check permissions
-        $canCreate = $this->hasRoles(['R01', 'R07']); // Admin, Manajer Gudang
-        $canEdit = $this->hasRoles(['R01', 'R07']);
-        $canDelete = $this->hasRoles(['R01', 'R07']);
+        $canCreate = $this->hasRoles(['R01', 'R02', 'R07']); // Admin, Manajer Gudang
+        $canEdit = $this->hasRoles(['R01', 'R02', 'R07']);
+        $canDelete = $this->hasRoles(['R01', 'R02', 'R07']);
 
         return Inertia::render('produk/index', [
             'produk' => $produks,
@@ -63,11 +49,7 @@ class ProdukController extends Controller
                 'sort_by' => $sortBy,
                 'sort_direction' => $sortDirection,
                 'per_page' => (int) $perPage,
-                'lokasi_produk' => $lokasiProduk,
-                'satuan_produk' => $satuanProduk,
             ],
-            'uniqueLokasi' => Produk::select('lokasi_produk')->distinct()->orderBy('lokasi_produk')->pluck('lokasi_produk'),
-            'uniqueSatuan' => Produk::select('satuan_produk')->distinct()->orderBy('satuan_produk')->pluck('satuan_produk'),
             'permissions' => [
                 'canCreate' => $canCreate,
                 'canEdit' => $canEdit,
@@ -86,7 +68,7 @@ class ProdukController extends Controller
     public function create()
     {
         // Authorization: Admin (R01), Manajer RnD (R08)
-        if (!$this->isAdmin() && !$this->hasRole('R08')) {
+        if (!$this->isAdmin() && !$this->isGudangRelated()) {
             abort(403, 'Anda tidak memiliki izin untuk membuat produk baru.');
         }
 
@@ -111,8 +93,8 @@ class ProdukController extends Controller
         ]);
 
         // Check permissions
-        $canEdit = $this->hasRoles(['R01', 'R07']); // Admin, Manajer Gudang
-        $canDelete = $this->hasRoles(['R01', 'R07']);
+        $canEdit = $this->hasRoles(['R01', 'R02', 'R07']); // Admin, Manajer Gudang
+        $canDelete = $this->hasRoles(['R01', 'R02', 'R07']);
 
         return Inertia::render('produk/show', [
             'produk' => $produk,
@@ -129,7 +111,7 @@ class ProdukController extends Controller
     public function store(Request $request)
     {
         // Authorization: Admin (R01), Manajer RnD (R08)
-        if (!$this->isAdmin() && !$this->hasRole('R08')) {
+        if (!$this->isAdmin() && !$this->isGudangRelated()) {
             abort(403, 'Anda tidak memiliki izin untuk menyimpan produk.');
         }
 
@@ -197,7 +179,7 @@ class ProdukController extends Controller
         });
 
         return redirect()->route('produk.index')
-            ->with('message', "Produk '{$validated['nama_produk']}' has been successfully created with ID: {$produk->produk_id}.")
+            ->with('message', "Produk '{$validated['nama_produk']}' telah berhasil dibuat dengan ID: {$produk->produk_id}.")
             ->with('type', 'success');
     }
 
@@ -207,7 +189,7 @@ class ProdukController extends Controller
     public function edit(Produk $produk)
     {
         // Authorization: Admin (R01), Manajer RnD (R08)
-        if (!$this->isAdmin() && !$this->hasRole('R08')) {
+        if (!$this->isAdmin() && !$this->isGudangRelated()) {
             abort(403, 'Anda tidak memiliki izin untuk mengedit produk.');
         }
 
@@ -236,7 +218,7 @@ class ProdukController extends Controller
     public function update(Request $request, Produk $produk)
     {
         // Authorization: Admin (R01), Manajer RnD (R08)
-        if (!$this->isAdmin() && !$this->hasRole('R08')) {
+        if (!$this->isAdmin() && !$this->isGudangRelated()) {
             abort(403, 'Anda tidak memiliki izin untuk mengubah produk.');
         }
 
@@ -293,7 +275,7 @@ class ProdukController extends Controller
         });
 
         return redirect()->route('produk.index')
-            ->with('message', "Produk '{$validated['nama_produk']}' has been successfully updated.")
+            ->with('message', "Produk '{$validated['nama_produk']}' telah berhasil diperbarui.")
             ->with('type', 'success');
     }
 
@@ -303,7 +285,7 @@ class ProdukController extends Controller
     public function destroy(Produk $produk)
     {
         // Authorization: Admin (R01), Manajer RnD (R08)
-        if (!$this->isAdmin() && !$this->hasRole('R08')) {
+        if (!$this->isAdmin() && !$this->isGudangRelated()) {
             abort(403, 'Anda tidak memiliki izin untuk menghapus produk.');
         }
 

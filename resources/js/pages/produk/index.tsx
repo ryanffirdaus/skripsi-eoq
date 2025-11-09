@@ -55,8 +55,6 @@ interface Filters {
 interface Props {
     produk: PaginatedProduk;
     filters: Filters;
-    uniqueLokasi: string[];
-    uniqueSatuan: string[];
     permissions: {
         canCreate?: boolean;
         canEdit?: boolean;
@@ -75,18 +73,18 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function Index({ produk, filters, uniqueLokasi, uniqueSatuan, permissions, flash }: Props) {
+export default function Index({ produk, filters, permissions, flash }: Props) {
     const columns = [
         {
             key: 'produk_id',
-            label: 'Kode Produk',
+            label: 'ID',
             sortable: true,
             hideable: true,
             defaultVisible: true,
         },
         {
             key: 'nama_produk',
-            label: 'Nama Produk',
+            label: 'Nama',
             sortable: true,
             hideable: true,
             defaultVisible: true,
@@ -115,18 +113,11 @@ export default function Index({ produk, filters, uniqueLokasi, uniqueSatuan, per
             render: (item: Produk) => formatCurrency(item.hpp_produk),
         },
         {
-            key: 'satuan_produk',
-            label: 'Satuan',
-            sortable: true,
-            hideable: true,
-            defaultVisible: false, // Hidden by default
-        },
-        {
             key: 'harga_jual',
             label: 'Harga Jual',
             sortable: true,
             hideable: true,
-            defaultVisible: false, // Hidden by default
+            defaultVisible: true,
             render: (item: Produk) => formatCurrency(item.harga_jual),
         },
         {
@@ -134,7 +125,7 @@ export default function Index({ produk, filters, uniqueLokasi, uniqueSatuan, per
             label: 'Safety Stock',
             sortable: true,
             hideable: true,
-            defaultVisible: false, // Hidden by default
+            defaultVisible: true,
             render: (item: Produk) => (item.safety_stock_produk ? `${item.safety_stock_produk.toFixed(2)} ${item.satuan_produk}` : '-'),
         },
         {
@@ -142,7 +133,7 @@ export default function Index({ produk, filters, uniqueLokasi, uniqueSatuan, per
             label: 'ROP',
             sortable: true,
             hideable: true,
-            defaultVisible: false, // Hidden by default
+            defaultVisible: true,
             render: (item: Produk) => (item.rop_produk ? `${item.rop_produk.toFixed(2)} ${item.satuan_produk}` : '-'),
         },
         {
@@ -150,31 +141,8 @@ export default function Index({ produk, filters, uniqueLokasi, uniqueSatuan, per
             label: 'EOQ',
             sortable: true,
             hideable: true,
-            defaultVisible: false, // Hidden by default
+            defaultVisible: true,
             render: (item: Produk) => (item.eoq_produk ? `${item.eoq_produk.toFixed(2)} ${item.satuan_produk}` : '-'),
-        },
-    ];
-
-    const filterOptions = [
-        {
-            key: 'lokasi_produk',
-            label: 'Lokasi',
-            type: 'select' as const,
-            placeholder: 'All Locations',
-            options: uniqueLokasi.map((lokasi) => ({
-                value: lokasi,
-                label: lokasi,
-            })),
-        },
-        {
-            key: 'satuan_produk',
-            label: 'Satuan',
-            type: 'select' as const,
-            placeholder: 'All Units',
-            options: uniqueSatuan.map((satuan) => ({
-                value: satuan,
-                label: satuan,
-            })),
         },
     ];
 
@@ -206,7 +174,6 @@ export default function Index({ produk, filters, uniqueLokasi, uniqueSatuan, per
             columns={columns}
             createUrl={permissions.canCreate ? '/produk/create' : undefined}
             filters={filters}
-            filterOptions={filterOptions}
             baseUrl="/produk"
             actions={actions}
             flash={flash}
