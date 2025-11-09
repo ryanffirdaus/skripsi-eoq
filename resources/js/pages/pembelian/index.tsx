@@ -218,7 +218,6 @@ export default function Index({ pembelian, filters, pemasoks, permissions, flash
             data={pembelian}
             columns={columns}
             createUrl={permissions?.canCreate ? '/pembelian/create' : undefined}
-            searchPlaceholder="Cari No. PO, pemasok..."
             filters={filters}
             filterOptions={filterOptions}
             baseUrl="/pembelian"

@@ -205,7 +205,6 @@ export default function Index({ produk, filters, uniqueLokasi, uniqueSatuan, per
             data={produk}
             columns={columns}
             createUrl={permissions.canCreate ? '/produk/create' : undefined}
-            searchPlaceholder="Cari berdasarkan nama produk atau lokasi..."
             filters={filters}
             filterOptions={filterOptions}
             baseUrl="/produk"

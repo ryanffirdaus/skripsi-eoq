@@ -163,7 +163,6 @@ export default function Index({ transaksiPembayaran, filters, pembelians, permis
             data={transaksiPembayaran}
             columns={columns}
             createUrl={permissions?.canCreate ? '/transaksi-pembayaran/create' : undefined}
-            searchPlaceholder="Cari ID, No. PO, pemasok..."
             filters={filters}
             filterOptions={filterOptions}
             baseUrl="/transaksi-pembayaran"

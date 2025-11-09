@@ -301,7 +301,6 @@ export default function Index({ pengiriman, filters, flash }: Props) {
             data={pengiriman}
             columns={columns}
             createUrl="/pengiriman/create"
-            searchPlaceholder="Cari pengiriman..."
             filters={filters}
             filterOptions={filterOptions}
             baseUrl="/pengiriman"

@@ -293,7 +293,6 @@ export default function Index({ pengadaan, filters, flash }: Props) {
             data={pengadaan}
             columns={columns}
             createUrl="/pengadaan/create"
-            searchPlaceholder="Cari pengadaan..."
             filters={filters}
             filterOptions={filterOptions}
             baseUrl="/pengadaan"

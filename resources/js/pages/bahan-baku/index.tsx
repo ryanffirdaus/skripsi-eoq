@@ -1,7 +1,6 @@
 // Index.tsx - Bahan Baku (Fixed version)
 import { createDeleteAction, createEditAction } from '@/components/table/table-actions';
 import TableTemplate from '@/components/table/table-template';
-import { formatCurrency } from '@/lib/formatters';
 import { type BreadcrumbItem } from '@/types';
 import { router } from '@inertiajs/react';
 
@@ -78,14 +77,14 @@ export default function Index({ bahanBaku, filters, uniqueLokasi, uniqueSatuan, 
     const columns = [
         {
             key: 'bahan_baku_id',
-            label: 'Kode Bahan',
+            label: 'ID',
             sortable: true,
             hideable: true,
             defaultVisible: true,
         },
         {
             key: 'nama_bahan',
-            label: 'Nama Bahan',
+            label: 'Nama',
             sortable: true,
             hideable: true,
             defaultVisible: true,
@@ -106,26 +105,11 @@ export default function Index({ bahanBaku, filters, uniqueLokasi, uniqueSatuan, 
             render: (item: BahanBaku) => `${item.stok_bahan} ${item.satuan_bahan}`,
         },
         {
-            key: 'harga_bahan',
-            label: 'Harga',
-            sortable: true,
-            hideable: true,
-            defaultVisible: true,
-            render: (item: BahanBaku) => formatCurrency(item.harga_bahan),
-        },
-        {
-            key: 'satuan_bahan',
-            label: 'Satuan',
-            sortable: true,
-            hideable: true,
-            defaultVisible: false, // Hidden by default
-        },
-        {
             key: 'safety_stock_bahan',
             label: 'Safety Stock',
             sortable: true,
             hideable: true,
-            defaultVisible: false, // Hidden by default
+            defaultVisible: true,
             render: (item: BahanBaku) => (item.safety_stock_bahan ? `${item.safety_stock_bahan.toFixed(2)} ${item.satuan_bahan}` : '-'),
         },
         {
@@ -133,7 +117,7 @@ export default function Index({ bahanBaku, filters, uniqueLokasi, uniqueSatuan, 
             label: 'ROP',
             sortable: true,
             hideable: true,
-            defaultVisible: false, // Hidden by default
+            defaultVisible: true,
             render: (item: BahanBaku) => (item.rop_bahan ? `${item.rop_bahan.toFixed(2)} ${item.satuan_bahan}` : '-'),
         },
         {
@@ -141,7 +125,7 @@ export default function Index({ bahanBaku, filters, uniqueLokasi, uniqueSatuan, 
             label: 'EOQ',
             sortable: true,
             hideable: true,
-            defaultVisible: false, // Hidden by default
+            defaultVisible: true,
             render: (item: BahanBaku) => (item.eoq_bahan ? `${item.eoq_bahan.toFixed(2)} ${item.satuan_bahan}` : '-'),
         },
     ];
@@ -196,7 +180,6 @@ export default function Index({ bahanBaku, filters, uniqueLokasi, uniqueSatuan, 
             data={bahanBaku}
             columns={columns}
             createUrl={permissions.canCreate ? '/bahan-baku/create' : undefined}
-            searchPlaceholder="Cari bahan baku..."
             filters={filters}
             filterOptions={filterOptions}
             baseUrl="/bahan-baku"

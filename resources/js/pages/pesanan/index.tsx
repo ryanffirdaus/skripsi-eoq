@@ -198,7 +198,6 @@ export default function Index({ pesanan, filters, permissions, flash }: Props) {
             data={pesanan}
             columns={columns}
             createUrl={permissions.canCreate ? '/pesanan/create' : undefined}
-            searchPlaceholder="Cari pesanan..."
             filters={filters}
             filterOptions={filterOptions}
             baseUrl="/pesanan"

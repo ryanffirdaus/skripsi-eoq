@@ -248,7 +248,6 @@ export default function Index({ penugasan, filters, userRole, flash }: Props) {
             breadcrumbs={modeBreadcrumbs}
             data={penugasan}
             columns={columns}
-            searchPlaceholder="Cari item produksi..."
             filters={filters}
             filterOptions={filterOptions}
             baseUrl="/penugasan-produksi"

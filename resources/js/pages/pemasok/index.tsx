@@ -179,7 +179,6 @@ export default function Index({ pemasok, filters, flash }: Props) {
             columns={columns}
             createUrl="/pemasok/create"
             createButtonText="Tambah"
-            searchPlaceholder="Cari berdasarkan nama atau email..."
             filters={filters}
             filterOptions={filterOptions}
             actions={actions}

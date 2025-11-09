@@ -104,7 +104,6 @@ export default function Index({ penerimaan, filters, flash }: Props) {
             columns={columns}
             createUrl="/penerimaan-bahan-baku/create"
             createButtonText="Tambah"
-            searchPlaceholder="Cari no. penerimaan, SJ, atau PO..."
             filters={filters}
             baseUrl="/penerimaan-bahan-baku"
             actions={actions}
