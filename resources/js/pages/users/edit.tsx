@@ -6,7 +6,7 @@ import React from 'react';
 
 interface Role {
     role_id: string;
-    name: string;
+    nama: string;
 }
 
 interface User {
@@ -48,7 +48,7 @@ export default function Edit({ user, roles }: Props) {
 
     const roleOptions = roles.map((role) => ({
         value: role.role_id,
-        label: role.name,
+        label: role.nama,
     }));
 
     return (

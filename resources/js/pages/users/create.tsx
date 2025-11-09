@@ -6,7 +6,7 @@ import React from 'react';
 
 interface Role {
     role_id: number;
-    name: string;
+    nama: string;
 }
 
 interface CreateProps {
@@ -40,7 +40,7 @@ export default function Create({ roles }: CreateProps) {
 
     const roleOptions = roles.map((role) => ({
         value: role.role_id.toString(),
-        label: role.name,
+        label: role.nama,
     }));
 
     return (
