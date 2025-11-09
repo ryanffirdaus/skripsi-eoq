@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\UserController;
@@ -17,7 +18,7 @@ use App\Http\Controllers\PemasokController;
 use App\Http\Controllers\TransaksiPembayaranController;
 
 Route::get('/', function () {
-    return Inertia::render('welcome');
+    return Auth::check() ? redirect()->route('dashboard') : redirect()->route('login');
 })->name('home');
 
 // Debug route - HAPUS SETELAH SELESAI DEBUG

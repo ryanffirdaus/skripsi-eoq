@@ -4,12 +4,11 @@ import AppLayout from '@/layouts/app-layout';
 import { colors } from '@/lib/colors';
 import { cn } from '@/lib/utils';
 import { type BreadcrumbItem } from '@/types';
-import { ArrowDownIcon, ArrowUpIcon, EyeIcon, FunnelIcon, MagnifyingGlassIcon, PlusIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { ArrowDownIcon, ArrowUpIcon, MagnifyingGlassIcon, PlusIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { Head, Link, router } from '@inertiajs/react';
 import React, { FormEvent, useEffect, useRef, useState } from 'react';
 
 // Constants to prevent re-renders
-const EMPTY_FILTER_OPTIONS: FilterOption[] = [];
 const EMPTY_ACTIONS: ActionButton<Record<string, unknown>>[] = [];
 
 interface PaginationLink {
@@ -94,7 +93,6 @@ export default function TableTemplate<T extends Record<string, unknown>>({
     createButtonText = 'Tambah',
     searchPlaceholder = 'Cari...',
     filters,
-    filterOptions = EMPTY_FILTER_OPTIONS,
     baseUrl,
     actions = EMPTY_ACTIONS,
     flash,
@@ -107,52 +105,15 @@ export default function TableTemplate<T extends Record<string, unknown>>({
     const [itemToDelete, setItemToDelete] = useState<T | null>(null);
     const [deleteCallback, setDeleteCallback] = useState<((item: T) => void) | null>(null);
     const [message, setMessage] = useState<string | null>(null);
-    const [isFilterOpen, setIsFilterOpen] = useState(false);
-    const [isColumnSelectorOpen, setIsColumnSelectorOpen] = useState(false);
-
-    // Initialize visible columns based on defaultVisible or all visible by default
-    const [visibleColumns, setVisibleColumns] = useState<Set<string>>(() => {
-        const initialVisible = new Set<string>();
-        columns.forEach((column) => {
-            if (column.defaultVisible !== false) {
-                // Show by default unless explicitly set to false
-                initialVisible.add(column.key);
-            }
-        });
-        return initialVisible;
-    });
 
     // Local state for form inputs - Initialize from filters prop
     const [search, setSearch] = useState(filters?.search || '');
     const [sortBy, setSortBy] = useState(filters?.sort_by || '');
     const [sortDirection, setSortDirection] = useState(filters?.sort_direction || 'asc');
     const [perPage, setPerPage] = useState(filters?.per_page || 10);
-    const [localFilters, setLocalFilters] = useState<Record<string, string>>({});
 
     // Refs for debouncing
     const debounceTimeouts = useRef<Record<string, NodeJS.Timeout>>({});
-
-    // Initialize local filters and sync with server state
-    useEffect(() => {
-        if (filters) {
-            // Update local state to match server state
-            setSearch(filters.search || '');
-            setSortBy(filters.sort_by || '');
-            setSortDirection(filters.sort_direction || 'asc');
-            setPerPage(filters.per_page || 10);
-
-            const initialFilters: Record<string, string> = {};
-            if (filterOptions) {
-                filterOptions.forEach((option) => {
-                    const value = filters[option.key];
-                    if (value !== undefined && value !== null && value !== '') {
-                        initialFilters[option.key] = String(value);
-                    }
-                });
-            }
-            setLocalFilters(initialFilters);
-        }
-    }, [filters, filterOptions]);
 
     // Cleanup timeouts on unmount
     useEffect(() => {
@@ -182,13 +143,6 @@ export default function TableTemplate<T extends Record<string, unknown>>({
             params.search = search.trim();
         }
 
-        // Add additional filters
-        Object.entries(localFilters).forEach(([key, value]) => {
-            if (value && value !== 'all' && value !== '') {
-                params[key] = value;
-            }
-        });
-
         return params;
     };
 
@@ -200,31 +154,6 @@ export default function TableTemplate<T extends Record<string, unknown>>({
             replace: true,
         });
     };
-
-    // Column visibility management
-    const toggleColumnVisibility = (columnKey: string) => {
-        setVisibleColumns((prev) => {
-            const newVisible = new Set(prev);
-            if (newVisible.has(columnKey)) {
-                newVisible.delete(columnKey);
-            } else {
-                newVisible.add(columnKey);
-            }
-            return newVisible;
-        });
-    };
-
-    const showAllColumns = () => {
-        const allColumnKeys = new Set(columns.map((col) => col.key));
-        setVisibleColumns(allColumnKeys);
-    };
-
-    const hideAllColumns = () => {
-        setVisibleColumns(new Set());
-    };
-
-    // Filter visible columns
-    const visibleColumnsArray = columns.filter((column) => visibleColumns.has(column.key));
 
     const handleSearch = (e: FormEvent) => {
         e.preventDefault();
@@ -246,7 +175,6 @@ export default function TableTemplate<T extends Record<string, unknown>>({
 
     const clearFilters = () => {
         setSearch('');
-        setLocalFilters({});
         setSortBy(filters?.sort_by || '');
         setSortDirection(filters?.sort_direction || 'asc');
         setPerPage(10);
@@ -270,8 +198,7 @@ export default function TableTemplate<T extends Record<string, unknown>>({
     };
 
     // Check if there are any active filters applied by user
-    const hasActiveFilters =
-        search.trim() !== '' || Object.values(localFilters).some((val) => val !== '' && val !== null && val !== undefined && val !== 'all');
+    const hasActiveFilters = search.trim() !== '';
 
     const confirmDelete = (item: T, callback?: (item: T) => void) => {
         setItemToDelete(item);
@@ -327,12 +254,6 @@ export default function TableTemplate<T extends Record<string, unknown>>({
                 params.search = search.trim();
             }
 
-            Object.entries(localFilters).forEach(([key, value]) => {
-                if (value && value !== 'all' && value !== '') {
-                    params[key] = value;
-                }
-            });
-
             router.get(baseUrl, params, {
                 preserveState: true,
                 replace: true,
@@ -340,78 +261,6 @@ export default function TableTemplate<T extends Record<string, unknown>>({
 
             delete debounceTimeouts.current['per_page'];
         }, 200); // Slightly longer delay for per page
-    };
-
-    const handleFilterChange = (filterKey: string, value: string) => {
-        // Clear existing timeout for this filter
-        if (debounceTimeouts.current[filterKey]) {
-            clearTimeout(debounceTimeouts.current[filterKey]);
-        }
-
-        // For select filters, apply immediately
-        if (filterOptions.find((f) => f.key === filterKey)?.type === 'select') {
-            // Update local state immediately
-            const updatedFilters = { ...localFilters };
-
-            // Remove the filter if value is empty or 'all'
-            if (!value || value === '' || value === 'all') {
-                delete updatedFilters[filterKey];
-            } else {
-                updatedFilters[filterKey] = value;
-            }
-
-            setLocalFilters(updatedFilters);
-
-            // Build params without the cleared filter
-            const params: Record<string, string> = {
-                sort_by: sortBy,
-                sort_direction: sortDirection,
-                per_page: perPage.toString(),
-            };
-
-            if (search.trim()) {
-                params.search = search.trim();
-            }
-
-            // Add other active filters
-            Object.entries(updatedFilters).forEach(([key, val]) => {
-                if (val && val !== 'all' && val !== '') {
-                    params[key] = val;
-                }
-            });
-
-            router.get(baseUrl, params, {
-                preserveState: true,
-                replace: true,
-            });
-        } else {
-            // Update local state immediately for text filters
-            const updatedFilters = { ...localFilters, [filterKey]: value };
-            setLocalFilters(updatedFilters);
-
-            // For text filters, debounce the API call
-            debounceTimeouts.current[filterKey] = setTimeout(() => {
-                navigateWithFilters({
-                    [filterKey]: value,
-                });
-                delete debounceTimeouts.current[filterKey];
-            }, 500);
-        }
-    };
-
-    const handleTextFilterChange = (filterKey: string, value: string) => {
-        // Update local state immediately for responsive UI
-        setLocalFilters((prev) => ({ ...prev, [filterKey]: value }));
-
-        // Clear existing timeout
-        if (debounceTimeouts.current[filterKey]) {
-            clearTimeout(debounceTimeouts.current[filterKey]);
-        }
-
-        // Set new timeout for debounced API call
-        debounceTimeouts.current[filterKey] = setTimeout(() => {
-            handleFilterChange(filterKey, value);
-        }, 500);
     };
 
     return (
@@ -467,29 +316,6 @@ export default function TableTemplate<T extends Record<string, unknown>>({
 
                         {/* Filter Toggle */}
                         <div className="flex gap-2">
-                            {filterOptions.length > 0 && (
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={() => setIsFilterOpen(!isFilterOpen)}
-                                    className="flex items-center gap-2"
-                                >
-                                    <FunnelIcon className="h-4 w-4" />
-                                    Filter
-                                </Button>
-                            )}
-
-                            {/* Column Selector Toggle */}
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => setIsColumnSelectorOpen(!isColumnSelectorOpen)}
-                                className="flex items-center gap-2"
-                            >
-                                <EyeIcon className="h-4 w-4" />
-                                Kolom
-                            </Button>
-
                             <Button type="submit" className="flex items-center gap-2">
                                 <MagnifyingGlassIcon className="h-4 w-4" />
                                 Cari
@@ -503,73 +329,6 @@ export default function TableTemplate<T extends Record<string, unknown>>({
                             )}
                         </div>
                     </form>
-
-                    {/* Advanced Filters */}
-                    {isFilterOpen && filterOptions.length > 0 && (
-                        <div className={cn('border-t pt-4', colors.border.primary)}>
-                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                                {filterOptions.map((filter) => (
-                                    <div key={filter.key} className="space-y-2">
-                                        <label className={colors.label.base}>{filter.label}</label>
-                                        {filter.type === 'select' ? (
-                                            <select
-                                                value={localFilters[filter.key] || ''}
-                                                onChange={(e) => handleFilterChange(filter.key, e.target.value)}
-                                                className={colors.input.base}
-                                            >
-                                                <option value="">{filter.placeholder || 'Select...'}</option>
-                                                {filter.options?.map((option) => (
-                                                    <option key={option.value} value={option.value}>
-                                                        {option.label}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                        ) : (
-                                            <input
-                                                type="text"
-                                                value={localFilters[filter.key] || ''}
-                                                onChange={(e) => handleTextFilterChange(filter.key, e.target.value)}
-                                                placeholder={filter.placeholder}
-                                                className={colors.input.base}
-                                            />
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Column Selector */}
-                    {isColumnSelectorOpen && (
-                        <div className={cn('border-t pt-4', colors.border.primary)}>
-                            <div className="mb-3 flex items-center justify-between">
-                                <h3 className="text-sm font-medium text-gray-900">Column Visibility</h3>
-                                <div className="flex gap-2">
-                                    <Button type="button" variant="outline" size="sm" onClick={showAllColumns} className="text-xs">
-                                        Show All
-                                    </Button>
-                                    <Button type="button" variant="outline" size="sm" onClick={hideAllColumns} className="text-xs">
-                                        Hide All
-                                    </Button>
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
-                                {columns
-                                    .filter((col) => col.hideable !== false)
-                                    .map((column) => (
-                                        <label key={column.key} className="flex items-center space-x-2 text-sm">
-                                            <input
-                                                type="checkbox"
-                                                checked={visibleColumns.has(column.key)}
-                                                onChange={() => toggleColumnVisibility(column.key)}
-                                                className="rounded"
-                                            />
-                                            <span className="truncate">{column.label}</span>
-                                        </label>
-                                    ))}
-                            </div>
-                        </div>
-                    )}
                 </div>
 
                 {/* Results Summary */}
@@ -599,7 +358,7 @@ export default function TableTemplate<T extends Record<string, unknown>>({
                         <table className="w-full divide-y divide-gray-200 dark:divide-gray-700">
                             <thead className={cn(colors.background.secondary)}>
                                 <tr>
-                                    {visibleColumnsArray.map((column) => (
+                                    {columns.map((column) => (
                                         <th
                                             key={column.key}
                                             className={cn(
@@ -626,7 +385,7 @@ export default function TableTemplate<T extends Record<string, unknown>>({
                             <tbody className={cn('divide-y divide-gray-200 dark:divide-gray-700', colors.background.primary)}>
                                 {data.data.map((item, index) => (
                                     <tr key={index} className={colors.hover.primary}>
-                                        {visibleColumnsArray.map((column) => (
+                                        {columns.map((column) => (
                                             <td
                                                 key={column.key}
                                                 className={cn('px-6 py-4 text-sm whitespace-nowrap', colors.text.primary, column.className)}
