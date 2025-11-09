@@ -61,14 +61,14 @@ export default function Index({ pelanggan, filters, flash }: Props) {
         () => [
             {
                 key: 'pelanggan_id',
-                label: 'ID Pelanggan',
+                label: 'ID',
                 sortable: true,
                 hideable: true,
                 defaultVisible: true,
             },
             {
                 key: 'nama_pelanggan',
-                label: 'Nama Pelanggan',
+                label: 'Nama',
                 sortable: true,
                 hideable: true,
                 defaultVisible: true,
@@ -79,37 +79,6 @@ export default function Index({ pelanggan, filters, flash }: Props) {
                 sortable: true,
                 hideable: true,
                 defaultVisible: true,
-            },
-            {
-                key: 'nomor_telepon',
-                label: 'Nomor Telepon',
-                sortable: true,
-                hideable: true,
-                defaultVisible: true,
-            },
-            {
-                key: 'alamat_pembayaran',
-                label: 'Alamat Pembayaran',
-                sortable: false,
-                hideable: true,
-                defaultVisible: true,
-                render: (item: Pelanggan) => (
-                    <div className="max-w-xs truncate" title={item.alamat_pembayaran}>
-                        {item.alamat_pembayaran}
-                    </div>
-                ),
-            },
-            {
-                key: 'alamat_pengiriman',
-                label: 'Alamat Pengiriman',
-                sortable: false,
-                hideable: true,
-                defaultVisible: false, // Hidden by default
-                render: (item: Pelanggan) => (
-                    <div className="max-w-xs truncate" title={item.alamat_pengiriman}>
-                        {item.alamat_pengiriman}
-                    </div>
-                ),
             },
         ],
         [],

@@ -74,19 +74,19 @@ const mainNavItems: NavItem[] = [
         title: 'Pengadaan',
         href: '/pengadaan',
         icon: Package,
-        roles: ['R01', 'R02', 'R04', 'R07', 'R09'], // Admin, Staf Gudang, Staf Pengadaan, Manajer Gudang, Manajer Pengadaan
+        roles: ['R01', 'R02', 'R04', 'R06', 'R07', 'R09', 'R10'], // Admin, Staf Gudang, Staf Pengadaan, Manajer Gudang, Manajer Pengadaan
     },
     {
         title: 'Pembelian',
         href: '/pembelian',
         icon: ShoppingBag, // Pembelian ke pemasok
-        roles: ['R01', 'R04', 'R09', 'R10'], // Admin, Staf Pengadaan, Manajer Pengadaan, Manajer Keuangan
+        roles: ['R01', 'R06', 'R10'], // Admin, Staf Pengadaan, Manajer Pengadaan, Manajer Keuangan
     },
     {
         title: 'Penerimaan Bahan Baku',
         href: '/penerimaan-bahan-baku',
         icon: PackageCheck,
-        roles: ['R01', 'R04', 'R02', 'R07', 'R09'], // Admin, Staf Pengadaan, Staf Gudang, Manajer Gudang, Manajer Pengadaan
+        roles: ['R01', 'R02', 'R07'], // Admin, Staf Pengadaan, Staf Gudang, Manajer Gudang, Manajer Pengadaan
     },
     {
         title: 'Transaksi Pembayaran',

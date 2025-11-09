@@ -65,7 +65,7 @@ class CheckRoleBasedAccess
         'R05' => [ // Staf Penjualan
             'pelanggan' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'], // CRUD pelanggan
             'pesanan' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'], // CRUD pesanan
-            'produk' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'], // Hanya view produk
+            'produk' => [], // Hanya view produk
             'users' => [], // Tidak akses
             'bahan-baku' => [], // Tidak akses
             'pemasok' => [], // Tidak akses
@@ -106,9 +106,9 @@ class CheckRoleBasedAccess
         ],
         'R08' => [ // Manajer RnD
             'penugasan-produksi' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'], // CRUD penugasan
-            'bahan-baku' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'], // Hanya view
-            'produk' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'], // Hanya view
-            'pengadaan' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'], // Hanya view
+            'bahan-baku' => [], // Hanya view
+            'produk' => [], // Hanya view
+            'pengadaan' => [], // Hanya view
             'users' => [], // Tidak akses
             'pelanggan' => [], // Tidak akses
             'pemasok' => [], // Tidak akses
