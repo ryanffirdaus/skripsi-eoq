@@ -27,7 +27,7 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: '/users',
     },
     {
-        title: 'Ubah Pengguna',
+        title: 'Edit Pengguna',
         href: '#',
     },
 ];

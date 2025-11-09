@@ -40,21 +40,8 @@ interface PaginatedBahanBaku {
     links: PaginationLink[];
 }
 
-interface Filters {
-    search?: string;
-    sort_by: string;
-    sort_direction: 'asc' | 'desc';
-    per_page: number;
-    lokasi_bahan?: string;
-    satuan_bahan?: string;
-    [key: string]: string | number | undefined;
-}
-
 interface Props {
     bahanBaku: PaginatedBahanBaku;
-    filters: Filters;
-    uniqueLokasi: string[];
-    uniqueSatuan: string[];
     permissions: {
         canCreate?: boolean;
         canEdit?: boolean;
@@ -73,7 +60,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function Index({ bahanBaku, filters, uniqueLokasi, uniqueSatuan, permissions, flash }: Props) {
+export default function Index({ bahanBaku, permissions, flash }: Props) {
     const columns = [
         {
             key: 'bahan_baku_id',
@@ -130,29 +117,6 @@ export default function Index({ bahanBaku, filters, uniqueLokasi, uniqueSatuan, 
         },
     ];
 
-    const filterOptions = [
-        {
-            key: 'lokasi_bahan',
-            label: 'Lokasi',
-            type: 'select' as const,
-            placeholder: 'All Locations',
-            options: uniqueLokasi.map((lokasi) => ({
-                value: lokasi,
-                label: lokasi,
-            })),
-        },
-        {
-            key: 'satuan_bahan',
-            label: 'Satuan',
-            type: 'select' as const,
-            placeholder: 'All Units',
-            options: uniqueSatuan.map((satuan) => ({
-                value: satuan,
-                label: satuan,
-            })),
-        },
-    ];
-
     // Actions - hanya tampil jika ada permission
     const actions =
         permissions.canEdit || permissions.canDelete
@@ -180,8 +144,6 @@ export default function Index({ bahanBaku, filters, uniqueLokasi, uniqueSatuan, 
             data={bahanBaku}
             columns={columns}
             createUrl={permissions.canCreate ? '/bahan-baku/create' : undefined}
-            filters={filters}
-            filterOptions={filterOptions}
             baseUrl="/bahan-baku"
             actions={actions}
             flash={flash}

@@ -20,10 +20,6 @@ class BahanBakuController extends Controller
         $sortDirection = $request->input('sort_direction', 'asc');
         $perPage = $request->input('per_page', 10);
 
-        // Get location and unit filters
-        $lokasiBahan = $request->input('lokasi_bahan');
-        $satuanBahan = $request->input('satuan_bahan');
-
         // Build the query
         $query = BahanBaku::query();
 
@@ -31,17 +27,9 @@ class BahanBakuController extends Controller
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('nama_bahan', 'like', '%' . $search . '%')
-                    ->orWhere('lokasi_bahan', 'like', '%' . $search . '%');
+                    ->orWhere('lokasi_bahan', 'like', '%' . $search . '%')
+                    ->orWhere('bahan_baku_id', 'like', '%' . $search . '%');
             });
-        }
-
-        // Apply location and unit filters
-        if ($lokasiBahan && $lokasiBahan !== 'all') {
-            $query->where('lokasi_bahan', $lokasiBahan);
-        }
-
-        if ($satuanBahan && $satuanBahan !== 'all') {
-            $query->where('satuan_bahan', $satuanBahan);
         }
 
         // Apply sorting
@@ -51,9 +39,9 @@ class BahanBakuController extends Controller
         $bahanBakus = $query->paginate($perPage)->withQueryString();
 
         // Check permissions
-        $canCreate = $this->hasRoles(['R01', 'R07']); // Admin, Manajer Gudang
-        $canEdit = $this->hasRoles(['R01', 'R07']);
-        $canDelete = $this->hasRoles(['R01', 'R07']);
+        $canCreate = $this->hasRoles(['R01', 'R07', 'R02']); // Admin, Manajer Gudang, Staf Gudang
+        $canEdit = $this->hasRoles(['R01', 'R07', 'R02']);
+        $canDelete = $this->hasRoles(['R01', 'R07', 'R02']);
 
         return Inertia::render('bahan-baku/index', [
             'bahanBaku' => $bahanBakus,
@@ -62,11 +50,7 @@ class BahanBakuController extends Controller
                 'sort_by' => $sortBy,
                 'sort_direction' => $sortDirection,
                 'per_page' => (int) $perPage,
-                'lokasi_bahan' => $lokasiBahan,
-                'satuan_bahan' => $satuanBahan,
             ],
-            'uniqueLokasi' => BahanBaku::select('lokasi_bahan')->distinct()->orderBy('lokasi_bahan')->pluck('lokasi_bahan'),
-            'uniqueSatuan' => BahanBaku::select('satuan_bahan')->distinct()->orderBy('satuan_bahan')->pluck('satuan_bahan'),
             'permissions' => [
                 'canCreate' => $canCreate,
                 'canEdit' => $canEdit,
@@ -103,8 +87,8 @@ class BahanBakuController extends Controller
         ]);
 
         // Check permissions
-        $canEdit = $this->hasRoles(['R01', 'R07']); // Admin, Manajer Gudang
-        $canDelete = $this->hasRoles(['R01', 'R07']);
+        $canEdit = $this->hasRoles(['R01', 'R07', 'R02']); // Admin, Manajer Gudang
+        $canDelete = $this->hasRoles(['R01', 'R07', 'R02']);
 
         return Inertia::render('bahan-baku/show', [
             'bahanBaku' => $bahanBaku,
@@ -170,7 +154,7 @@ class BahanBakuController extends Controller
         ]);
 
         return redirect()->route('bahan-baku.index')
-            ->with('message', "Bahan Baku '{$validated['nama_bahan']}' has been successfully created with ID: {$bahanBaku->bahan_baku_id}.")
+            ->with('message', "Bahan Baku '{$validated['nama_bahan']}' telah berhasil dibuat dengan ID: {$bahanBaku->bahan_baku_id}.")
             ->with('type', 'success');
     }
 
@@ -234,7 +218,7 @@ class BahanBakuController extends Controller
         ]);
 
         return redirect()->route('bahan-baku.index')
-            ->with('message', "Bahan Baku '{$validated['nama_bahan']}' has been successfully updated.")
+            ->with('message', "Bahan Baku '{$validated['nama_bahan']}' telah berhasil diperbarui.")
             ->with('type', 'success');
     }
 
@@ -255,7 +239,7 @@ class BahanBakuController extends Controller
             $bahanBaku->delete();
 
             return redirect()->route('bahan-baku.index')
-                ->with('message', "Bahan Baku '{$namaBahan}' (ID: {$bahanBakuId}) telah dihapus.")
+                ->with('message', "Bahan Baku '{$namaBahan}' dengan ID: {$bahanBakuId} telah dihapus.")
                 ->with('type', 'success');
         } catch (\Exception $e) {
             return redirect()->route('bahan-baku.index')

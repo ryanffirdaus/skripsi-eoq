@@ -38,13 +38,13 @@ const mainNavItems: NavItem[] = [
         title: 'Bahan Baku',
         href: '/bahan-baku',
         icon: Component, // Lebih spesifik dari Atom
-        roles: ['R01', 'R02', 'R07', 'R08'], // Admin, Staf Gudang, Manajer Gudang, Manajer RnD
+        roles: ['R01', 'R02', 'R07'], // Admin, Staf Gudang, Manajer Gudang
     },
     {
         title: 'Produk',
         href: '/produk',
         icon: Box, // Lebih spesifik dari Container
-        roles: ['R01', 'R02', 'R07', 'R08'], // Admin, Staf Gudang, Manajer Gudang, Manajer RnD
+        roles: ['R01', 'R02', 'R07'], // Admin, Staf Gudang, Manajer Gudang
     },
     {
         title: 'Pelanggan',

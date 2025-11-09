@@ -34,7 +34,7 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: '/bahan-baku',
     },
     {
-        title: 'Ubah Bahan Baku',
+        title: 'Edit Bahan Baku',
         href: '#',
     },
 ];
@@ -60,9 +60,73 @@ export default function Edit({ bahanBaku }: Props) {
         put(`/bahan-baku/${bahanBaku.bahan_baku_id}`);
     }
 
-    const demandSection = {
-        title: 'Informasi Permintaan',
-        children: (
+    return (
+        <FormTemplate
+            title={`Edit Bahan Baku: ${bahanBaku.nama_bahan}`}
+            breadcrumbs={breadcrumbs}
+            backUrl="/bahan-baku"
+            onSubmit={handleSubmit}
+            processing={processing}
+        >
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                <FormField id="nama_bahan" label="Nama Bahan" error={errors.nama_bahan} required>
+                    <TextInput
+                        id="nama_bahan"
+                        type="text"
+                        value={data.nama_bahan}
+                        onChange={(e) => setData('nama_bahan', e.target.value)}
+                        placeholder="Masukkan nama bahan"
+                        error={errors.nama_bahan}
+                    />
+                </FormField>
+
+                <FormField id="lokasi_bahan" label="Lokasi Bahan" error={errors.lokasi_bahan} required>
+                    <TextInput
+                        id="lokasi_bahan"
+                        type="text"
+                        value={data.lokasi_bahan}
+                        onChange={(e) => setData('lokasi_bahan', e.target.value)}
+                        placeholder="Masukkan lokasi bahan"
+                        error={errors.lokasi_bahan}
+                    />
+                </FormField>
+
+                <FormField id="stok_bahan" label="Stok Bahan" error={errors.stok_bahan} required>
+                    <NumberInput
+                        id="stok_bahan"
+                        value={data.stok_bahan}
+                        onChange={(e) => setData('stok_bahan', e.target.value)}
+                        placeholder="Masukkan jumlah stok"
+                        error={errors.stok_bahan}
+                        min="0"
+                        step="0.01"
+                    />
+                </FormField>
+
+                <FormField id="satuan_bahan" label="Satuan Bahan" error={errors.satuan_bahan} required>
+                    <TextInput
+                        id="satuan_bahan"
+                        type="text"
+                        value={data.satuan_bahan}
+                        onChange={(e) => setData('satuan_bahan', e.target.value)}
+                        placeholder="Masukkan satuan (kg, pcs, liter, dll.)"
+                        error={errors.satuan_bahan}
+                    />
+                </FormField>
+
+                <FormField id="harga_bahan" label="Harga Bahan" error={errors.harga_bahan} required>
+                    <NumberInput
+                        id="harga_bahan"
+                        value={data.harga_bahan}
+                        onChange={(e) => setData('harga_bahan', e.target.value)}
+                        placeholder="Masukkan harga bahan"
+                        error={errors.harga_bahan}
+                        min="0"
+                        step="0.01"
+                    />
+                </FormField>
+            </div>
+
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                 <FormField
                     id="permintaan_harian_rata2_bahan"
@@ -110,12 +174,7 @@ export default function Edit({ bahanBaku }: Props) {
                     />
                 </FormField>
             </div>
-        ),
-    };
 
-    const leadTimeSection = {
-        title: 'Informasi Waktu Tunggu',
-        children: (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                 <FormField id="waktu_tunggu_rata2_bahan" label="Waktu Tunggu Rata-rata (hari)" error={errors.waktu_tunggu_rata2_bahan} required>
                     <NumberInput
@@ -141,12 +200,7 @@ export default function Edit({ bahanBaku }: Props) {
                     />
                 </FormField>
             </div>
-        ),
-    };
 
-    const costSection = {
-        title: 'Informasi Biaya',
-        children: (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                 <FormField id="biaya_pemesanan_bahan" label="Biaya Pemesanan" error={errors.biaya_pemesanan_bahan} required>
                     <NumberInput
@@ -167,76 +221,6 @@ export default function Edit({ bahanBaku }: Props) {
                         onChange={(e) => setData('biaya_penyimpanan_bahan', e.target.value)}
                         placeholder="Masukkan biaya penyimpanan"
                         error={errors.biaya_penyimpanan_bahan}
-                        min="0"
-                        step="0.01"
-                    />
-                </FormField>
-            </div>
-        ),
-    };
-
-    return (
-        <FormTemplate
-            title={`Ubah Bahan Baku: ${bahanBaku.nama_bahan}`}
-            breadcrumbs={breadcrumbs}
-            backUrl="/bahan-baku"
-            onSubmit={handleSubmit}
-            processing={processing}
-            sections={[demandSection, leadTimeSection, costSection]}
-        >
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                <FormField id="nama_bahan" label="Nama" error={errors.nama_bahan} required>
-                    <TextInput
-                        id="nama_bahan"
-                        type="text"
-                        value={data.nama_bahan}
-                        onChange={(e) => setData('nama_bahan', e.target.value)}
-                        placeholder="Masukkan nama bahan"
-                        error={errors.nama_bahan}
-                    />
-                </FormField>
-
-                <FormField id="lokasi_bahan" label="Lokasi" error={errors.lokasi_bahan} required>
-                    <TextInput
-                        id="lokasi_bahan"
-                        type="text"
-                        value={data.lokasi_bahan}
-                        onChange={(e) => setData('lokasi_bahan', e.target.value)}
-                        placeholder="Masukkan lokasi bahan"
-                        error={errors.lokasi_bahan}
-                    />
-                </FormField>
-
-                <FormField id="stok_bahan" label="Stok" error={errors.stok_bahan} required>
-                    <NumberInput
-                        id="stok_bahan"
-                        value={data.stok_bahan}
-                        onChange={(e) => setData('stok_bahan', e.target.value)}
-                        placeholder="Masukkan jumlah stok"
-                        error={errors.stok_bahan}
-                        min="0"
-                        step="0.01"
-                    />
-                </FormField>
-
-                <FormField id="satuan_bahan" label="Satuan" error={errors.satuan_bahan} required>
-                    <TextInput
-                        id="satuan_bahan"
-                        type="text"
-                        value={data.satuan_bahan}
-                        onChange={(e) => setData('satuan_bahan', e.target.value)}
-                        placeholder="Masukkan satuan (kg, pcs, liter, dll.)"
-                        error={errors.satuan_bahan}
-                    />
-                </FormField>
-
-                <FormField id="harga_bahan" label="Harga" error={errors.harga_bahan} required>
-                    <NumberInput
-                        id="harga_bahan"
-                        value={data.harga_bahan}
-                        onChange={(e) => setData('harga_bahan', e.target.value)}
-                        placeholder="Masukkan harga bahan"
-                        error={errors.harga_bahan}
                         min="0"
                         step="0.01"
                     />

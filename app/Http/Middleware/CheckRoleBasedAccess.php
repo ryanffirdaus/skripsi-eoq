@@ -33,11 +33,11 @@ class CheckRoleBasedAccess
         'R01' => [], // Admin - akses semua
         'R02' => [ // Staf Gudang
             'users' => [], // Tidak akses
-            'bahan-baku' => ['index', 'show'], // Hanya view
-            'produk' => ['index', 'show'], // Hanya view
-            'pengadaan' => ['index', 'create', 'store', 'destroy', 'show'], // Tambah pengadaan, hapus pending
+            'bahan-baku' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'], // CRUD bahan baku (tambah & edit)
+            'produk' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'], // Hanya view produk
+            'pengadaan' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'], // Tambah pengadaan, hapus pending
             'pengiriman' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'],
-            'penerimaan-bahan-baku' => ['index', 'create', 'store', 'show'], // Tambah & lihat detail
+            'penerimaan-bahan-baku' => ['index', 'create', 'store', 'edit', 'update', 'destroy', 'show'], // Tambah & lihat detail
             'pelanggan' => [], // Tidak akses
             'pemasok' => [], // Tidak akses
             'pesanan' => [], // Tidak akses
