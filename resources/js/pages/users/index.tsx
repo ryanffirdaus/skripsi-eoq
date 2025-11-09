@@ -63,6 +63,13 @@ const breadcrumbs: BreadcrumbItem[] = [
 export default function Index({ users, roles, filters, flash }: Props) {
     const columns = [
         {
+            key: 'user_id',
+            label: 'ID',
+            sortable: true,
+            hideable: true,
+            defaultVisible: true,
+        },
+        {
             key: 'nama_lengkap',
             label: 'Nama',
             sortable: true,

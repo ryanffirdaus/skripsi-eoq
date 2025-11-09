@@ -91,7 +91,7 @@ export default function TableTemplate<T extends Record<string, unknown>>({
     columns,
     createUrl,
     createButtonText = 'Tambah',
-    searchPlaceholder = 'Cari...',
+    searchPlaceholder = 'Search',
     filters,
     baseUrl,
     actions = EMPTY_ACTIONS,
@@ -283,13 +283,13 @@ export default function TableTemplate<T extends Record<string, unknown>>({
                         <div className="flex gap-2">
                             <Button type="submit" className="flex items-center gap-2">
                                 <MagnifyingGlassIcon className="h-4 w-4" />
-                                Cari
+                                Search
                             </Button>
 
                             {hasActiveFilters && (
                                 <Button type="button" variant="outline" onClick={clearFilters} className="flex items-center gap-2">
                                     <XMarkIcon className="h-4 w-4" />
-                                    Bersihkan
+                                    Clear
                                 </Button>
                             )}
                         </div>
