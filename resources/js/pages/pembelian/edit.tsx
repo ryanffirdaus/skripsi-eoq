@@ -61,7 +61,7 @@ interface Props {
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
     { title: 'Pembelian', href: '/pembelian' },
-    { title: 'Ubah Pembelian', href: '#' },
+    { title: 'Edit Pembelian', href: '#' },
 ];
 
 export default function Edit({ pembelian, pemasoks, statusOptions, auth }: Props) {
@@ -100,7 +100,7 @@ export default function Edit({ pembelian, pemasoks, statusOptions, auth }: Props
 
     return (
         <FormTemplate
-            title="Ubah Pembelian"
+            title="Edit Pembelian"
             breadcrumbs={breadcrumbs}
             backUrl="/pembelian"
             onSubmit={handleSubmit}

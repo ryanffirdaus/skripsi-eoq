@@ -51,7 +51,7 @@ class PembelianController extends Controller
         }
 
         // Terapkan sorting
-        $sortBy = $request->get('sort_by', 'tanggal_pembelian');
+        $sortBy = $request->get('sort_by', 'pembelian_id');
         $sortDirection = $request->get('sort_direction', 'desc');
         $query->orderBy($sortBy, $sortDirection);
 
@@ -91,9 +91,9 @@ class PembelianController extends Controller
 
         // Tentukan permissions berdasarkan role
         $permissions = [
-            'canCreate' => $this->hasRoles(['R01', 'R04', 'R09', 'R10']), // Admin, Staf Pengadaan, Manajer Pengadaan, Manajer Keuangan
-            'canEdit' => $this->hasRoles(['R01', 'R04', 'R09', 'R10']), // Admin, Staf Pengadaan, Manajer Pengadaan, Manajer Keuangan
-            'canDelete' => $this->hasRoles(['R01', 'R04', 'R09', 'R10']), // Admin, Staf Pengadaan, Manajer Pengadaan, Manajer Keuangan
+            'canCreate' => $this->hasRoles(['R01', 'R06', 'R10']), // Admin, Staf Pengadaan, Manajer Pengadaan, Manajer Keuangan
+            'canEdit' => $this->hasRoles(['R01', 'R06', 'R10']), // Admin, Staf Pengadaan, Manajer Pengadaan, Manajer Keuangan
+            'canDelete' => $this->hasRoles(['R01', 'R06', 'R10']), // Admin, Staf Pengadaan, Manajer Pengadaan, Manajer Keuangan
         ];
 
         return Inertia::render('pembelian/index', [

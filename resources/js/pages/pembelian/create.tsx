@@ -8,7 +8,7 @@ import { colors } from '@/lib/colors';
 import { formatCurrency } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
 import { BreadcrumbItem } from '@/types';
-import { InformationCircleIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { TrashIcon } from '@heroicons/react/24/outline';
 import { Head, useForm } from '@inertiajs/react';
 import React from 'react';
 
@@ -156,27 +156,10 @@ export default function Create({ pengadaans, pemasoks }: Props) {
         >
             <Head title="Buat PO Baru" />
 
-            <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4">
-                <div className="flex items-start">
-                    <div className="flex-shrink-0">
-                        <InformationCircleIcon className="h-5 w-5 text-blue-400" />
-                    </div>
-                    <div className="ml-3">
-                        <h3 className="text-sm font-medium text-blue-800">Alur Pembuatan PO</h3>
-                        <div className="mt-2 text-sm text-blue-700">
-                            <p>1. Pilih Pengadaan yang sudah disetujui oleh Keuangan.</p>
-                            <p>2. Pilih Pemasok yang akan dituju untuk PO ini.</p>
-                            <p>3. Sistem akan otomatis memuat item yang relevan untuk Pemasok tersebut.</p>
-                            <p>4. Lengkapi detail PO lainnya dan simpan.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             {/* Header PO */}
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div>
-                    <Label htmlFor="pengadaan_id">Pilih Pengadaan (Disetujui Keuangan) *</Label>
+                    <Label htmlFor="pengadaan_id">Pengadaan</Label>
                     <Select value={data.pengadaan_id} onValueChange={handlePengadaanChange}>
                         <SelectTrigger className={cn('mt-1', errors.pengadaan_id && 'border-red-500')}>
                             <SelectValue placeholder="Pilih ID Pengadaan..." />
@@ -193,7 +176,7 @@ export default function Create({ pengadaans, pemasoks }: Props) {
                 </div>
 
                 <div>
-                    <Label htmlFor="pemasok_id">Pemasok *</Label>
+                    <Label htmlFor="pemasok_id">Pemasok</Label>
                     <Select value={data.pemasok_id} onValueChange={(value) => setData('pemasok_id', value)} disabled={!data.pengadaan_id}>
                         <SelectTrigger className={cn('mt-1', errors.pemasok_id && 'border-red-500')}>
                             <SelectValue placeholder={data.pengadaan_id ? 'Pilih Pemasok...' : 'Pilih Pengadaan Terlebih Dahulu'} />

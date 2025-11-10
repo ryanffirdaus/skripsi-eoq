@@ -57,7 +57,7 @@ interface Props {
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
     { title: 'Pengadaan', href: '/pengadaan' },
-    { title: 'Ubah Pengadaan', href: '#' },
+    { title: 'Edit Pengadaan', href: '#' },
 ];
 
 export default function Edit({ pengadaan, pemasoks, statusOptions, auth }: Props) {
@@ -121,14 +121,14 @@ export default function Edit({ pengadaan, pemasoks, statusOptions, auth }: Props
 
     return (
         <FormTemplate
-            title={`Ubah Pengadaan ${pengadaan.pengadaan_id}`}
+            title={`Edit Pengadaan ${pengadaan.pengadaan_id}`}
             breadcrumbs={breadcrumbs}
             backUrl="/pengadaan"
             onSubmit={handleSubmit}
             processing={processing}
             processingText="Mengupdate..."
         >
-            <Head title={`Ubah Pengadaan ${pengadaan.pengadaan_id}`} />
+            <Head title={`Edit Pengadaan ${pengadaan.pengadaan_id}`} />
 
             {/* Basic Information */}
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">

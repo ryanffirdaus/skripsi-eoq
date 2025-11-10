@@ -61,7 +61,7 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: '/pesanan',
     },
     {
-        title: 'Ubah Pesanan',
+        title: 'Edit Pesanan',
         href: '#',
     },
 ];
@@ -154,7 +154,7 @@ export default function Edit({ pesanan, pelanggan, produk }: Props) {
 
     return (
         <FormTemplate
-            title={`Ubah Pesanan: ${pesanan.pesanan_id}`}
+            title={`Edit Pesanan: ${pesanan.pesanan_id}`}
             breadcrumbs={breadcrumbs}
             backUrl="/pesanan"
             onSubmit={handleSubmit}
