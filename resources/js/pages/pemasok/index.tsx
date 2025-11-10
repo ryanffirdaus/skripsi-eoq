@@ -62,15 +62,15 @@ const breadcrumbs: BreadcrumbItem[] = [
 export default function Index({ pemasok, filters, flash }: Props) {
     const columns = [
         {
-            key: 'nama_pemasok',
-            label: 'Nama Pemasok',
+            key: 'pemasok_id',
+            label: 'ID Pemasok',
             sortable: true,
             hideable: true,
-            defaultVisible: true,
+            defaultVisible: false,
         },
         {
-            key: 'narahubung',
-            label: 'Narahubung',
+            key: 'nama_pemasok',
+            label: 'Nama',
             sortable: true,
             hideable: true,
             defaultVisible: true,
@@ -83,20 +83,6 @@ export default function Index({ pemasok, filters, flash }: Props) {
             defaultVisible: true,
         },
         {
-            key: 'telepon',
-            label: 'Telepon',
-            sortable: true,
-            hideable: true,
-            defaultVisible: true,
-        },
-        {
-            key: 'alamat',
-            label: 'Alamat',
-            sortable: false,
-            hideable: true,
-            defaultVisible: true,
-        },
-        {
             key: 'status',
             label: 'Status',
             sortable: true,
@@ -105,21 +91,6 @@ export default function Index({ pemasok, filters, flash }: Props) {
             render: (pemasok: Pemasok) => (
                 <Badge variant={pemasok.status === 'active' ? 'default' : 'secondary'}>{pemasok.status === 'active' ? 'Aktif' : 'Tidak Aktif'}</Badge>
             ),
-        },
-        {
-            key: 'pemasok_id',
-            label: 'ID Pemasok',
-            sortable: true,
-            hideable: true,
-            defaultVisible: false,
-        },
-        {
-            key: 'created_at',
-            label: 'Dibuat Pada',
-            sortable: true,
-            hideable: true,
-            defaultVisible: false,
-            render: (pemasok: Pemasok) => new Date(pemasok.created_at).toLocaleDateString('id-ID'),
         },
     ];
 
@@ -154,7 +125,7 @@ export default function Index({ pemasok, filters, flash }: Props) {
                 (item) => item.status === 'active', // Only show delete for active
             ),
             {
-                label: 'Restore',
+                label: 'Aktifkan Kembali',
                 variant: 'default' as const,
                 onClick: (item: Pemasok) => {
                     router.post(

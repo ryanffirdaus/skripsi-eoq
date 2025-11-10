@@ -56,8 +56,6 @@ export default function Edit({ pemasok }: Props) {
         >
             {/* Informasi Pemasok */}
             <div className="space-y-6">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Informasi Pemasok</h3>
-
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                     <FormField id="nama_pemasok" label="Nama Pemasok" error={errors.nama_pemasok} required>
                         <TextInput
@@ -66,16 +64,6 @@ export default function Edit({ pemasok }: Props) {
                             onChange={(e) => setData('nama_pemasok', e.target.value)}
                             placeholder="Masukkan nama pemasok"
                             error={errors.nama_pemasok}
-                        />
-                    </FormField>
-
-                    <FormField id="narahubung" label="Narahubung" error={errors.narahubung} required>
-                        <TextInput
-                            id="narahubung"
-                            value={data.narahubung}
-                            onChange={(e) => setData('narahubung', e.target.value)}
-                            placeholder="Masukkan nama narahubung"
-                            error={errors.narahubung}
                         />
                     </FormField>
 
@@ -90,7 +78,17 @@ export default function Edit({ pemasok }: Props) {
                         />
                     </FormField>
 
-                    <FormField id="nomor_telepon" label="Telepon" error={errors.nomor_telepon} required>
+                    <FormField id="narahubung" label="Narahubung" error={errors.narahubung} required>
+                        <TextInput
+                            id="narahubung"
+                            value={data.narahubung}
+                            onChange={(e) => setData('narahubung', e.target.value)}
+                            placeholder="Masukkan nama narahubung"
+                            error={errors.narahubung}
+                        />
+                    </FormField>
+
+                    <FormField id="nomor_telepon" label="Nomor Telepon" error={errors.nomor_telepon} required>
                         <TextInput
                             id="nomor_telepon"
                             value={data.nomor_telepon}
@@ -104,8 +102,6 @@ export default function Edit({ pemasok }: Props) {
 
             {/* Informasi Alamat */}
             <div className="space-y-6">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Informasi Alamat</h3>
-
                 <div className="space-y-4">
                     <FormField id="alamat" label="Alamat" error={errors.alamat} required>
                         <TextArea
@@ -122,7 +118,6 @@ export default function Edit({ pemasok }: Props) {
 
             {/* Catatan */}
             <div className="space-y-6">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Catatan</h3>
                 <FormField id="catatan" label="Catatan" error={errors.catatan}>
                     <TextArea
                         id="catatan"

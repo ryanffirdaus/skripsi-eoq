@@ -108,7 +108,7 @@ class PemasokController extends Controller
         $pemasok = Pemasok::create($validated);
 
         return redirect()->route('pemasok.index')
-            ->with('message', "Pemasok '{$validated['nama_pemasok']}' has been successfully created with ID: {$pemasok->pemasok_id}.")
+            ->with('message', "Pemasok '{$validated['nama_pemasok']}' telah berhasil dibuat dengan ID: {$pemasok->pemasok_id}.")
             ->with('type', 'success');
     }
 
@@ -165,7 +165,7 @@ class PemasokController extends Controller
         $pemasok->update($validated);
 
         return redirect()->route('pemasok.index')
-            ->with('message', "Pemasok '{$validated['nama_pemasok']}' has been successfully updated.")
+            ->with('message', "Pemasok '{$validated['nama_pemasok']}' telah berhasil diperbarui.")
             ->with('type', 'success');
     }
 
