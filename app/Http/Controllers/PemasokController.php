@@ -79,7 +79,7 @@ class PemasokController extends Controller
     public function create()
     {
         // Authorization: Admin (R01), Staf Pengadaan (R04), Manajer Pengadaan (R09)
-        if (!$this->isAdmin() && !$this->hasRoles(['R04', 'R09'])) {
+        if (!$this->isAdmin() && !$this->isPengadaanRelated()) {
             abort(403, 'Anda tidak memiliki izin untuk membuat pemasok baru.');
         }
 
@@ -92,7 +92,7 @@ class PemasokController extends Controller
     public function store(Request $request)
     {
         // Authorization: Admin (R01), Staf Pengadaan (R04), Manajer Pengadaan (R09)
-        if (!$this->isAdmin() && !$this->hasRoles(['R04', 'R09'])) {
+        if (!$this->isAdmin() && !$this->isPengadaanRelated()) {
             abort(403, 'Anda tidak memiliki izin untuk menyimpan pemasok.');
         }
 
@@ -134,7 +134,7 @@ class PemasokController extends Controller
     public function edit(Pemasok $pemasok)
     {
         // Authorization: Admin (R01), Staf Pengadaan (R04), Manajer Pengadaan (R09)
-        if (!$this->isAdmin() && !$this->hasRoles(['R04', 'R09'])) {
+        if (!$this->isAdmin() && !$this->isPengadaanRelated()) {
             abort(403, 'Anda tidak memiliki izin untuk mengedit pemasok.');
         }
 
@@ -149,7 +149,7 @@ class PemasokController extends Controller
     public function update(Request $request, Pemasok $pemasok)
     {
         // Authorization: Admin (R01), Staf Pengadaan (R04), Manajer Pengadaan (R09)
-        if (!$this->isAdmin() && !$this->hasRoles(['R04', 'R09'])) {
+        if (!$this->isAdmin() && !$this->isPengadaanRelated()) {
             abort(403, 'Anda tidak memiliki izin untuk mengubah pemasok.');
         }
 
@@ -175,7 +175,7 @@ class PemasokController extends Controller
     public function destroy(Pemasok $pemasok)
     {
         // Authorization: Admin (R01), Staf Pengadaan (R04), Manajer Pengadaan (R09)
-        if (!$this->isAdmin() && !$this->hasRoles(['R04', 'R09'])) {
+        if (!$this->isAdmin() && !$this->isPengadaanRelated()) {
             abort(403, 'Anda tidak memiliki izin untuk menghapus pemasok.');
         }
 
@@ -208,12 +208,12 @@ class PemasokController extends Controller
             $pemasok->restore();
 
             return redirect()->route('pemasok.index')
-                ->with('message', "Pemasok '{$pemasok->nama_pemasok}' has been successfully restored.")
+                ->with('message', "Pemasok '{$pemasok->nama_pemasok}' telah berhasil diaktifkan kembali.")
                 ->with('type', 'success');
         }
 
         return redirect()->route('pemasok.index')
-            ->with('message', 'Pemasok is not deleted.')
+            ->with('message', 'Pemasok tidak dihapus.')
             ->with('type', 'warning');
     }
 }
