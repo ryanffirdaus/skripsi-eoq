@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { colors } from '@/lib/colors';
 import { cn } from '@/lib/utils';
 import { BreadcrumbItem } from '@/types';
-import { CalculatorIcon, InformationCircleIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { CalculatorIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { Head, useForm } from '@inertiajs/react';
 import React, { useCallback, useEffect, useState } from 'react';
 
@@ -305,24 +305,6 @@ export default function Create({ pemasoks, pesanan, bahanBaku, produk, auth }: P
         >
             <Head title="Tambah Pengadaan" />
 
-            {/* Information Notice */}
-            <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4">
-                <div className="flex items-start">
-                    <div className="flex-shrink-0">
-                        <InformationCircleIcon className="h-5 w-5 text-blue-400" />
-                    </div>
-                    <div className="ml-3">
-                        <h3 className="text-sm font-medium text-blue-800">Sistem Otomatis Pengadaan</h3>
-                        <div className="mt-2 text-sm text-blue-700">
-                            <p>• Pilih pesanan untuk otomatis menghitung kebutuhan procurement</p>
-                            <p>• Sistem akan menghitung kebutuhan produk dan bahan baku berdasarkan stok yang ada</p>
-                            <p>• Jumlah procurement = EOQ + kekurangan stok untuk memenuhi pesanan</p>
-                            <p>• Anda dapat menambah item manual atau mengubah quantity sesuai kebutuhan</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             {/* Basic Information */}
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div>
@@ -407,11 +389,10 @@ export default function Create({ pemasoks, pesanan, bahanBaku, produk, auth }: P
             {/* Items Section */}
             <div className="border-t pt-6">
                 <div className="mb-4 flex items-center justify-between">
-                    <h3 className={cn(colors.text.primary, 'text-lg font-medium')}>Item Pengadaan</h3>
                     {showManualAdd && (
                         <Button type="button" onClick={addManualItem} variant="outline" size="sm" className="flex items-center gap-2">
                             <PlusIcon className="h-4 w-4" />
-                            Tambah Item Manual
+                            Tambah
                         </Button>
                     )}
                 </div>
@@ -444,7 +425,7 @@ export default function Create({ pemasoks, pesanan, bahanBaku, produk, auth }: P
                             >
                                 <div className="grid grid-cols-1 gap-4 md:grid-cols-6">
                                     <div>
-                                        <Label>Tipe Item</Label>
+                                        <Label>Tipe Barang</Label>
                                         <Select
                                             value={item.jenis_barang}
                                             onValueChange={(value: 'bahan_baku' | 'produk') => updateItem(index, 'jenis_barang', value)}
@@ -461,7 +442,7 @@ export default function Create({ pemasoks, pesanan, bahanBaku, produk, auth }: P
                                     </div>
 
                                     <div className="md:col-span-2">
-                                        <Label>Item</Label>
+                                        <Label>Nama Barang</Label>
                                         {isCalculatedItem ? (
                                             <div className="mt-1 rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-sm">
                                                 {item.nama_item} ({item.satuan})
@@ -483,7 +464,7 @@ export default function Create({ pemasoks, pesanan, bahanBaku, produk, auth }: P
                                     </div>
 
                                     <div className="md:col-span-2">
-                                        <Label>Pemasok *</Label>
+                                        <Label>Pemasok</Label>
                                         {item.jenis_barang === 'bahan_baku' ? (
                                             <>
                                                 {canInputSupplier() ? (
@@ -528,7 +509,7 @@ export default function Create({ pemasoks, pesanan, bahanBaku, produk, auth }: P
                                     {/* Qty and Remove Button */}
                                     <div className="flex items-end justify-between gap-2">
                                         <div className="flex-1">
-                                            <Label>Qty</Label>
+                                            <Label>Jumlah</Label>
                                             <Input
                                                 type="number"
                                                 value={item.qty_diminta}
@@ -588,7 +569,7 @@ export default function Create({ pemasoks, pesanan, bahanBaku, produk, auth }: P
                                 )}
 
                                 <div className="mt-4">
-                                    <Label>Catatan Item</Label>
+                                    <Label>Catatan</Label>
                                     <Textarea
                                         value={item.catatan}
                                         onChange={(e) => updateItem(index, 'catatan', e.target.value)}

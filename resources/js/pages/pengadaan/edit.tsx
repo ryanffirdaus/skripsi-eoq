@@ -130,36 +130,10 @@ export default function Edit({ pengadaan, pemasoks, statusOptions, auth }: Props
         >
             <Head title={`Ubah Pengadaan ${pengadaan.pengadaan_id}`} />
 
-            {/* Information Notice */}
-            <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4">
-                <div className="flex items-start">
-                    <div className="flex-shrink-0">
-                        <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
-                            <path
-                                fillRule="evenodd"
-                                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                                clipRule="evenodd"
-                            />
-                        </svg>
-                    </div>{' '}
-                    <div className="ml-3">
-                        <h3 className="text-sm font-medium text-blue-800">Informasi Edit Pengadaan</h3>
-                        <div className="mt-2 text-sm text-blue-700">
-                            <p>
-                                • Staf/Manajer Pengadaan dapat mengubah status, catatan, dan mengalokasikan pemasok saat status "Menunggu Alokasi
-                                Pemasok".
-                            </p>
-                            <p>• Harga satuan dapat diubah saat status Draft atau Menunggu Alokasi Pemasok.</p>
-                            <p>• Kuantitas dan jenis item tidak dapat diubah setelah pengadaan dibuat.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             {/* Basic Information */}
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div>
-                    <Label htmlFor="status">Status Pengadaan *</Label>
+                    <Label htmlFor="status">Status Pengadaan</Label>
                     <Select value={data.status} onValueChange={(value) => setData('status', value)}>
                         <SelectTrigger className={cn('mt-1', errors.status && 'border-red-500')}>
                             <SelectValue placeholder="Pilih Status" />
@@ -191,15 +165,13 @@ export default function Edit({ pengadaan, pemasoks, statusOptions, auth }: Props
 
             {/* Items Section */}
             <div className="border-t pt-6">
-                <h3 className={cn(colors.text.primary, 'mb-4 text-lg font-medium')}>Item Pengadaan</h3>
-
                 <div className="space-y-4">
                     {pengadaan.detail.map((item, index) => (
                         <div key={item.pengadaan_detail_id} className={cn('rounded-lg border bg-gray-50 p-4', colors.border.primary)}>
                             {/* Main grid for item layout */}
                             <div className="grid grid-cols-1 gap-x-4 gap-y-2 md:grid-cols-6">
                                 <div className="md:col-span-2">
-                                    <Label className="text-sm font-medium text-gray-700">Nama Item</Label>
+                                    <Label className="text-sm font-medium text-gray-700">Nama Barang</Label>
                                     <div className="mt-1 rounded border bg-white p-2 text-sm">{item.nama_item}</div>
                                 </div>
 
@@ -250,7 +222,7 @@ export default function Edit({ pengadaan, pemasoks, statusOptions, auth }: Props
                                 </div>
 
                                 <div>
-                                    <Label className="text-sm font-medium text-gray-700">Kuantitas</Label>
+                                    <Label className="text-sm font-medium text-gray-700">Jumlah</Label>
                                     <div className="mt-1 rounded border bg-white p-2 text-sm">
                                         {item.qty_diminta} {item.satuan}
                                     </div>
@@ -280,7 +252,7 @@ export default function Edit({ pengadaan, pemasoks, statusOptions, auth }: Props
                             </div>
                             {item.catatan && (
                                 <div className="mt-4">
-                                    <Label className="text-sm font-medium text-gray-700">Catatan Item</Label>
+                                    <Label className="text-sm font-medium text-gray-700">Catatan</Label>
                                     <div className="mt-1 rounded border bg-white p-2 text-sm">{item.catatan}</div>
                                 </div>
                             )}
@@ -293,23 +265,6 @@ export default function Edit({ pengadaan, pemasoks, statusOptions, auth }: Props
                         <span className="font-medium">Total Biaya Pengadaan:</span>
                         <span className="text-lg font-bold">Rp {calculateTotal().toLocaleString('id-ID')}</span>
                     </div>
-                </div>
-            </div>
-
-            {/* Current Status Info */}
-            <div className="border-t pt-6">
-                <h3 className={cn(colors.text.primary, 'mb-4 text-lg font-medium')}>Informasi Status</h3>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                    <div>
-                        <Label className="text-sm font-medium text-gray-700">Jenis Pengadaan</Label>
-                        <div className="mt-1 rounded border bg-white p-2 text-sm">{pengadaan.jenis_pengadaan.toUpperCase()}</div>
-                    </div>
-                    {pengadaan.pesanan_id && (
-                        <div>
-                            <Label className="text-sm font-medium text-gray-700">ID Pesanan Terkait</Label>
-                            <div className="mt-1 rounded border bg-white p-2 text-sm">{pengadaan.pesanan_id}</div>
-                        </div>
-                    )}
                 </div>
             </div>
         </FormTemplate>

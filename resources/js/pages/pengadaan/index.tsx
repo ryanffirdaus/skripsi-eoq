@@ -193,7 +193,7 @@ export default function Index({ pengadaan, filters, flash }: Props) {
         () => [
             {
                 key: 'pengadaan_id',
-                label: 'ID Pengadaan',
+                label: 'ID',
                 sortable: true,
                 hideable: true,
                 defaultVisible: true,
@@ -211,7 +211,7 @@ export default function Index({ pengadaan, filters, flash }: Props) {
             },
             {
                 key: 'total_biaya',
-                label: 'Total Biaya',
+                label: 'Biaya',
                 sortable: true,
                 hideable: true,
                 defaultVisible: true,

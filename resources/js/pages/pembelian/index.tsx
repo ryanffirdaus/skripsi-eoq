@@ -1,7 +1,7 @@
 import { createDeleteAction, createEditAction, createViewAction } from '@/components/table/table-actions';
 import TableTemplate from '@/components/table/table-template';
 import { Badge } from '@/components/ui/badge';
-import { formatCurrency, formatDate } from '@/lib/formatters';
+import { formatDate } from '@/lib/formatters';
 import { type BreadcrumbItem } from '@/types';
 import { router } from '@inertiajs/react';
 import { useMemo } from 'react';
@@ -109,7 +109,7 @@ export default function Index({ pembelian, filters, pemasoks, permissions, flash
         () => [
             {
                 key: 'pembelian_id',
-                label: 'No. PO',
+                label: 'ID',
                 sortable: true,
                 defaultVisible: true,
             },
@@ -121,17 +121,10 @@ export default function Index({ pembelian, filters, pemasoks, permissions, flash
             },
             {
                 key: 'tanggal_pembelian',
-                label: 'Tgl. Pembelian',
+                label: 'Tanggal Pembelian',
                 sortable: true,
                 defaultVisible: true,
                 render: (item: Record<string, unknown>) => formatDate((item as Pembelian).tanggal_pembelian),
-            },
-            {
-                key: 'total_biaya',
-                label: 'Total Biaya',
-                sortable: true,
-                defaultVisible: true,
-                render: (item: Record<string, unknown>) => formatCurrency((item as Pembelian).total_biaya),
             },
             {
                 key: 'status',
@@ -142,13 +135,6 @@ export default function Index({ pembelian, filters, pemasoks, permissions, flash
                     const po = item as Pembelian;
                     return getStatusBadge(po.status);
                 },
-            },
-            {
-                key: 'dibuat_oleh',
-                label: 'Dibuat Oleh',
-                sortable: false,
-                hideable: true,
-                defaultVisible: false,
             },
         ],
         [],
