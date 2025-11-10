@@ -6,7 +6,6 @@ import { colors } from '@/lib/colors';
 import { formatCurrency } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
 import { BreadcrumbItem } from '@/types';
-import { InformationCircleIcon } from '@heroicons/react/24/outline';
 import { Head, useForm } from '@inertiajs/react';
 import React from 'react';
 
@@ -25,7 +24,6 @@ interface Transaksi {
     jenis_pembayaran: string;
     tanggal_pembayaran: string;
     jumlah_pembayaran: number;
-    metode_pembayaran: string;
     bukti_pembayaran?: string;
     catatan?: string;
 }
@@ -46,7 +44,6 @@ export default function Edit({ transaksi }: Props) {
         jenis_pembayaran: transaksi.jenis_pembayaran,
         tanggal_pembayaran: transaksi.tanggal_pembayaran,
         jumlah_pembayaran: transaksi.jumlah_pembayaran.toString(),
-        metode_pembayaran: transaksi.metode_pembayaran,
         bukti_pembayaran: null as File | null,
         catatan: transaksi.catatan || '',
     });
@@ -58,38 +55,24 @@ export default function Edit({ transaksi }: Props) {
 
     return (
         <FormTemplate
-            title="Edit Transaksi Pembayaran"
+            title="Edit Pembayaran"
             breadcrumbs={breadcrumbs}
             backUrl="/transaksi-pembayaran"
             onSubmit={handleSubmit}
             processing={processing}
             processingText="Menyimpan..."
         >
-            <Head title={`Edit Transaksi ${transaksi.transaksi_pembayaran_id}`} />
-
-            <div className="mb-6 flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 p-4">
-                <InformationCircleIcon className="h-5 w-5 flex-shrink-0 text-blue-400" />
-                <div>
-                    <p className="text-sm text-blue-700">
-                        <strong>Informasi:</strong> Anda dapat mengubah tanggal, total pembayaran, atau mengganti bukti pembayaran. Purchase Order
-                        tidak dapat diubah.
-                    </p>
-                </div>
-            </div>
+            <Head title={`Edit Pembayaran ${transaksi.transaksi_pembayaran_id}`} />
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 {/* Read-only PO Info */}
-                <div className="md:col-span-2">
+                <div className="md:col-span-1">
                     <div className="rounded-lg border bg-gray-50 p-4">
-                        <h3 className={cn(colors.text.primary, 'mb-2 text-sm font-medium')}>Purchase Order</h3>
+                        <h3 className={cn(colors.text.primary, 'mb-2 text-sm font-medium')}>Pembelian</h3>
                         <div className="grid grid-cols-2 gap-3 text-sm">
                             <div>
                                 <span className="text-gray-600">No. PO:</span>
                                 <span className="ml-2 font-medium">{transaksi.pembelian_id}</span>
-                            </div>
-                            <div>
-                                <span className="text-gray-600">Pemasok:</span>
-                                <span className="ml-2 font-medium">{transaksi.pemasok_nama}</span>
                             </div>
                         </div>
                     </div>
@@ -134,31 +117,28 @@ export default function Edit({ transaksi }: Props) {
                     )}
                 </FormField>
 
-                <FormField id="metode_pembayaran" label="Metode Pembayaran" error={errors.metode_pembayaran} required>
-                    <Select value={data.metode_pembayaran} onValueChange={(value) => setData('metode_pembayaran', value)}>
-                        <SelectTrigger className={cn(errors.metode_pembayaran && 'border-red-500')}>
-                            <SelectValue placeholder="Pilih Metode Pembayaran" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="tunai">Tunai</SelectItem>
-                            <SelectItem value="transfer">Transfer</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </FormField>
-
-                <div className="md:col-span-2">
+                <div className="md:col-span-1">
                     <FormField id="bukti_pembayaran" label="Bukti Pembayaran" error={errors.bukti_pembayaran}>
                         {transaksi.bukti_pembayaran && !data.bukti_pembayaran && (
-                            <div className="mb-2 flex items-center gap-2 rounded-md bg-gray-100 p-2 text-sm">
-                                <span className="text-gray-600">Bukti saat ini:</span>
-                                <a
-                                    href={transaksi.bukti_pembayaran}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="font-medium text-blue-600 hover:underline"
-                                >
-                                    Lihat bukti
-                                </a>
+                            <div className="mb-2 rounded-md bg-blue-50 p-3 text-sm">
+                                <div className="mb-2 flex items-center justify-between">
+                                    <span className="font-medium text-blue-900">Bukti Pembayaran Saat Ini:</span>
+                                    <a
+                                        href={transaksi.bukti_pembayaran}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="rounded bg-blue-600 px-3 py-1 text-xs text-white hover:bg-blue-700"
+                                    >
+                                        Lihat Bukti
+                                    </a>
+                                </div>
+                                <div className="text-xs text-blue-700">{transaksi.bukti_pembayaran.split('/').pop()}</div>
+                            </div>
+                        )}
+                        {data.bukti_pembayaran && (
+                            <div className="mb-2 rounded-md bg-green-50 p-2 text-sm">
+                                <span className="text-green-700">File baru dipilih: </span>
+                                <span className="font-medium text-green-900">{data.bukti_pembayaran.name}</span>
                             </div>
                         )}
                         <Input
@@ -175,9 +155,10 @@ export default function Edit({ transaksi }: Props) {
                         <p className="mt-1 text-sm text-gray-500">Upload bukti pembayaran baru (JPG, PNG, PDF, max 2MB) - opsional</p>
                     </FormField>
                 </div>
+                <div className="md:col-span-1"></div>
 
-                <div className="md:col-span-2">
-                    <FormField id="catatan" label="catatan / Catatan" error={errors.catatan}>
+                <div className="md:col-span-1">
+                    <FormField id="catatan" label="Catatan" error={errors.catatan}>
                         <TextArea
                             id="catatan"
                             value={data.catatan}

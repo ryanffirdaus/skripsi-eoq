@@ -1,6 +1,6 @@
-import { createDeleteAction, createEditAction, createViewAction } from '@/components/table/table-actions';
+import { createDeleteAction, createEditAction } from '@/components/table/table-actions';
 import TableTemplate from '@/components/table/table-template';
-import { formatCurrency, formatDate } from '@/lib/formatters';
+import { formatDate } from '@/lib/formatters';
 import { type BreadcrumbItem } from '@/types';
 import { router } from '@inertiajs/react';
 import { useMemo } from 'react';
@@ -78,13 +78,7 @@ export default function Index({ transaksiPembayaran, filters, pembelians, permis
         () => [
             {
                 key: 'transaksi_pembayaran_id',
-                label: 'ID Transaksi',
-                sortable: true,
-                defaultVisible: true,
-            },
-            {
-                key: 'pembelian_id',
-                label: 'No. PO',
+                label: 'ID',
                 sortable: true,
                 defaultVisible: true,
             },
@@ -102,18 +96,10 @@ export default function Index({ transaksiPembayaran, filters, pembelians, permis
                 render: (item: Record<string, unknown>) => formatDate((item as TransaksiPembayaran).tanggal_pembayaran),
             },
             {
-                key: 'total_pembayaran',
-                label: 'Total Pembayaran',
-                sortable: true,
+                key: 'jenis_pembayaran',
+                label: 'Jenis Pembayaran',
+                sortable: false,
                 defaultVisible: true,
-                render: (item: Record<string, unknown>) => formatCurrency((item as TransaksiPembayaran).total_pembayaran),
-            },
-            {
-                key: 'created_at',
-                label: 'Dicatat Pada',
-                sortable: true,
-                hideable: true,
-                defaultVisible: false,
             },
         ],
         [],
@@ -138,10 +124,9 @@ export default function Index({ transaksiPembayaran, filters, pembelians, permis
         [pembelians],
     );
 
-    // 4. Aksi untuk setiap baris (view, edit, delete)
+    // 4. Aksi untuk setiap baris (edit, delete)
     const actions = useMemo(
         () => [
-            createViewAction<TransaksiPembayaran>((item) => `/transaksi-pembayaran/${item.transaksi_pembayaran_id}`),
             ...(permissions?.canEdit
                 ? [createEditAction<TransaksiPembayaran>((item) => `/transaksi-pembayaran/${item.transaksi_pembayaran_id}/edit`)]
                 : []),
@@ -158,7 +143,7 @@ export default function Index({ transaksiPembayaran, filters, pembelians, permis
 
     return (
         <TableTemplate<TransaksiPembayaran>
-            title="Manajemen Transaksi Pembayaran"
+            title="Manajemen Pembayaran"
             breadcrumbs={breadcrumbs}
             data={transaksiPembayaran}
             columns={columns}

@@ -52,7 +52,7 @@ class TransaksiPembayaranController extends Controller
         }
 
         // Terapkan sorting
-        $sortBy = $request->get('sort_by', 'tanggal_pembayaran');
+        $sortBy = $request->get('sort_by', 'transaksi_pembayaran_id');
         $sortDirection = $request->get('sort_direction', 'desc');
         $query->orderBy($sortBy, $sortDirection);
 
@@ -125,7 +125,7 @@ class TransaksiPembayaranController extends Controller
 
         // Ambil pembelian yang sudah dikonfirmasi (semua dulu)
         $allPembelians = Pembelian::with('pemasok:pemasok_id,nama_pemasok')
-            ->whereIn('status', ['dikonfirmasi', 'dipesan', 'dikirim', 'diterima'])
+            ->whereIn('status', ['draft', 'dikonfirmasi', 'dipesan', 'dikirim', 'diterima'])
             ->orderBy('tanggal_pembelian', 'desc')
             ->get();
 
@@ -234,9 +234,9 @@ class TransaksiPembayaranController extends Controller
 
         // Generate ID transaksi
         $lastTransaksi = TransaksiPembayaran::latest('transaksi_pembayaran_id')->first();
-        $lastNumber = $lastTransaksi ? (int) substr($lastTransaksi->transaksi_pembayaran_id, 3) : 0;
+        $lastNumber = $lastTransaksi ? (int) substr($lastTransaksi->transaksi_pembayaran_id, 2) : 0;
         $newNumber = $lastNumber + 1;
-        $transaksiId = 'TRX' . str_pad($newNumber, 8, '0', STR_PAD_LEFT);
+        $transaksiId = 'TP' . str_pad($newNumber, 4, '0', STR_PAD_LEFT);
 
         // Upload bukti pembayaran
         $buktiPath = null;
@@ -338,11 +338,12 @@ class TransaksiPembayaranController extends Controller
             ->orderBy('pembelian_id')
             ->get()
             ->map(function ($item) {
+                $pemasokNama = $item->pemasok->nama_pemasok ?? 'N/A';
                 return [
                     'pembelian_id' => $item->pembelian_id,
-                    'pemasok_nama' => $item->pemasok->nama_pemasok ?? 'N/A',
+                    'pemasok_nama' => $pemasokNama,
                     'total_biaya'  => (float) $item->total_biaya,
-                    'display_text' => "{$item->pembelian_id} - {$item->pemasok->nama_pemasok}",
+                    'display_text' => "{$item->pembelian_id} - {$pemasokNama} - Rp " . number_format((float) $item->total_biaya, 0, ',', '.'),
                 ];
             });
 
@@ -351,7 +352,7 @@ class TransaksiPembayaranController extends Controller
             'pembelian_id'            => $transaksiPembayaran->pembelian_id,
             'pemasok_nama'            => $transaksiPembayaran->pembelian->pemasok->nama_pemasok ?? 'N/A',
             'jenis_pembayaran'        => $transaksiPembayaran->jenis_pembayaran,
-            'tanggal_pembayaran'      => $transaksiPembayaran->tanggal_pembayaran,
+            'tanggal_pembayaran'      => date('Y-m-d', strtotime($transaksiPembayaran->tanggal_pembayaran)),
             'jumlah_pembayaran'       => (float) $transaksiPembayaran->total_pembayaran, // Fix: use total_pembayaran
             'bukti_pembayaran'        => $transaksiPembayaran->bukti_pembayaran
                 ? Storage::url($transaksiPembayaran->bukti_pembayaran)
