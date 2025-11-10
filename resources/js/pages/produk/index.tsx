@@ -105,14 +105,6 @@ export default function Index({ produk, filters, permissions, flash }: Props) {
             render: (item: Produk) => `${item.stok_produk} ${item.satuan_produk}`,
         },
         {
-            key: 'hpp_produk',
-            label: 'HPP',
-            sortable: true,
-            hideable: true,
-            defaultVisible: true,
-            render: (item: Produk) => formatCurrency(item.hpp_produk),
-        },
-        {
             key: 'harga_jual',
             label: 'Harga Jual',
             sortable: true,

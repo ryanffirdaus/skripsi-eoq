@@ -93,7 +93,7 @@ export default function Dashboard({ stats }: Props) {
                 />
                 <StatCard
                     icon={<Users className="h-6 w-6 text-orange-600" />}
-                    label="Total User"
+                    label="Total Pengguna"
                     value={stats.totalUsers || 0}
                     color="text-orange-600"
                 />
