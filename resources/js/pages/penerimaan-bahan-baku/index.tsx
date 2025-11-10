@@ -63,20 +63,9 @@ export default function Index({ penerimaan, filters, flash }: Props) {
     const columns = useMemo(
         () => [
             {
-                key: 'nomor_penerimaan',
-                label: 'Nomor Penerimaan',
+                key: 'penerimaan_id',
+                label: 'ID',
                 sortable: true,
-            },
-            {
-                key: 'nomor_surat_jalan',
-                label: 'No. Surat Jalan',
-                sortable: false,
-            },
-            {
-                key: 'pembelian_id',
-                label: 'No. PO Terkait',
-                sortable: false,
-                render: (item: Penerimaan) => item.pembelian?.pembelian_id || '-',
             },
             {
                 key: 'pemasok',
@@ -89,6 +78,12 @@ export default function Index({ penerimaan, filters, flash }: Props) {
                 label: 'Tanggal Diterima',
                 sortable: true,
                 render: (item: Penerimaan) => formatDate(item.tanggal_penerimaan),
+            },
+            {
+                key: 'pembelian_id',
+                label: 'ID Pembelian',
+                sortable: false,
+                render: (item: Penerimaan) => item.pembelian?.pembelian_id || '-',
             },
         ],
         [],
