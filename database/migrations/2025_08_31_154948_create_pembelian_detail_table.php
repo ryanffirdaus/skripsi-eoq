@@ -12,14 +12,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('pembelian_detail', function (Blueprint $table) {
-            $table->string('pembelian_detail_id', 11)->primary(); // PBD0000001
+            $table->string('pembelian_detail_id', 8)->primary(); // PBD0000001
 
             // Foreign key ke header pembelian
             $table->string('pembelian_id', 15)->index();
             $table->foreign('pembelian_id')->references('pembelian_id')->on('pembelian')->onDelete('cascade');
 
             // Foreign key ke detail pengadaan untuk traceability
-            $table->string('pengadaan_detail_id', 11)->index();
+            $table->string('pengadaan_detail_id', 8)->index();
             $table->foreign('pengadaan_detail_id')->references('pengadaan_detail_id')->on('pengadaan_detail')->onDelete('restrict');
 
             $table->timestamps();

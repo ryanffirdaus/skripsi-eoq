@@ -33,7 +33,7 @@ class PembelianDetail extends Model
             if (!$model->pembelian_detail_id) {
                 $latest = static::withTrashed()->orderBy('pembelian_detail_id', 'desc')->first();
                 $nextNumber = $latest ? (int)substr($latest->pembelian_detail_id, 3) + 1 : 1;
-                $model->pembelian_detail_id = 'PBD' . str_pad($nextNumber, 7, '0', STR_PAD_LEFT);
+                $model->pembelian_detail_id = 'PBD' . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
             }
         });
 

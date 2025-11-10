@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('bahan_produksi', function (Blueprint $table) {
-            $table->string('produk_id', 5)->nullable(); // PP001
-            $table->string('bahan_baku_id', 5)->nullable(); // BB001
+            $table->string('produk_id', 6)->nullable(); // PP001
+            $table->string('bahan_baku_id', 6)->nullable(); // BB001
             $table->integer('jumlah_bahan_baku');
 
             $table->foreign('produk_id')->references('produk_id')->on('produk')->onDelete('set null');

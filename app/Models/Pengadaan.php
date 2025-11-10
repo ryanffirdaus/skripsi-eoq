@@ -24,7 +24,6 @@ class Pengadaan extends Model
         'catatan',
         'alasan_penolakan',
         'ditolak_oleh',
-        'rejected_at',
         'dibuat_oleh',
         'diupdate_oleh',
         'dihapus_oleh'
@@ -40,7 +39,7 @@ class Pengadaan extends Model
             if (!$model->pengadaan_id) {
                 $latest = static::withTrashed()->orderBy('pengadaan_id', 'desc')->first();
                 $nextNumber = $latest ? (int)substr($latest->pengadaan_id, 2) + 1 : 1;
-                $model->pengadaan_id = 'PA' . str_pad($nextNumber, 7, '0', STR_PAD_LEFT);
+                $model->pengadaan_id = 'PG' . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
             }
 
             if (Auth::check()) {
@@ -295,7 +294,6 @@ class Pengadaan extends Model
             'status' => 'ditolak',
             'alasan_penolakan' => $reason,
             'ditolak_oleh' => Auth::user()->user_id,
-            'rejected_at' => now(),
         ]);
 
         return $this;

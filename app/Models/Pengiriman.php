@@ -67,13 +67,13 @@ class Pengiriman extends Model
         $lastId = static::withTrashed()->orderBy('pengiriman_id', 'desc')->first();
 
         if (!$lastId) {
-            return 'PG001';
+            return 'PGR001';
         }
 
-        $lastNumber = (int) substr($lastId->pengiriman_id, 2);
+        $lastNumber = (int) substr($lastId->pengiriman_id, 3);
         $newNumber = $lastNumber + 1;
 
-        return 'PG' . str_pad($newNumber, 3, '0', STR_PAD_LEFT);
+        return 'PGR' . str_pad($newNumber, 3, '0', STR_PAD_LEFT);
     }
 
     // Status Methods

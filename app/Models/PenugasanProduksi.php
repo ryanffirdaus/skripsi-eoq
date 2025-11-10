@@ -56,7 +56,7 @@ class PenugasanProduksi extends Model
             if (!$model->penugasan_id) {
                 $latest = static::withTrashed()->orderBy('penugasan_id', 'desc')->first();
                 $nextId = $latest ? (int) substr($latest->penugasan_id, 2) + 1 : 1;
-                $model->penugasan_id = 'PT' . str_pad($nextId, 7, '0', STR_PAD_LEFT);
+                $model->penugasan_id = 'PN' . str_pad($nextId, 3, '0', STR_PAD_LEFT);
             }
 
             if (Auth::check()) {

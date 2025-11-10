@@ -37,7 +37,7 @@ class PenerimaanBahanBaku extends Model
             if (!$model->getKey()) {
                 $latest = static::withTrashed()->orderBy('penerimaan_id', 'desc')->first();
                 $nextNumber = $latest ? (int)substr($latest->penerimaan_id, 2) + 1 : 1;
-                $model->{$model->getKeyName()} = 'PN' . str_pad($nextNumber, 7, '0', STR_PAD_LEFT);
+                $model->{$model->getKeyName()} = 'PN' . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
             }
             if (Auth::check() && !$model->dibuat_oleh) {
                 $model->dibuat_oleh = Auth::id();

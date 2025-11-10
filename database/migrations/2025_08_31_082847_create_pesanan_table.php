@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('pesanan', function (Blueprint $table) {
-            $table->string('pesanan_id', 5)->primary(); // PS001
-            $table->string('pelanggan_id', 5);
+            $table->string('pesanan_id', 6)->primary(); // PS001
+            $table->string('pelanggan_id', 6);
             $table->date('tanggal_pemesanan');
             $table->decimal('total_harga', 15, 2);
             $table->enum('status', ['menunggu', 'dikonfirmasi', 'diproses', 'siap', 'dikirim', 'diterima', 'dibatalkan', 'selesai'])->default('menunggu');

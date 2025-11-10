@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::dropIfExists('penugasan_produksi');
 
         Schema::create('penugasan_produksi', function (Blueprint $table) {
-            $table->string('penugasan_id', 10)->primary(); // PT0000001
-            $table->string('pengadaan_detail_id', 11);
+            $table->string('penugasan_id', 6)->primary(); // PT0000001
+            $table->string('pengadaan_detail_id', 8);
             $table->foreign('pengadaan_detail_id')->references('pengadaan_detail_id')->on('pengadaan_detail')->onDelete('cascade');
 
             // user_id: siapa yang ditugaskan

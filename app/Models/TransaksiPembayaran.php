@@ -42,7 +42,7 @@ class TransaksiPembayaran extends Model
             if (!$model->transaksi_pembayaran_id) {
                 $latest = static::withTrashed()->orderBy('transaksi_pembayaran_id', 'desc')->first();
                 $nextNumber = $latest ? (int)substr($latest->transaksi_pembayaran_id, 2) + 1 : 1;
-                $model->transaksi_pembayaran_id = 'TP' . str_pad($nextNumber, 8, '0', STR_PAD_LEFT);
+                $model->transaksi_pembayaran_id = 'TP' . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
             }
 
             if (Auth::check()) {

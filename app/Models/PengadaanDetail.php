@@ -45,7 +45,7 @@ class PengadaanDetail extends Model
             if (!$model->pengadaan_detail_id) {
                 $latest = static::withTrashed()->orderBy('pengadaan_detail_id', 'desc')->first();
                 $nextNumber = $latest ? (int)substr($latest->pengadaan_detail_id, 3) + 1 : 1;
-                $model->pengadaan_detail_id = 'PAD' . str_pad($nextNumber, 7, '0', STR_PAD_LEFT);
+                $model->pengadaan_detail_id = 'PGD' . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
             }
         });
 

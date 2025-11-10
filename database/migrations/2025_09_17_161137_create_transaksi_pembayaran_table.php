@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('transaksi_pembayaran', function (Blueprint $table) {
-            $table->string('transaksi_pembayaran_id', 11)->primary(); // TP00000001
+            $table->string('transaksi_pembayaran_id', 6)->primary(); // TP00000001
             $table->string('pembelian_id', 15);
             $table->foreign('pembelian_id')->references('pembelian_id')->on('pembelian');
             $table->enum('jenis_pembayaran', ['dp', 'termin', 'pelunasan'])->default('pelunasan');

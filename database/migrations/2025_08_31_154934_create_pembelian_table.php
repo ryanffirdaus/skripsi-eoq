@@ -15,18 +15,23 @@ return new class extends Migration
             $table->string('pembelian_id', 15)->primary(); // PO-2511-0001
 
             // Foreign key ke tabel pengadaan (permintaan internal)
-            $table->string('pengadaan_id', 10)->index();
+            $table->string('pengadaan_id', 6)->index();
             $table->foreign('pengadaan_id')->references('pengadaan_id')->on('pengadaan')->onDelete('restrict');
 
             // Foreign key ke tabel pemasok
-            $table->string('pemasok_id', 5)->index();
+            $table->string('pemasok_id', 6)->index();
             $table->foreign('pemasok_id')->references('pemasok_id')->on('pemasok')->onDelete('restrict');
+
             $table->date('tanggal_pembelian');
             $table->date('tanggal_kirim_diharapkan')->nullable();
+
             $table->decimal('total_biaya', 15, 2)->default(0);
             $table->string('metode_pembayaran', 15)->default('tunai')->comment('tunai, transfer, termin');
+
             $table->string('termin_pembayaran', 50)->nullable()->comment('contoh: 30% DP, 70% saat kirim');
+
             $table->decimal('jumlah_dp', 15, 2)->default(0)->comment('Jumlah uang muka / down payment');
+
             $table->enum('status', ['draft', 'menunggu', 'dipesan', 'dikirim', 'dikonfirmasi', 'diterima', 'dibatalkan'])->default('draft');
             $table->text('catatan')->nullable();
 
