@@ -33,7 +33,7 @@ interface Props {
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
     { title: 'Penerimaan Bahan Baku', href: '/penerimaan-bahan-baku' },
-    { title: 'Tambah Penerimaan Bahan Baku', href: '#' },
+    { title: 'Tambah Penerimaan', href: '#' },
 ];
 
 export default function Create({ pembelians = [] }: Props) {
@@ -111,14 +111,14 @@ export default function Create({ pembelians = [] }: Props) {
 
     return (
         <FormTemplate
-            title="Tambah Penerimaan Bahan Baku"
+            title="Tambah Penerimaan"
             backUrl="/penerimaan-bahan-baku"
             onSubmit={handleSubmit}
             processing={processing}
             breadcrumbs={breadcrumbs}
             processingText="Menyimpan..."
         >
-            <Head title="Tambah Penerimaan Bahan Baku" />
+            <Head title="Tambah Penerimaan" />
 
             <div className="grid grid-cols-2 gap-6 md:grid-cols-2">
                 <div>
