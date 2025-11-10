@@ -3,7 +3,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { colors } from '@/lib/colors';
 import { formatCurrency } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
 import { BreadcrumbItem } from '@/types';
@@ -124,11 +123,7 @@ export default function Edit({ pembelian, pemasoks, statusOptions, auth }: Props
             {/* Header PO */}
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div>
-                    <Label>Nomor PO</Label>
-                    <Input value={pembelian.pembelian_id} disabled className="mt-1 bg-gray-100" />
-                </div>
-                <div>
-                    <Label>Berdasarkan Pengadaan</Label>
+                    <Label>Pengadaan</Label>
                     <Input value={pembelian.pengadaan_id || '-'} disabled className="mt-1 bg-gray-100" />
                 </div>
                 <div>
@@ -151,7 +146,32 @@ export default function Edit({ pembelian, pemasoks, statusOptions, auth }: Props
                 </div>
 
                 <div>
-                    <Label htmlFor="status">Status Pembelian *</Label>
+                    <Label htmlFor="tanggal_pembelian">Tanggal Pembelian *</Label>
+                    <Input
+                        id="tanggal_pembelian"
+                        type="date"
+                        value={data.tanggal_pembelian}
+                        onChange={(e) => setData('tanggal_pembelian', e.target.value)}
+                        className={cn('mt-1', errors.tanggal_pembelian && 'border-red-500')}
+                        disabled={!pembelian.can_be_edited}
+                    />
+                    {errors.tanggal_pembelian && <p className="mt-1 text-sm text-red-600">{errors.tanggal_pembelian}</p>}
+                </div>
+                <div className="md:col-span-1">
+                    <Label htmlFor="tanggal_kirim_diharapkan">Tanggal Kirim Diharapkan</Label>
+                    <Input
+                        id="tanggal_kirim_diharapkan"
+                        type="date"
+                        value={data.tanggal_kirim_diharapkan}
+                        onChange={(e) => setData('tanggal_kirim_diharapkan', e.target.value)}
+                        className="mt-1"
+                        disabled={!pembelian.can_be_edited}
+                    />
+                    {errors.tanggal_kirim_diharapkan && <p className="mt-1 text-sm text-red-600">{errors.tanggal_kirim_diharapkan}</p>}
+                </div>
+
+                <div>
+                    <Label htmlFor="status">Status *</Label>
                     <Select value={data.status} onValueChange={(value) => setData('status', value)}>
                         <SelectTrigger className={cn('mt-1', errors.status && 'border-red-500')}>
                             <SelectValue placeholder="Pilih Status" />
@@ -165,31 +185,6 @@ export default function Edit({ pembelian, pemasoks, statusOptions, auth }: Props
                         </SelectContent>
                     </Select>
                     {errors.status && <p className="mt-1 text-sm text-red-600">{errors.status}</p>}
-                </div>
-
-                <div>
-                    <Label htmlFor="tanggal_pembelian">Tanggal Pembelian *</Label>
-                    <Input
-                        id="tanggal_pembelian"
-                        type="date"
-                        value={data.tanggal_pembelian}
-                        onChange={(e) => setData('tanggal_pembelian', e.target.value)}
-                        className={cn('mt-1', errors.tanggal_pembelian && 'border-red-500')}
-                        disabled={!pembelian.can_be_edited}
-                    />
-                    {errors.tanggal_pembelian && <p className="mt-1 text-sm text-red-600">{errors.tanggal_pembelian}</p>}
-                </div>
-                <div className="md:col-span-2">
-                    <Label htmlFor="tanggal_kirim_diharapkan">Tanggal Kirim Diharapkan</Label>
-                    <Input
-                        id="tanggal_kirim_diharapkan"
-                        type="date"
-                        value={data.tanggal_kirim_diharapkan}
-                        onChange={(e) => setData('tanggal_kirim_diharapkan', e.target.value)}
-                        className="mt-1"
-                        disabled={!pembelian.can_be_edited}
-                    />
-                    {errors.tanggal_kirim_diharapkan && <p className="mt-1 text-sm text-red-600">{errors.tanggal_kirim_diharapkan}</p>}
                 </div>
                 <div>
                     <Label htmlFor="metode_pembayaran">Metode Pembayaran *</Label>
@@ -238,7 +233,7 @@ export default function Edit({ pembelian, pemasoks, statusOptions, auth }: Props
                         </div>
                     </>
                 )}
-                <div className="md:col-span-2">
+                <div className="md:col-span-1">
                     <Label htmlFor="catatan">Catatan</Label>
                     <Textarea
                         id="catatan"
@@ -254,7 +249,6 @@ export default function Edit({ pembelian, pemasoks, statusOptions, auth }: Props
 
             {/* Detail Item Pembelian */}
             <div className="mt-8 border-t pt-6">
-                <h3 className={cn(colors.text.primary, 'text-lg font-medium')}>Item Purchase Order</h3>
                 <div className="mt-4 space-y-4">
                     {data.items.map((item, index) => (
                         <div key={item.pembelian_detail_id} className="rounded-lg border bg-white p-4">
@@ -264,7 +258,7 @@ export default function Edit({ pembelian, pemasoks, statusOptions, auth }: Props
                                     <p className="text-sm text-gray-500">Satuan: {item.satuan}</p>
                                 </div>
                                 <div className="md:col-span-2">
-                                    <Label htmlFor={`harga-${index}`}>Harga Satuan</Label>
+                                    <Label htmlFor={`harga-${index}`}>Harga</Label>
                                     <Input
                                         id={`harga-${index}`}
                                         type="number"
@@ -275,7 +269,7 @@ export default function Edit({ pembelian, pemasoks, statusOptions, auth }: Props
                                     />
                                 </div>
                                 <div className="md:col-span-2">
-                                    <Label htmlFor={`qty-${index}`}>Qty Dipesan</Label>
+                                    <Label htmlFor={`qty-${index}`}>Jumlah</Label>
                                     <Input
                                         id={`qty-${index}`}
                                         type="number"

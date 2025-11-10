@@ -1,4 +1,4 @@
-import { createDeleteAction, createEditAction, createViewAction } from '@/components/table/table-actions';
+import { createDeleteAction, createEditAction } from '@/components/table/table-actions';
 import TableTemplate from '@/components/table/table-template';
 import { Badge } from '@/components/ui/badge';
 import { formatDate } from '@/lib/formatters';
@@ -174,7 +174,7 @@ export default function Index({ pembelian, filters, pemasoks, permissions, flash
     // 7. Aksi untuk setiap baris (view, edit, delete)
     const actions = useMemo(
         () => [
-            createViewAction<Pembelian>((item) => `/pembelian/${item.pembelian_id}`),
+            // createViewAction<Pembelian>((item) => `/pembelian/${item.pembelian_id}`),
             ...(permissions?.canEdit
                 ? [
                       createEditAction<Pembelian>(

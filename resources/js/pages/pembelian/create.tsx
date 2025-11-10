@@ -4,7 +4,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { colors } from '@/lib/colors';
 import { formatCurrency } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
 import { BreadcrumbItem } from '@/types';
@@ -204,7 +203,7 @@ export default function Create({ pengadaans, pemasoks }: Props) {
                     {errors.tanggal_pembelian && <p className="mt-1 text-sm text-red-600">{errors.tanggal_pembelian}</p>}
                 </div>
 
-                <div className="md:col-span-2">
+                <div className="md:col-span-1">
                     <Label htmlFor="tanggal_kirim_diharapkan">Tanggal Kirim Diharapkan</Label>
                     <Input
                         id="tanggal_kirim_diharapkan"
@@ -219,7 +218,6 @@ export default function Create({ pengadaans, pemasoks }: Props) {
 
             {/* Payment Section */}
             <div className="mt-8 border-t pt-6">
-                <h3 className={cn(colors.text.primary, 'mb-4 text-lg font-medium')}>Informasi Pembayaran</h3>
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                     <div>
                         <Label htmlFor="metode_pembayaran">Metode Pembayaran *</Label>
@@ -295,8 +293,6 @@ export default function Create({ pengadaans, pemasoks }: Props) {
 
             {/* Detail Item Pembelian */}
             <div className="mt-8 border-t pt-6">
-                <h3 className={cn(colors.text.primary, 'text-lg font-medium')}>Item Purchase Order</h3>
-
                 {data.items.length === 0 ? (
                     <div className="mt-4 rounded-lg border-2 border-dashed border-gray-300 p-8 text-center">
                         <p className="text-sm text-gray-500">Pilih Pengadaan dan Pemasok untuk memuat item.</p>
@@ -311,11 +307,11 @@ export default function Create({ pengadaans, pemasoks }: Props) {
                                         <p className="text-sm text-gray-500">{item.jenis_barang === 'bahan_baku' ? 'Bahan Baku' : 'Produk'}</p>
                                     </div>
                                     <div className="md:col-span-2">
-                                        <Label>Harga Satuan</Label>
+                                        <Label>Harga</Label>
                                         <p className="mt-1 text-sm">{formatCurrency(item.harga_satuan)}</p>
                                     </div>
                                     <div className="md:col-span-3">
-                                        <Label htmlFor={`qty-${index}`}>Qty Dipesan ({item.satuan})</Label>
+                                        <Label htmlFor={`qty-${index}`}>Jumlah ({item.satuan})</Label>
                                         <div className="mt-1 flex items-center gap-2">
                                             <Input
                                                 id={`qty-${index}`}
