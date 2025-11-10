@@ -103,23 +103,15 @@ export default function Edit({ penugasan, workers, isWorker }: Props) {
             submitText="Update Penugasan"
             processingText="Updating..."
         >
-            {/* Item Produksi Info (read-only) */}
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Item Produksi</label>
+                {/* Row 1: Produk (col 1) & Staf/Deadline (col 2) */}
+                <FormField id="produk" label="Produk" required>
                     <div className="rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                         {penugasan.pengadaan_detail?.nama_item || '-'}
                     </div>
-                </div>
+                </FormField>
 
-                <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Satuan</label>
-                    <div className="rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                        {penugasan.pengadaan_detail?.satuan || '-'}
-                    </div>
-                </div>
-
-                {!isWorker && (
+                {!isWorker ? (
                     <FormField id="user_id" label="Staf" error={errorRecord.user_id} required>
                         <Select
                             id="user_id"
@@ -130,74 +122,86 @@ export default function Edit({ penugasan, workers, isWorker }: Props) {
                             error={errorRecord.user_id}
                         />
                     </FormField>
+                ) : (
+                    <FormField id="deadline" label="Deadline" error={errorRecord.deadline} required>
+                        <div className="rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                            {new Date(penugasan.deadline).toLocaleDateString('id-ID', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric',
+                            })}
+                        </div>
+                    </FormField>
                 )}
 
-                {isWorker && (
-                    <div>
-                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Worker</label>
-                        <div className="rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                            {penugasan.user?.nama_lengkap || '-'}
-                        </div>
+                {/* Row 2: Jumlah Produksi (col 1) & Deadline/Status (col 2) */}
+                {!isWorker ? (
+                    <>
+                        <FormField
+                            id="jumlah_produksi"
+                            label={`Jumlah Produksi${maxQty > 0 ? ` (Max: ${maxQty})` : ''}`}
+                            error={errorRecord.jumlah_produksi}
+                            required
+                        >
+                            <TextInput
+                                id="jumlah_produksi"
+                                type="number"
+                                min="1"
+                                max={maxQty || undefined}
+                                value={data.jumlah_produksi || ''}
+                                onChange={(e) => setData('jumlah_produksi', e.target.value)}
+                                placeholder="Masukkan jumlah produksi"
+                                error={errorRecord.jumlah_produksi}
+                            />
+                        </FormField>
+
+                        <FormField id="deadline" label="Deadline" error={errorRecord.deadline} required>
+                            <TextInput
+                                id="deadline"
+                                type="date"
+                                value={data.deadline || ''}
+                                onChange={(e) => setData('deadline', e.target.value)}
+                                error={errorRecord.deadline}
+                            />
+                        </FormField>
+                    </>
+                ) : (
+                    <>
+                        <FormField id="jumlah_produksi" label="Jumlah Produksi" required>
+                            <div className="rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                {penugasan.jumlah_produksi} {penugasan.pengadaan_detail?.satuan || ''}
+                            </div>
+                        </FormField>
+
+                        <FormField id="status" label="Status" error={errorRecord.status} required>
+                            <Select
+                                id="status"
+                                value={data.status}
+                                onChange={(e) => setData('status', e.target.value)}
+                                options={statusOptions}
+                                placeholder="Pilih Status"
+                                error={errorRecord.status}
+                            />
+                        </FormField>
+                    </>
+                )}
+
+                {/* Row 3: Catatan (col 1) */}
+                {!isWorker && (
+                    <div className="sm:col-span-2">
+                        <FormField id="catatan" label="Catatan" error={errorRecord.catatan}>
+                            <TextArea
+                                id="catatan"
+                                value={data.catatan || ''}
+                                onChange={(e) => setData('catatan', e.target.value)}
+                                placeholder="Masukkan catatan (opsional)"
+                                error={errorRecord.catatan}
+                                rows={3}
+                            />
+                        </FormField>
                     </div>
                 )}
-
-                {!isWorker && (
-                    <FormField
-                        id="jumlah_produksi"
-                        label={`Jumlah Produksi${maxQty > 0 ? ` (Max: ${maxQty})` : ''}`}
-                        error={errorRecord.jumlah_produksi}
-                        required
-                    >
-                        <TextInput
-                            id="jumlah_produksi"
-                            type="number"
-                            min="1"
-                            max={maxQty || undefined}
-                            value={data.jumlah_produksi || ''}
-                            onChange={(e) => setData('jumlah_produksi', e.target.value)}
-                            placeholder="Masukkan jumlah produksi"
-                            error={errorRecord.jumlah_produksi}
-                        />
-                    </FormField>
-                )}
-
-                {!isWorker && (
-                    <FormField id="deadline" label="Deadline" error={errorRecord.deadline} required>
-                        <TextInput
-                            id="deadline"
-                            type="date"
-                            value={data.deadline || ''}
-                            onChange={(e) => setData('deadline', e.target.value)}
-                            error={errorRecord.deadline}
-                        />
-                    </FormField>
-                )}
-
-                <FormField id="status" label="Status" error={errorRecord.status} required>
-                    <Select
-                        id="status"
-                        value={data.status}
-                        onChange={(e) => setData('status', e.target.value)}
-                        options={statusOptions}
-                        placeholder="Pilih Status"
-                        error={errorRecord.status}
-                    />
-                </FormField>
             </div>
-
-            {!isWorker && (
-                <div className="mt-6">
-                    <FormField id="catatan" label="Catatan" error={errorRecord.catatan}>
-                        <TextArea
-                            id="catatan"
-                            value={data.catatan || ''}
-                            onChange={(e) => setData('catatan', e.target.value)}
-                            placeholder="Masukkan catatan (opsional)"
-                            error={errorRecord.catatan}
-                        />
-                    </FormField>
-                </div>
-            )}
         </FormTemplate>
     );
 }

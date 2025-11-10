@@ -5,7 +5,6 @@ import { colors } from '@/lib/colors';
 import { formatCurrency } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
 import { BreadcrumbItem } from '@/types';
-import { InformationCircleIcon } from '@heroicons/react/24/outline';
 import { Head, useForm } from '@inertiajs/react';
 import React from 'react';
 
@@ -40,8 +39,6 @@ export default function Create({ pembelians }: Props) {
         jenis_pembayaran: 'pelunasan' as 'dp' | 'termin' | 'pelunasan',
         tanggal_pembayaran: new Date().toISOString().split('T')[0],
         jumlah_pembayaran: '',
-        metode_pembayaran: 'transfer' as string,
-        nomor_referensi: '',
         catatan: '',
         bukti_pembayaran: null as File | null,
     });
@@ -65,7 +62,7 @@ export default function Create({ pembelians }: Props) {
         } else {
             setData('jumlah_pembayaran', '');
         }
-    }, [selectedPembelian, data.jenis_pembayaran]);
+    }, [selectedPembelian, data.jenis_pembayaran, setData]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -83,28 +80,18 @@ export default function Create({ pembelians }: Props) {
 
     return (
         <FormTemplate
-            title="Tambah Transaksi Pembayaran"
+            title="Tambah Pembayaran"
             breadcrumbs={breadcrumbs}
             backUrl="/transaksi-pembayaran"
             onSubmit={handleSubmit}
             processing={processing}
             processingText="Menyimpan..."
         >
-            <Head title="Tambah Transaksi Pembayaran" />
-
-            <div className="mb-6 flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 p-4">
-                <InformationCircleIcon className="h-5 w-5 flex-shrink-0 text-blue-400" />
-                <div>
-                    <p className="text-sm text-blue-700">
-                        <strong>Informasi:</strong> Pilih Purchase Order yang akan dibayar, lalu upload bukti pembayaran. Total pembayaran akan
-                        otomatis terisi sesuai total PO.
-                    </p>
-                </div>
-            </div>
+            <Head title="Tambah Pembayaran" />
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                <div className="md:col-span-2">
-                    <FormField id="pembelian_id" label="Purchase Order (PO)" error={errors.pembelian_id} required>
+                <div className="md:col-span-1">
+                    <FormField id="pembelian_id" label="Pembelian" error={errors.pembelian_id} required>
                         <Select
                             id="pembelian_id"
                             value={data.pembelian_id}
@@ -169,7 +156,7 @@ export default function Create({ pembelians }: Props) {
                     </div>
                 )}
 
-                <div className="md:col-span-2">
+                <div className="md:col-span-1">
                     <FormField id="jenis_pembayaran" label="Jenis Pembayaran" error={errors.jenis_pembayaran} required>
                         <Select
                             id="jenis_pembayaran"
@@ -219,32 +206,7 @@ export default function Create({ pembelians }: Props) {
                     )}
                 </FormField>
 
-                <FormField id="metode_pembayaran" label="Metode Pembayaran" error={errors.metode_pembayaran} required>
-                    <Select
-                        id="metode_pembayaran"
-                        value={data.metode_pembayaran}
-                        onChange={(e) => setData('metode_pembayaran', e.target.value)}
-                        options={[
-                            { value: 'transfer', label: 'Transfer Bank' },
-                            { value: 'tunai', label: 'Tunai' },
-                            { value: 'cek', label: 'Cek' },
-                            { value: 'giro', label: 'Giro' },
-                        ]}
-                        error={errors.metode_pembayaran}
-                    />
-                </FormField>
-
-                <FormField id="nomor_referensi" label="Nomor Referensi" error={errors.nomor_referensi}>
-                    <TextInput
-                        id="nomor_referensi"
-                        value={data.nomor_referensi}
-                        onChange={(e) => setData('nomor_referensi', e.target.value)}
-                        placeholder="Nomor transaksi bank / referensi"
-                        error={errors.nomor_referensi}
-                    />
-                </FormField>
-
-                <div className="md:col-span-2">
+                <div className="md:col-span-1">
                     <FormField id="bukti_pembayaran" label="Bukti Pembayaran" error={errors.bukti_pembayaran} required>
                         <Input
                             id="bukti_pembayaran"
