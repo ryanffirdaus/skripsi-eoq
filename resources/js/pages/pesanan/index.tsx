@@ -1,6 +1,5 @@
 import { createDeleteAction, createEditAction } from '@/components/table/table-actions';
 import TableTemplate from '@/components/table/table-template';
-import { formatCurrency } from '@/lib/formatters';
 import { type BreadcrumbItem } from '@/types';
 import { router } from '@inertiajs/react';
 import { useMemo } from 'react';
@@ -12,7 +11,7 @@ interface Pesanan extends Record<string, unknown> {
     tanggal_pemesanan: string;
     total_harga: number;
     jumlah_produk: number;
-    status: 'menunggu' | 'dikonfirmasi' | 'diproses' | 'dikirim' | 'selesai' | 'dibatalkan';
+    status: 'menunggu' | 'dikonfirmasi' | 'diproses' | 'siap' | 'dikirim' | 'diterima' | 'dibatalkan' | 'selesai';
     created_at: string;
     updated_at: string;
 }
@@ -68,7 +67,9 @@ const statusColors = {
     menunggu: 'bg-yellow-100 text-yellow-800',
     dikonfirmasi: 'bg-blue-100 text-blue-800',
     diproses: 'bg-purple-100 text-purple-800',
+    siap: 'bg-cyan-100 text-cyan-800',
     dikirim: 'bg-indigo-100 text-indigo-800',
+    diterima: 'bg-teal-100 text-teal-800',
     selesai: 'bg-green-100 text-green-800',
     dibatalkan: 'bg-red-100 text-red-800',
 };
@@ -77,7 +78,9 @@ const statusLabels = {
     menunggu: 'Menunggu',
     dikonfirmasi: 'Dikonfirmasi',
     diproses: 'Diproses',
+    siap: 'Siap',
     dikirim: 'Dikirim',
+    diterima: 'Diterima',
     selesai: 'Selesai',
     dibatalkan: 'Dibatalkan',
 };
@@ -109,14 +112,6 @@ export default function Index({ pesanan, filters, permissions, flash }: Props) {
                 render: (item: Pesanan) => new Date(item.tanggal_pemesanan).toLocaleDateString('id-ID'),
             },
             {
-                key: 'total_harga',
-                label: 'Total Harga',
-                sortable: true,
-                hideable: true,
-                defaultVisible: true,
-                render: (item: Pesanan) => formatCurrency(item.total_harga),
-            },
-            {
                 key: 'status',
                 label: 'Status',
                 sortable: true,
@@ -127,22 +122,6 @@ export default function Index({ pesanan, filters, permissions, flash }: Props) {
                         {statusLabels[item.status]}
                     </span>
                 ),
-            },
-            {
-                key: 'produk_count',
-                label: 'Jumlah Produk',
-                sortable: false,
-                hideable: true,
-                defaultVisible: true,
-                render: (item: Pesanan) => `${item.jumlah_produk || 0} item`,
-            },
-            {
-                key: 'created_at',
-                label: 'Dibuat',
-                sortable: true,
-                hideable: true,
-                defaultVisible: false,
-                render: (item: Pesanan) => new Date(item.created_at).toLocaleDateString('id-ID'),
             },
         ],
         [],
@@ -159,7 +138,9 @@ export default function Index({ pesanan, filters, permissions, flash }: Props) {
                     { value: 'menunggu', label: 'Menunggu' },
                     { value: 'dikonfirmasi', label: 'Dikonfirmasi' },
                     { value: 'diproses', label: 'Diproses' },
+                    { value: 'siap', label: 'Siap' },
                     { value: 'dikirim', label: 'Dikirim' },
+                    { value: 'diterima', label: 'Diterima' },
                     { value: 'selesai', label: 'Selesai' },
                     { value: 'dibatalkan', label: 'Dibatalkan' },
                 ],

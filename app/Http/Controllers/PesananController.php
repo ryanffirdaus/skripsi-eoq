@@ -12,15 +12,11 @@ use Inertia\Inertia;
 
 class PesananController extends Controller
 {
-    use AuthorizesRequests;
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
-        // Check authorization
-        $this->authorize('viewAny', Pesanan::class);
-
         // Ambil query params
         $search = $request->input('search');
         $status = $request->input('status'); // filter status
@@ -108,7 +104,9 @@ class PesananController extends Controller
      */
     public function create()
     {
-        $this->authorize('create', Pesanan::class);
+        if (!$this->isAdmin() && !$this->isStafPenjualan()) {
+            abort(403, 'Anda tidak memiliki izin untuk membuat pesanan.');
+        }
 
         $pelanggan = Pelanggan::all();
         $produk = Produk::all();
@@ -124,8 +122,9 @@ class PesananController extends Controller
      */
     public function store(Request $request)
     {
-        $this->authorize('create', Pesanan::class);
-
+        if (!$this->isAdmin() && !$this->isStafPenjualan()) {
+            abort(403, 'Anda tidak memiliki izin untuk membuat pesanan.');
+        }
         $validated = $request->validate([
             'pelanggan_id' => 'required|exists:pelanggan,pelanggan_id',
             'tanggal_pemesanan' => 'required|date',
@@ -192,8 +191,9 @@ class PesananController extends Controller
     public function edit($pesanan_id)
     {
         $pesanan = Pesanan::with(['pelanggan', 'detail.produk'])->where('pesanan_id', $pesanan_id)->firstOrFail();
-        $this->authorize('update', $pesanan);
-
+        if (!$this->isAdmin() && !$this->isStafPenjualan()) {
+            abort(403, 'Anda tidak memiliki izin untuk mengedit pesanan.');
+        }
         $pelanggan = Pelanggan::all();
         $produk = Produk::all();
 
@@ -210,8 +210,9 @@ class PesananController extends Controller
     public function update(Request $request, $pesanan_id)
     {
         $pesanan = Pesanan::where('pesanan_id', $pesanan_id)->firstOrFail();
-        $this->authorize('update', $pesanan);
-
+        if (!$this->isAdmin() && !$this->isStafPenjualan()) {
+            abort(403, 'Anda tidak memiliki izin untuk mengedit pesanan.');
+        }
         $validated = $request->validate([
             'pelanggan_id' => 'required|exists:pelanggan,pelanggan_id',
             'tanggal_pemesanan' => 'required|date',
@@ -259,8 +260,9 @@ class PesananController extends Controller
     public function destroy($pesanan_id)
     {
         $pesanan = Pesanan::where('pesanan_id', $pesanan_id)->firstOrFail();
-        $this->authorize('delete', $pesanan);
-
+        if (!$this->isAdmin() && !$this->isStafPenjualan()) {
+            abort(403, 'Anda tidak memiliki izin untuk menghapus pesanan.');
+        }
         $pesanan->delete();
 
         return redirect()->route('pesanan.index')->with('flash', [

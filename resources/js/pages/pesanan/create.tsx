@@ -130,18 +130,6 @@ export default function Create({ pelanggan, produk }: Props) {
                 </div>
 
                 <div>
-                    <label className={cn('mb-1 block text-sm font-medium', colors.label.base)}>Catatan</label>
-                    <textarea
-                        value={data.catatan}
-                        onChange={(e) => setData('catatan', e.target.value)}
-                        className={cn(colors.input.base, errors.catatan && colors.input.error)}
-                        placeholder="Masukkan catatan terkait pelanggan"
-                        rows={3}
-                    />
-                    {errors.catatan && <p className={colors.text.error}>{errors.catatan}</p>}
-                </div>
-
-                <div>
                     <label className={cn('mb-1 block text-sm font-medium', colors.label.base)}>
                         Tanggal Pemesanan <span className="text-red-500">*</span>
                     </label>
@@ -153,6 +141,18 @@ export default function Create({ pelanggan, produk }: Props) {
                         required
                     />
                     {errors.tanggal_pemesanan && <p className={colors.text.error}>{errors.tanggal_pemesanan}</p>}
+                </div>
+
+                <div>
+                    <label className={cn('mb-1 block text-sm font-medium', colors.label.base)}>Catatan</label>
+                    <textarea
+                        value={data.catatan}
+                        onChange={(e) => setData('catatan', e.target.value)}
+                        className={cn(colors.input.base, errors.catatan && colors.input.error)}
+                        placeholder="Masukkan catatan terkait pelanggan"
+                        rows={3}
+                    />
+                    {errors.catatan && <p className={colors.text.error}>{errors.catatan}</p>}
                 </div>
             </div>
 
