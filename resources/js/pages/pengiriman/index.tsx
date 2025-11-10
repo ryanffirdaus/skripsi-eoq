@@ -196,10 +196,7 @@ export default function Index({ pengiriman, filters, flash }: Props) {
 
     const actions = useMemo(
         () => [
-            createEditAction<Pengiriman>(
-                (item) => `/pengiriman/${item.pengiriman_id}/edit`,
-                (item) => item.status !== 'selesai' && item.status !== 'dibatalkan',
-            ),
+            createEditAction<Pengiriman>((item) => `/pengiriman/${item.pengiriman_id}/edit`),
             createDeleteAction<Pengiriman>((item) => {
                 router.delete(`/pengiriman/${item.pengiriman_id}`, {
                     preserveState: false,

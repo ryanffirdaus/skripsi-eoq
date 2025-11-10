@@ -182,7 +182,7 @@ export default function Create({ pesanan }: Props) {
                     </FormField>
 
                     {/* Baris 2: Nomor Resi */}
-                    <FormField id="nomor_resi" label="Nomor Resi (Opsional)" error={errors.nomor_resi}>
+                    <FormField id="nomor_resi" label="Nomor Resi" error={errors.nomor_resi}>
                         <TextInput
                             id="nomor_resi"
                             type="text"

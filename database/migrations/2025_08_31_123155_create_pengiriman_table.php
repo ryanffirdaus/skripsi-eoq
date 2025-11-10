@@ -24,10 +24,10 @@ return new class extends Migration
 
             // Status Pengiriman
             $table->enum('status', [
-                'pending',      // Menunggu dikirim
-                'dikirim',      // Sudah dikirim
-                'selesai',    // Terkirim
-                'dibatalkan'     // Dibatalkan
+                'pending',
+                'dikirim',
+                'selesai',
+                'dibatalkan'
             ])->default('pending');
 
             // Tanggal Penting
