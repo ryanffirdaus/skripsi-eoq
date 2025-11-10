@@ -143,33 +143,6 @@ export default function Index({ penugasan, filters, userRole, flash }: Props) {
             },
         },
         {
-            key: 'user_id',
-            label: 'Petugas',
-            sortable: false,
-            hideable: true,
-            defaultVisible: true,
-            render: (item: Penugasan) => item.user?.nama_lengkap || '-',
-        },
-        {
-            key: 'dibuat_oleh',
-            label: 'Supervisor',
-            sortable: false,
-            hideable: true,
-            defaultVisible: false,
-            render: (item: Penugasan) => {
-                // Handle multiple possible field names due to snake_case/camelCase conversion
-                const createdByUser = item.createdBy || item.dibuat_oleh_user || (typeof item.dibuat_oleh === 'object' ? item.dibuat_oleh : null);
-                return (createdByUser as User)?.nama_lengkap || '-';
-            },
-        },
-        {
-            key: 'jumlah_produksi',
-            label: 'Jumlah Produksi',
-            sortable: true,
-            hideable: true,
-            defaultVisible: false,
-        },
-        {
             key: 'deadline',
             label: 'Deadline',
             sortable: true,
@@ -194,6 +167,14 @@ export default function Index({ penugasan, filters, userRole, flash }: Props) {
                 return statusMap[item.status] || item.status;
             },
         },
+        {
+            key: 'user_id',
+            label: 'Petugas',
+            sortable: false,
+            hideable: true,
+            defaultVisible: true,
+            render: (item: Penugasan) => item.user?.nama_lengkap || '-',
+        },
     ];
 
     const filterOptions = [
@@ -207,10 +188,7 @@ export default function Index({ penugasan, filters, userRole, flash }: Props) {
     ];
 
     const actions = [
-        createEditAction<Penugasan>(
-            (item) => `/penugasan-produksi/${item.penugasan_id}/edit`,
-            (item) => item.status !== 'selesai' && item.status !== 'dibatalkan',
-        ),
+        createEditAction<Penugasan>((item) => `/penugasan-produksi/${item.penugasan_id}/edit`),
         ...(isAdmin
             ? [
                   createDeleteAction<Penugasan>((item) => {
@@ -226,7 +204,7 @@ export default function Index({ penugasan, filters, userRole, flash }: Props) {
     ];
 
     // Determine title and breadcrumb based on mode
-    const title = mode === 'ditugaskan' ? 'Yang Ditugaskan ke Workers' : isAdmin ? 'Semua Penugasan Produksi' : 'Tugas Saya';
+    const title = 'Manajemen Penugasan Produksi';
 
     const modeBreadcrumbs =
         mode === 'ditugaskan'

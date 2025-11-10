@@ -100,7 +100,6 @@ export default function Edit({ penugasan, workers, isWorker }: Props) {
             backUrl="/penugasan-produksi"
             onSubmit={handleSubmit}
             processing={processing}
-            submitText="Update Penugasan"
             processingText="Updating..."
         >
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">

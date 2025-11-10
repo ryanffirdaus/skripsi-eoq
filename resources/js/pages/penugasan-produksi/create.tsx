@@ -28,7 +28,7 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: '/penugasan-produksi',
     },
     {
-        title: 'Create',
+        title: 'Tambah Penugasan',
         href: '/penugasan-produksi/create',
     },
 ];
@@ -63,16 +63,15 @@ export default function Create({ pengadaanDetails, workers }: Props) {
 
     return (
         <FormTemplate
-            title="Buat Penugasan Produksi"
+            title="Tambah Penugasan"
             breadcrumbs={breadcrumbs}
             backUrl="/penugasan-produksi"
             onSubmit={handleSubmit}
             processing={processing}
-            submitText="Buat Penugasan"
             processingText="Creating..."
         >
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                <FormField id="pengadaan_detail_id" label="Item Produksi" error={errors.pengadaan_detail_id} required>
+                <FormField id="pengadaan_detail_id" label="Produksi" error={errors.pengadaan_detail_id} required>
                     <Select
                         id="pengadaan_detail_id"
                         value={data.pengadaan_detail_id}
