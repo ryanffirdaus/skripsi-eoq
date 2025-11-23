@@ -66,22 +66,15 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function Index({ pengadaan, filters, flash }: Props) {
+    // Ensure default status filter is set to the first active stage (menunggu_persetujuan_gudang)
+    const effectiveFilters = { ...filters, status: filters.status ?? 'menunggu_persetujuan_gudang' };
     const getStatusBadge = (status: string) => {
         const statusConfig = {
-            draft: {
-                variant: 'outline' as const,
-                label: 'Draft',
-                icon: FileText,
-                description: 'Tahap 1: Awal Pembuatan',
-                bgColor: 'bg-slate-100',
-                textColor: 'text-slate-700',
-                borderColor: 'border-slate-300',
-            },
             menunggu_persetujuan_gudang: {
                 variant: 'secondary' as const,
-                label: 'Menunggu Persetujuan Gudang',
+                label: 'Review Gudang',
                 icon: Users,
-                description: 'Tahap 2: Review Gudang',
+                description: 'Tahap 1: Review Gudang',
                 bgColor: 'bg-blue-100',
                 textColor: 'text-blue-700',
                 borderColor: 'border-blue-300',
@@ -90,7 +83,7 @@ export default function Index({ pengadaan, filters, flash }: Props) {
                 variant: 'default' as const,
                 label: 'Menunggu Alokasi Pemasok',
                 icon: ShoppingCart,
-                description: 'Tahap 3: Penunjukan Supplier',
+                description: 'Tahap 2: Penunjukan Supplier',
                 bgColor: 'bg-amber-100',
                 textColor: 'text-amber-700',
                 borderColor: 'border-amber-300',
@@ -99,7 +92,7 @@ export default function Index({ pengadaan, filters, flash }: Props) {
                 variant: 'default' as const,
                 label: 'Menunggu Persetujuan Pengadaan',
                 icon: DollarSign,
-                description: 'Tahap 4: Approval Final Pengadaan',
+                description: 'Tahap 3: Approval Final Pengadaan',
                 bgColor: 'bg-purple-100',
                 textColor: 'text-purple-700',
                 borderColor: 'border-purple-300',
@@ -108,7 +101,7 @@ export default function Index({ pengadaan, filters, flash }: Props) {
                 variant: 'default' as const,
                 label: 'Menunggu Persetujuan Keuangan',
                 icon: DollarSign,
-                description: 'Tahap 5: Review Budget',
+                description: 'Tahap 4: Review Budget',
                 bgColor: 'bg-indigo-100',
                 textColor: 'text-indigo-700',
                 borderColor: 'border-indigo-300',
@@ -117,7 +110,7 @@ export default function Index({ pengadaan, filters, flash }: Props) {
                 variant: 'default' as const,
                 label: 'Diproses',
                 icon: CheckCircle,
-                description: 'Tahap 6: Siap PO',
+                description: 'Tahap 5: Siap PO',
                 bgColor: 'bg-emerald-100',
                 textColor: 'text-emerald-700',
                 borderColor: 'border-emerald-300',
@@ -126,7 +119,7 @@ export default function Index({ pengadaan, filters, flash }: Props) {
                 variant: 'default' as const,
                 label: 'Diterima',
                 icon: Package,
-                description: 'Tahap 7: Selesai',
+                description: 'Tahap 6: Selesai',
                 bgColor: 'bg-green-100',
                 textColor: 'text-green-700',
                 borderColor: 'border-green-300',
@@ -157,7 +150,8 @@ export default function Index({ pengadaan, filters, flash }: Props) {
         return (
             <div className="flex items-center gap-2">
                 <div
-                    className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 ${config.bgColor} ${config.textColor} ${config.borderColor} text-sm font-medium whitespace-nowrap`}
+                    className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 ${config.bgColor} ${config.textColor} ${config.borderColor} text-sm font-medium whitespace-nowrap shadow-sm hover:scale-105 transition-transform duration-200`}
+                    title={config.description}
                 >
                     <IconComponent className="h-4 w-4 flex-shrink-0" />
                     <span>{config.label}</span>
@@ -243,7 +237,6 @@ export default function Index({ pengadaan, filters, flash }: Props) {
                 type: 'select' as const,
                 options: [
                     { value: '', label: 'Semua Status' },
-                    { value: 'draft', label: 'Draft' },
                     { value: 'menunggu_persetujuan_gudang', label: 'Menunggu Persetujuan Gudang' },
                     { value: 'menunggu_alokasi_pemasok', label: 'Menunggu Alokasi Pemasok' },
                     { value: 'menunggu_persetujuan_pengadaan', label: 'Menunggu Persetujuan Pengadaan' },
@@ -293,7 +286,7 @@ export default function Index({ pengadaan, filters, flash }: Props) {
             data={pengadaan}
             columns={columns}
             createUrl="/pengadaan/create"
-            filters={filters}
+            filters={effectiveFilters}
             filterOptions={filterOptions}
             baseUrl="/pengadaan"
             actions={actions}

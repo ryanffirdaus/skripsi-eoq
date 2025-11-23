@@ -47,7 +47,7 @@ class PengadaanSeeder extends Seeder
             [
                 'jenis_pengadaan' => 'rop',
                 'pesanan_id' => null,
-                'status' => 'draft',
+                'status' => 'menunggu_persetujuan_gudang',
                 'catatan' => 'Pengadaan otomatis berdasarkan ROP bahan baku - menunggu review gudang',
                 'dibuat_oleh' => 'US001',
                 'details' => [
@@ -56,11 +56,11 @@ class PengadaanSeeder extends Seeder
                 ],
             ],
 
-            // 2. Pesanan - Mixed (Draft)
+            // 2. Pesanan - Mixed (Draft -> Menunggu Persetujuan Gudang)
             [
                 'jenis_pengadaan' => 'pesanan',
                 'pesanan_id' => $pesanans->first()->pesanan_id,
-                'status' => 'draft',
+                'status' => 'menunggu_persetujuan_gudang',
                 'catatan' => 'Pengadaan dari pesanan pelanggan - draft untuk review',
                 'dibuat_oleh' => 'US001',
                 'details' => [

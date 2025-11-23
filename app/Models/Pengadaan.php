@@ -122,9 +122,8 @@ class Pengadaan extends Model
     }
 
     // Status constants (SOURCE OF TRUTH: migration)
-    // Flow: draft → menunggu_persetujuan_gudang → menunggu_alokasi_pemasok → menunggu_persetujuan_pengadaan → menunggu_persetujuan_keuangan → diproses → diterima
+    // Flow: menunggu_persetujuan_gudang → menunggu_alokasi_pemasok → menunggu_persetujuan_pengadaan → menunggu_persetujuan_keuangan → diproses → diterima
     // At any stage: can be rejected (status = rejected)
-    public const STATUS_DRAFT = 'draft';
     public const STATUS_MENUNGGU_PERSETUJUAN_GUDANG = 'menunggu_persetujuan_gudang'; // Menunggu approval Manajer Gudang
     public const STATUS_MENUNGGU_ALOKASI_PEMASOK = 'menunggu_alokasi_pemasok'; // Menunggu diisi pemasok
     public const STATUS_MENUNGGU_PERSETUJUAN_PENGADAAN = 'menunggu_persetujuan_pengadaan'; // Menunggu approval Manajer Pengadaan
@@ -135,11 +134,6 @@ class Pengadaan extends Model
     public const STATUS_DITOLAK = 'ditolak'; // Ditolak (harus mengisi alasan penolakan)
 
     // Status methods (SOURCE OF TRUTH: migration)
-    public function isDraft()
-    {
-        return $this->status === 'draft';
-    }
-
     public function isMenungguPersetujuanGudang()
     {
         return $this->status === 'menunggu_persetujuan_gudang';
@@ -190,9 +184,9 @@ class Pengadaan extends Model
             return true;
         }
 
-        // Bisa edit di tahap: draft, menunggu_alokasi_pemasok (untuk input pemasok/harga)
+        // Bisa edit di tahap: menunggu_persetujuan_gudang, menunggu_alokasi_pemasok (untuk input pemasok/harga)
         // Tidak bisa edit setelah menunggu_persetujuan_pengadaan, menunggu_persetujuan_keuangan, diproses, diterima, dibatalkan
-        return in_array($this->status, ['draft', 'menunggu_persetujuan_gudang', 'menunggu_alokasi_pemasok']);
+        return in_array($this->status, ['menunggu_persetujuan_gudang', 'menunggu_alokasi_pemasok']);
     }
 
     public function canBeCancelled()
@@ -241,7 +235,7 @@ class Pengadaan extends Model
 
     /**
      * Validasi apakah status transition valid
-     * Flow: draft → menunggu_persetujuan_gudang → menunggu_alokasi_pemasok → menunggu_persetujuan_pengadaan → menunggu_persetujuan_keuangan → diproses → diterima
+     * Flow: menunggu_persetujuan_gudang → menunggu_alokasi_pemasok → menunggu_persetujuan_pengadaan → menunggu_persetujuan_keuangan → diproses → diterima
      * Bisa ditolak dari status manapun kecuali diterima atau sudah ditolak
      * Bisa dibatalkan dari status manapun kecuali diterima atau sudah dibatalkan
      */
@@ -271,7 +265,6 @@ class Pengadaan extends Model
 
         // Define valid transitions (WORKFLOW)
         $validTransitions = [
-            'draft' => ['menunggu_persetujuan_gudang', 'dibatalkan'],
             'menunggu_persetujuan_gudang' => ['menunggu_alokasi_pemasok', 'dibatalkan'],
             'menunggu_alokasi_pemasok' => ['menunggu_persetujuan_pengadaan', 'dibatalkan'],
             'menunggu_persetujuan_pengadaan' => ['menunggu_persetujuan_keuangan', 'dibatalkan'],

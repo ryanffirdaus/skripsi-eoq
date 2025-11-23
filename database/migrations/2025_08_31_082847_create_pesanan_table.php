@@ -16,7 +16,17 @@ return new class extends Migration
             $table->string('pelanggan_id', 6);
             $table->date('tanggal_pemesanan');
             $table->decimal('total_harga', 15, 2);
-            $table->enum('status', ['menunggu', 'dikonfirmasi', 'diproses', 'siap', 'dikirim', 'diterima', 'dibatalkan', 'selesai'])->default('menunggu');
+            $table->enum('status', [
+                'menunggu',
+                'dikonfirmasi',
+                'menunggu_pengadaan', // New: Waiting for procurement
+                'siap_produksi',      // New: Materials ready
+                'sedang_produksi',    // New: In production
+                'siap_dikirim',       // New: Production finished / Stock ready
+                'dikirim',
+                'selesai',
+                'dibatalkan'
+            ])->default('menunggu');
             $table->text('catatan')->nullable();
             $table->string('dibuat_oleh', 6)->nullable();
             $table->string('diubah_oleh', 6)->nullable();

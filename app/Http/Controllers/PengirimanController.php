@@ -182,8 +182,8 @@ class PengirimanController extends Controller
 
         $pengiriman = Pengiriman::create($request->all());
 
-        // Update status pesanan terkait menjadi 'diproses'
-        $pengiriman->pesanan()->update(['status' => 'diproses']);
+        // Update status pesanan terkait menjadi 'dikirim'
+        $pengiriman->pesanan()->update(['status' => 'dikirim']);
 
         return redirect()->route('pengiriman.index')
             ->with('flash', [
@@ -365,6 +365,11 @@ class PengirimanController extends Controller
         if ($oldStatus !== $pengiriman->status) {
              $usersToNotify = \App\Models\User::whereIn('role_id', ['R01', 'R02', 'R07'])->get(); // Admin, Staf Gudang, Manajer Gudang
              \Illuminate\Support\Facades\Notification::send($usersToNotify, new \App\Notifications\PengirimanStatusChangedNotification($pengiriman, $oldStatus, $pengiriman->status));
+
+             // Update status pesanan terkait
+             if ($pengiriman->status === 'dikirim' || $pengiriman->status === 'selesai') {
+                 $pengiriman->pesanan()->update(['status' => $pengiriman->status]);
+             }
         }
 
         return response()->json([

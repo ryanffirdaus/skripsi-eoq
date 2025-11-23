@@ -3,6 +3,7 @@ import TableTemplate from '@/components/table/table-template';
 import { type BreadcrumbItem } from '@/types';
 import { router } from '@inertiajs/react';
 import { useMemo } from 'react';
+import { ClockIcon, TruckIcon, CheckBadgeIcon, XCircleIcon } from '@heroicons/react/24/outline';
 
 interface Pesanan {
     pesanan_id: string;
@@ -71,31 +72,53 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const statusColors = {
-    menunggu: 'bg-yellow-100 text-yellow-800',
-    dalam_perjalanan: 'bg-blue-100 text-blue-800',
-    diterima: 'bg-green-100 text-green-800',
-    dikirim: 'bg-indigo-100 text-indigo-800',
-    selesai: 'bg-teal-100 text-teal-800',
-    dibatalkan: 'bg-red-100 text-red-800',
-};
-
-const statusLabels = {
-    menunggu: 'Menunggu',
-    dalam_perjalanan: 'Dalam Perjalanan',
-    diterima: 'Diterima',
-    dikirim: 'Dikirim',
-    selesai: 'Selesai',
-    dibatalkan: 'Dibatalkan',
-};
-
 export default function Index({ pengiriman, filters, flash }: Props) {
-    const getStatusColor = (status: string) => {
-        return statusColors[status as keyof typeof statusColors] || statusColors.menunggu;
-    };
+    const getStatusBadge = (status: string) => {
+        const statusConfig = {
+            menunggu: {
+                label: 'Menunggu',
+                icon: ClockIcon,
+                bgColor: 'bg-yellow-100',
+                textColor: 'text-yellow-700',
+                borderColor: 'border-yellow-300',
+            },
+            dikirim: {
+                label: 'Dikirim',
+                icon: TruckIcon,
+                bgColor: 'bg-indigo-100',
+                textColor: 'text-indigo-700',
+                borderColor: 'border-indigo-300',
+            },
+            selesai: {
+                label: 'Selesai',
+                icon: CheckBadgeIcon,
+                bgColor: 'bg-teal-100',
+                textColor: 'text-teal-700',
+                borderColor: 'border-teal-300',
+            },
+            dibatalkan: {
+                label: 'Dibatalkan',
+                icon: XCircleIcon,
+                bgColor: 'bg-red-100',
+                textColor: 'text-red-700',
+                borderColor: 'border-red-300',
+            },
+        };
 
-    const getStatusLabel = (status: string) => {
-        return statusLabels[status as keyof typeof statusLabels] || status;
+        const config = statusConfig[status as keyof typeof statusConfig];
+        if (!config) return <span className="text-gray-500 text-sm">{status}</span>;
+
+        const IconComponent = config.icon;
+
+        return (
+            <div
+                className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 ${config.bgColor} ${config.textColor} ${config.borderColor} text-sm font-medium whitespace-nowrap shadow-sm hover:scale-105 transition-transform duration-200`}
+                title={config.label}
+            >
+                <IconComponent className="h-4 w-4 flex-shrink-0" />
+                <span>{config.label}</span>
+            </div>
+        );
     };
 
     const columns = useMemo(
@@ -146,13 +169,7 @@ export default function Index({ pengiriman, filters, flash }: Props) {
                 defaultVisible: true,
                 render: (item: Record<string, unknown>) => {
                     const pengiriman = item as Pengiriman;
-                    return (
-                        <span
-                            className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${getStatusColor(pengiriman.status)}`}
-                        >
-                            {getStatusLabel(pengiriman.status)}
-                        </span>
-                    );
+                    return getStatusBadge(pengiriman.status);
                 },
             },
         ],
@@ -168,8 +185,6 @@ export default function Index({ pengiriman, filters, flash }: Props) {
                 options: [
                     { value: '', label: 'Semua Status' },
                     { value: 'menunggu', label: 'Menunggu' },
-                    { value: 'dalam_perjalanan', label: 'Dalam Perjalanan' },
-                    { value: 'diterima', label: 'Diterima' },
                     { value: 'dikirim', label: 'Dikirim' },
                     { value: 'selesai', label: 'Selesai' },
                     { value: 'dibatalkan', label: 'Dibatalkan' },

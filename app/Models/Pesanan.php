@@ -30,6 +30,17 @@ class Pesanan extends Model
         'diubah_oleh',
         'dihapus_oleh'
     ];
+    
+    // Status Constants
+    public const STATUS_MENUNGGU = 'menunggu';
+    public const STATUS_DIKONFIRMASI = 'dikonfirmasi';
+    public const STATUS_MENUNGGU_PENGADAAN = 'menunggu_pengadaan';
+    public const STATUS_SIAP_PRODUKSI = 'siap_produksi';
+    public const STATUS_SEDANG_PRODUKSI = 'sedang_produksi';
+    public const STATUS_SIAP_DIKIRIM = 'siap_dikirim';
+    public const STATUS_DIKIRIM = 'dikirim';
+    public const STATUS_SELESAI = 'selesai';
+    public const STATUS_DIBATALKAN = 'dibatalkan';
 
     protected static function boot()
     {

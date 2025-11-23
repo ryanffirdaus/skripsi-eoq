@@ -54,14 +54,14 @@ trait PengadaanAuthorization
             return true;
         }
 
-        // Staf Gudang: delete draft/menunggu_persetujuan_gudang
+        // Staf Gudang: delete menunggu_persetujuan_gudang
         if ($roleId === 'R02') {
-            return in_array($status, ['draft', 'menunggu_persetujuan_gudang']);
+            return $status === 'menunggu_persetujuan_gudang';
         }
 
         // Manajer Gudang: delete pending
         if ($roleId === 'R07') {
-            return in_array($status, ['draft', 'menunggu_persetujuan_gudang']);
+            return $status === 'menunggu_persetujuan_gudang';
         }
 
         return false;
@@ -89,13 +89,18 @@ trait PengadaanAuthorization
             return true;
         }
 
-        // Manajer Pengadaan: approve menunggu_alokasi_pemasok->menunggu_persetujuan_pengadaan (hanya jika sudah isi detail)
-        if ($roleId === 'R09' && $status === 'menunggu_alokasi_pemasok') {
+        // Staf Pengadaan: submit menunggu_alokasi_pemasok -> menunggu_persetujuan_pengadaan (hanya jika sudah isi detail)
+        if ($roleId === 'R04' && $status === 'menunggu_alokasi_pemasok') {
             return $this->isPengadaanDetailFilled($pengadaan);
         }
 
-        // Manajer Keuangan: approve menunggu_persetujuan_pengadaan->menunggu_persetujuan_keuangan
-        if ($roleId === 'R10' && $status === 'menunggu_persetujuan_pengadaan') {
+        // Manajer Pengadaan: approve menunggu_persetujuan_pengadaan -> menunggu_persetujuan_keuangan
+        if ($roleId === 'R09' && $status === 'menunggu_persetujuan_pengadaan') {
+            return true;
+        }
+
+        // Manajer Keuangan: approve menunggu_persetujuan_keuangan -> diproses
+        if ($roleId === 'R10' && $status === 'menunggu_persetujuan_keuangan') {
             return true;
         }
 
@@ -119,13 +124,13 @@ trait PengadaanAuthorization
             return true;
         }
 
-        // R02/R07 (Staf/Manajer Gudang): dapat edit di status draft dan menunggu_persetujuan_gudang
-        if (in_array($roleId, ['R02', 'R07']) && in_array($pengadaan->status, ['draft', 'menunggu_persetujuan_gudang'])) {
+        // R02/R07 (Staf/Manajer Gudang): dapat edit di status menunggu_persetujuan_gudang
+        if (in_array($roleId, ['R02', 'R07']) && $pengadaan->status === 'menunggu_persetujuan_gudang') {
             return true;
         }
 
-        // R04/R09 (Staf/Manajer Pengadaan): dapat edit detail (pemasok/harga) di menunggu_alokasi_pemasok
-        if (in_array($roleId, ['R04', 'R09']) && $pengadaan->status === 'menunggu_alokasi_pemasok') {
+        // R04 (Staf Pengadaan): dapat edit detail (pemasok/harga) di menunggu_alokasi_pemasok
+        if ($roleId === 'R04' && $pengadaan->status === 'menunggu_alokasi_pemasok') {
             return true;
         }
 
@@ -150,9 +155,9 @@ trait PengadaanAuthorization
             return true;
         }
 
-        // Staf & Manajer Pengadaan: edit detail untuk status menunggu_alokasi_pemasok
+        // Staf Pengadaan: edit detail untuk status menunggu_alokasi_pemasok
         // (ini adalah status yang disebut "Menunggu Alokasi Pemasok" di UI)
-        if (in_array($roleId, ['R04', 'R09']) && $status === 'menunggu_alokasi_pemasok') {
+        if ($roleId === 'R04' && $status === 'menunggu_alokasi_pemasok') {
             return true;
         }
 

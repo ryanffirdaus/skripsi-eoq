@@ -18,8 +18,17 @@ class PengadaanFactory extends Factory
     {
         static $counter = 1;
 
-        $jenis_pengadaan = ['reguler', 'darurat', 'framework'];
-        $statuses = ['draft', 'menunggu persetujuan', 'disetujui', 'ditolak', 'diterima', 'selesai'];
+        $jenis_pengadaan = ['pesanan', 'rop'];
+        $statuses = [
+            'menunggu_persetujuan_gudang', 
+            'menunggu_alokasi_pemasok', 
+            'menunggu_persetujuan_pengadaan', 
+            'menunggu_persetujuan_keuangan', 
+            'diproses', 
+            'diterima', 
+            'dibatalkan', 
+            'ditolak'
+        ];
 
         return [
             'pengadaan_id' => 'PG' . str_pad($counter++, 3, '0', STR_PAD_LEFT),

@@ -375,11 +375,11 @@ class PengadaanController extends Controller
                         }
                     }
 
-                    // Authorization: Hanya R04 (Staf Pengadaan), R09 (Manajer Pengadaan), atau R01 (Admin) yang bisa input pemasok
+                    // Authorization: Hanya R04 (Staf Pengadaan) atau R01 (Admin) yang bisa input pemasok
                     if (isset($item['pemasok_id']) && !empty($item['pemasok_id'])) {
                         // Check role - Admin (R01) bisa input pemasok kapanpun
-                        if ($user->role_id !== 'R01' && !in_array($user->role_id, ['R04', 'R09'])) {
-                            $validator->errors()->add("items.{$index}.pemasok_id", "Hanya Staf/Manajer Pengadaan atau Admin yang dapat mengalokasikan pemasok.");
+                        if ($user->role_id !== 'R01' && $user->role_id !== 'R04') {
+                            $validator->errors()->add("items.{$index}.pemasok_id", "Hanya Staf Pengadaan atau Admin yang dapat mengalokasikan pemasok.");
                         }
 
                         // Check jenis_barang (pemasok hanya untuk bahan_baku)
@@ -409,6 +409,14 @@ class PengadaanController extends Controller
             ]);
 
             Log::info('Pengadaan Store - Header created:', ['pengadaan_id' => $pengadaan->pengadaan_id]);
+
+            // Update Pesanan status to 'menunggu_pengadaan'
+            if ($pengadaan->pesanan_id) {
+                $pesanan = Pesanan::find($pengadaan->pesanan_id);
+                if ($pesanan) {
+                    $pesanan->update(['status' => Pesanan::STATUS_MENUNGGU_PENGADAAN]);
+                }
+            }
 
             // Create pengadaan details - SOURCE OF TRUTH: Langsung pakai field name dari request
             foreach ($request->items as $index => $item) {
@@ -555,7 +563,6 @@ class PengadaanController extends Controller
 
         // Status options untuk update status di halaman edit (SOURCE OF TRUTH: migration)
         $statusOptions = [
-            ['value' => 'draft', 'label' => 'Draft'],
             ['value' => 'menunggu_persetujuan_gudang', 'label' => 'Menunggu Persetujuan Gudang'],
             ['value' => 'menunggu_alokasi_pemasok', 'label' => 'Menunggu Alokasi Pemasok'],
             ['value' => 'menunggu_persetujuan_pengadaan', 'label' => 'Menunggu Persetujuan Pengadaan'],
@@ -677,8 +684,18 @@ class PengadaanController extends Controller
                     ->withInput();
             }
 
-            // Only Manajer Pengadaan (R09) bisa approve ke menunggu_persetujuan_pengadaan (setelah pemasok dialokasikan)
-            if ($request->status === 'menunggu_persetujuan_pengadaan' && $user->role_id !== 'R01' && $user->role_id !== 'R09') {
+            // Only Staf Pengadaan (R04) bisa submit ke menunggu_persetujuan_pengadaan (setelah pemasok dialokasikan)
+            if ($request->status === 'menunggu_persetujuan_pengadaan' && $user->role_id !== 'R01' && $user->role_id !== 'R04') {
+                return redirect()->back()
+                    ->with('flash', [
+                        'message' => 'Hanya Staf Pengadaan atau Admin yang bisa mengajukan persetujuan pengadaan.',
+                        'type' => 'error'
+                    ])
+                    ->withInput();
+            }
+
+            // Only Manajer Pengadaan (R09) bisa approve ke menunggu_persetujuan_keuangan
+            if ($request->status === 'menunggu_persetujuan_keuangan' && $user->role_id !== 'R01' && $user->role_id !== 'R09') {
                 return redirect()->back()
                     ->with('flash', [
                         'message' => 'Hanya Manajer Pengadaan atau Admin yang bisa menyetujui pengadaan di tahap ini.',
@@ -687,21 +704,11 @@ class PengadaanController extends Controller
                     ->withInput();
             }
 
-            // Only Manajer Keuangan (R10) bisa approve ke menunggu_persetujuan_keuangan
-            if ($request->status === 'menunggu_persetujuan_keuangan' && $user->role_id !== 'R01' && $user->role_id !== 'R10') {
+            // Only Manajer Keuangan (R10) bisa approve ke diproses (setelah keuangan approve)
+            if ($request->status === 'diproses' && $user->role_id !== 'R01' && $user->role_id !== 'R10') {
                 return redirect()->back()
                     ->with('flash', [
-                        'message' => 'Hanya Manajer Keuangan atau Admin yang bisa menyetujui pengadaan di tahap ini.',
-                        'type' => 'error'
-                    ])
-                    ->withInput();
-            }
-
-            // Only Manajer Gudang (R07) bisa approve ke diproses (setelah keuangan approve)
-            if ($request->status === 'diproses' && $user->role_id !== 'R01' && $user->role_id !== 'R07') {
-                return redirect()->back()
-                    ->with('flash', [
-                        'message' => 'Hanya Manajer Gudang atau Admin yang bisa memproses pengadaan setelah disetujui keuangan.',
+                        'message' => 'Hanya Manajer Keuangan atau Admin yang bisa memproses pengadaan setelah disetujui keuangan.',
                         'type' => 'error'
                     ])
                     ->withInput();
@@ -751,6 +758,14 @@ class PengadaanController extends Controller
 
              $usersToNotify = \App\Models\User::whereIn('role_id', $rolesToNotify)->get();
              \Illuminate\Support\Facades\Notification::send($usersToNotify, new \App\Notifications\PengadaanStatusChangedNotification($pengadaan, $oldStatus, $pengadaan->status));
+
+             // Update Pesanan status if Pengadaan is received
+             if ($pengadaan->status === 'diterima' && $pengadaan->pesanan_id) {
+                 $pesanan = Pesanan::find($pengadaan->pesanan_id);
+                 if ($pesanan) {
+                     $pesanan->update(['status' => Pesanan::STATUS_SIAP_PRODUKSI]);
+                 }
+             }
         }
 
         // Update each detail's pemasok_id dan harga_satuan (hanya jika allowed)
@@ -758,14 +773,14 @@ class PengadaanController extends Controller
             foreach ($request->details as $detailData) {
                 $updateDetailData = [];
 
-                // AUTHORIZATION: Pemasok input hanya boleh Staf/Manajer Pengadaan (R04, R09), atau Admin (R01)
-                // Admin bisa edit status apapun, tapi R04/R09 hanya saat status = 'menunggu_alokasi_pemasok'
+                // AUTHORIZATION: Pemasok input hanya boleh Staf Pengadaan (R04), atau Admin (R01)
+                // Admin bisa edit status apapun, tapi R04 hanya saat status = 'menunggu_alokasi_pemasok'
                 if (isset($detailData['pemasok_id'])) {
-                    // Check role - Admin (R01) bisa selalu, R04/R09 restricted
-                    if ($user->role_id !== 'R01' && !in_array($user->role_id, ['R04', 'R09'])) {
+                    // Check role - Admin (R01) bisa selalu, R04 restricted
+                    if ($user->role_id !== 'R01' && $user->role_id !== 'R04') {
                         return redirect()->back()
                             ->with('flash', [
-                                'message' => 'Hanya Staf/Manajer Pengadaan atau Admin yang bisa mengalokasikan pemasok.',
+                                'message' => 'Hanya Staf Pengadaan atau Admin yang bisa mengalokasikan pemasok.',
                                 'type' => 'error'
                             ])
                             ->withInput();
@@ -795,8 +810,8 @@ class PengadaanController extends Controller
                     $updateDetailData['pemasok_id'] = $detailData['pemasok_id'];
                 }
 
-                // Hanya update harga jika masih draft atau menunggu_alokasi_pemasok (sebelum approval dari Pengadaan)
-                $canEditPrice = in_array($pengadaan->status, ['draft', 'menunggu_alokasi_pemasok']);
+                // Hanya update harga jika masih menunggu_alokasi_pemasok (sebelum approval dari Pengadaan)
+                $canEditPrice = $pengadaan->status === 'menunggu_alokasi_pemasok';
                 if ($canEditPrice && isset($detailData['harga_satuan'])) {
                     $updateDetailData['harga_satuan'] = $detailData['harga_satuan'];
                 }

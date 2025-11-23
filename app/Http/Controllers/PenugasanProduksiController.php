@@ -170,6 +170,14 @@ class PenugasanProduksiController extends Controller
             'status' => 'ditugaskan',
         ]);
 
+        // Update Pesanan Status -> sedang_produksi
+        if ($pengadaanDetail->pengadaan && $pengadaanDetail->pengadaan->pesanan_id) {
+             $pesanan = \App\Models\Pesanan::find($pengadaanDetail->pengadaan->pesanan_id);
+             if ($pesanan) {
+                 $pesanan->update(['status' => \App\Models\Pesanan::STATUS_SEDANG_PRODUKSI]);
+             }
+        }
+
         return redirect()->route('penugasan-produksi.index')
             ->with('success', 'Penugasan produksi berhasil dibuat');
     }
@@ -327,6 +335,19 @@ class PenugasanProduksiController extends Controller
         if ($oldStatus !== $penugasan_produksi->status) {
              $usersToNotify = \App\Models\User::whereIn('role_id', ['R01', 'R08', 'R03'])->get(); // Admin, Manajer RnD, Staf RnD
              \Illuminate\Support\Facades\Notification::send($usersToNotify, new \App\Notifications\PenugasanProduksiStatusChangedNotification($penugasan_produksi, $oldStatus, $penugasan_produksi->status));
+
+             // Update Pesanan Status
+             $pengadaanDetail = $penugasan_produksi->pengadaanDetail;
+             if ($pengadaanDetail && $pengadaanDetail->pengadaan && $pengadaanDetail->pengadaan->pesanan_id) {
+                 $pesanan = \App\Models\Pesanan::find($pengadaanDetail->pengadaan->pesanan_id);
+                 if ($pesanan) {
+                     if ($penugasan_produksi->status === 'selesai') {
+                         $pesanan->update(['status' => \App\Models\Pesanan::STATUS_SIAP_DIKIRIM]);
+                     } elseif ($penugasan_produksi->status === 'proses') {
+                         $pesanan->update(['status' => \App\Models\Pesanan::STATUS_SEDANG_PRODUKSI]);
+                     }
+                 }
+             }
         }
 
         return redirect()->route('penugasan-produksi.index')
@@ -389,6 +410,19 @@ class PenugasanProduksiController extends Controller
         if ($oldStatus !== $penugasan_produksi->status) {
              $usersToNotify = \App\Models\User::whereIn('role_id', ['R01', 'R08', 'R03'])->get(); // Admin, Manajer RnD, Staf RnD
              \Illuminate\Support\Facades\Notification::send($usersToNotify, new \App\Notifications\PenugasanProduksiStatusChangedNotification($penugasan_produksi, $oldStatus, $penugasan_produksi->status));
+
+             // Update Pesanan Status
+             $pengadaanDetail = $penugasan_produksi->pengadaanDetail;
+             if ($pengadaanDetail && $pengadaanDetail->pengadaan && $pengadaanDetail->pengadaan->pesanan_id) {
+                 $pesanan = \App\Models\Pesanan::find($pengadaanDetail->pengadaan->pesanan_id);
+                 if ($pesanan) {
+                     if ($penugasan_produksi->status === 'selesai') {
+                         $pesanan->update(['status' => \App\Models\Pesanan::STATUS_SIAP_DIKIRIM]);
+                     } elseif ($penugasan_produksi->status === 'proses') {
+                         $pesanan->update(['status' => \App\Models\Pesanan::STATUS_SEDANG_PRODUKSI]);
+                     }
+                 }
+             }
         }
 
         return response()->json([

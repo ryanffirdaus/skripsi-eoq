@@ -15,8 +15,16 @@ return new class extends Migration
             $table->string('pengadaan_id', 6)->primary(); // PA0000001
             $table->enum('jenis_pengadaan', ['pesanan', 'rop']); // Trigger: order-based, ROP-based, or manual
             $table->string('pesanan_id', 6)->nullable(); // Reference to pesanan if triggered by order
-            $table->enum('status', ['draft', 'menunggu_persetujuan_gudang', 'menunggu_alokasi_pemasok', 'menunggu_persetujuan_pengadaan', 'menunggu_persetujuan_keuangan', 'diproses', 'diterima', 'dibatalkan', 'ditolak'])
-                ->default('draft');
+            $table->enum('status', [
+                'menunggu_persetujuan_gudang', 
+                'menunggu_alokasi_pemasok', 
+                'menunggu_persetujuan_pengadaan', 
+                'menunggu_persetujuan_keuangan', 
+                'diproses', 
+                'diterima', 
+                'dibatalkan', 
+                'ditolak'
+            ])->default('menunggu_persetujuan_gudang');
             $table->text('catatan')->nullable();
             $table->text('alasan_penolakan')->nullable();
             $table->string('ditolak_oleh', 6)->nullable();

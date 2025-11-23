@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { type BreadcrumbItem } from '@/types';
 import { router } from '@inertiajs/react';
 import { useMemo } from 'react';
+import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline';
 
 interface Pemasok extends Record<string, unknown> {
     pemasok_id: string;
@@ -60,6 +61,40 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function Index({ pemasok, filters, flash }: Props) {
+    const getStatusBadge = (status: string) => {
+        const statusConfig = {
+            active: {
+                label: 'Aktif',
+                icon: CheckCircleIcon,
+                bgColor: 'bg-green-100',
+                textColor: 'text-green-700',
+                borderColor: 'border-green-300',
+            },
+            inactive: {
+                label: 'Tidak Aktif',
+                icon: XCircleIcon,
+                bgColor: 'bg-gray-100',
+                textColor: 'text-gray-700',
+                borderColor: 'border-gray-300',
+            },
+        };
+
+        const config = statusConfig[status as keyof typeof statusConfig];
+        if (!config) return <span className="text-gray-500 text-sm">{status}</span>;
+
+        const IconComponent = config.icon;
+
+        return (
+            <div
+                className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 ${config.bgColor} ${config.textColor} ${config.borderColor} text-sm font-medium whitespace-nowrap shadow-sm hover:scale-105 transition-transform duration-200`}
+                title={config.label}
+            >
+                <IconComponent className="h-4 w-4 flex-shrink-0" />
+                <span>{config.label}</span>
+            </div>
+        );
+    };
+
     const columns = [
         {
             key: 'pemasok_id',
@@ -88,9 +123,7 @@ export default function Index({ pemasok, filters, flash }: Props) {
             sortable: true,
             hideable: true,
             defaultVisible: true,
-            render: (pemasok: Pemasok) => (
-                <Badge variant={pemasok.status === 'active' ? 'default' : 'secondary'}>{pemasok.status === 'active' ? 'Aktif' : 'Tidak Aktif'}</Badge>
-            ),
+            render: (pemasok: Pemasok) => getStatusBadge(pemasok.status),
         },
     ];
 

@@ -3,6 +3,7 @@ import TableTemplate from '@/components/table/table-template';
 import { formatDate } from '@/lib/formatters';
 import { type BreadcrumbItem } from '@/types';
 import { useMemo } from 'react';
+import { CheckBadgeIcon } from '@heroicons/react/24/outline';
 
 // --- TYPE DEFINITIONS ---
 // These types should ideally be in a global types file (e.g., resources/js/types/index.d.ts)
@@ -60,6 +61,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function Index({ penerimaan, filters, flash }: Props) {
+
     const columns = useMemo(
         () => [
             {
@@ -91,6 +93,8 @@ export default function Index({ penerimaan, filters, flash }: Props) {
 
     const actions = useMemo(() => [createViewAction<Penerimaan>((item) => `/penerimaan-bahan-baku/${item.penerimaan_id}`)], []);
 
+    const filterOptions = useMemo(() => [], []);
+
     return (
         <TableTemplate<Penerimaan>
             title="Penerimaan Bahan Baku"
@@ -100,6 +104,7 @@ export default function Index({ penerimaan, filters, flash }: Props) {
             createUrl="/penerimaan-bahan-baku/create"
             createButtonText="Tambah"
             filters={filters}
+            filterOptions={filterOptions}
             baseUrl="/penerimaan-bahan-baku"
             actions={actions}
             flash={flash}

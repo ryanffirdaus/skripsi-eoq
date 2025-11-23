@@ -2,6 +2,7 @@ import { createDeleteAction, createEditAction } from '@/components/table/table-a
 import TableTemplate from '@/components/table/table-template';
 import { type BreadcrumbItem } from '@/types';
 import { router } from '@inertiajs/react';
+import { ClockIcon, ClipboardDocumentListIcon, CogIcon, CheckBadgeIcon, XCircleIcon } from '@heroicons/react/24/outline';
 
 interface User extends Record<string, unknown> {
     user_id: string;
@@ -90,9 +91,8 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 const statusOptions = [
-    { value: 'menunggu', label: 'Menunggu' },
     { value: 'ditugaskan', label: 'Ditugaskan' },
-    { value: 'sedang_dikerjakan', label: 'Sedang Dikerjakan' },
+    { value: 'proses', label: 'Proses' },
     { value: 'selesai', label: 'Selesai' },
     { value: 'dibatalkan', label: 'Dibatalkan' },
 ];
@@ -119,6 +119,54 @@ const formatDeadline = (deadline: string): string => {
 export default function Index({ penugasan, filters, userRole, flash }: Props) {
     const isAdmin = ['R01', 'R08'].includes(userRole);
     const mode = filters.mode === 'ditugaskan' ? 'ditugaskan' : 'all';
+
+    const getStatusBadge = (status: string) => {
+        const statusConfig = {
+            ditugaskan: {
+                label: 'Ditugaskan',
+                icon: ClipboardDocumentListIcon,
+                bgColor: 'bg-blue-100',
+                textColor: 'text-blue-700',
+                borderColor: 'border-blue-300',
+            },
+            proses: {
+                label: 'Proses',
+                icon: CogIcon,
+                bgColor: 'bg-purple-100',
+                textColor: 'text-purple-700',
+                borderColor: 'border-purple-300',
+            },
+            selesai: {
+                label: 'Selesai',
+                icon: CheckBadgeIcon,
+                bgColor: 'bg-green-100',
+                textColor: 'text-green-700',
+                borderColor: 'border-green-300',
+            },
+            dibatalkan: {
+                label: 'Dibatalkan',
+                icon: XCircleIcon,
+                bgColor: 'bg-red-100',
+                textColor: 'text-red-700',
+                borderColor: 'border-red-300',
+            },
+        };
+
+        const config = statusConfig[status as keyof typeof statusConfig];
+        if (!config) return <span className="text-gray-500 text-sm">{status}</span>;
+
+        const IconComponent = config.icon;
+
+        return (
+            <div
+                className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 ${config.bgColor} ${config.textColor} ${config.borderColor} text-sm font-medium whitespace-nowrap shadow-sm hover:scale-105 transition-transform duration-200`}
+                title={config.label}
+            >
+                <IconComponent className="h-4 w-4 flex-shrink-0" />
+                <span>{config.label}</span>
+            </div>
+        );
+    };
 
     const columns = [
         {
@@ -156,16 +204,7 @@ export default function Index({ penugasan, filters, userRole, flash }: Props) {
             sortable: true,
             hideable: true,
             defaultVisible: true,
-            render: (item: Penugasan) => {
-                const statusMap: Record<string, string> = {
-                    menunggu: 'Menunggu',
-                    ditugaskan: 'Ditugaskan',
-                    sedang_dikerjakan: 'Sedang Dikerjakan',
-                    selesai: 'Selesai',
-                    dibatalkan: 'Dibatalkan',
-                };
-                return statusMap[item.status] || item.status;
-            },
+            render: (item: Penugasan) => getStatusBadge(item.status),
         },
         {
             key: 'user_id',

@@ -3,6 +3,17 @@ import TableTemplate from '@/components/table/table-template';
 import { type BreadcrumbItem } from '@/types';
 import { router } from '@inertiajs/react';
 import { useMemo } from 'react';
+import { 
+    ClockIcon, 
+    CheckCircleIcon, 
+    ShoppingCartIcon, 
+    BeakerIcon,
+    CogIcon,
+    TruckIcon,
+    CheckBadgeIcon,
+    XCircleIcon,
+    ArchiveBoxIcon
+} from '@heroicons/react/24/outline';
 
 interface Pesanan extends Record<string, unknown> {
     pesanan_id: string;
@@ -11,7 +22,7 @@ interface Pesanan extends Record<string, unknown> {
     tanggal_pemesanan: string;
     total_harga: number;
     jumlah_produk: number;
-    status: 'menunggu' | 'dikonfirmasi' | 'diproses' | 'siap' | 'dikirim' | 'diterima' | 'dibatalkan' | 'selesai';
+    status: 'menunggu' | 'dikonfirmasi' | 'menunggu_pengadaan' | 'siap_produksi' | 'sedang_produksi' | 'siap_dikirim' | 'dikirim' | 'selesai' | 'dibatalkan';
     created_at: string;
     updated_at: string;
 }
@@ -63,29 +74,90 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const statusColors = {
-    menunggu: 'bg-yellow-100 text-yellow-800',
-    dikonfirmasi: 'bg-blue-100 text-blue-800',
-    diproses: 'bg-purple-100 text-purple-800',
-    siap: 'bg-cyan-100 text-cyan-800',
-    dikirim: 'bg-indigo-100 text-indigo-800',
-    diterima: 'bg-teal-100 text-teal-800',
-    selesai: 'bg-green-100 text-green-800',
-    dibatalkan: 'bg-red-100 text-red-800',
-};
-
-const statusLabels = {
-    menunggu: 'Menunggu',
-    dikonfirmasi: 'Dikonfirmasi',
-    diproses: 'Diproses',
-    siap: 'Siap',
-    dikirim: 'Dikirim',
-    diterima: 'Diterima',
-    selesai: 'Selesai',
-    dibatalkan: 'Dibatalkan',
-};
-
 export default function Index({ pesanan, filters, permissions, flash }: Props) {
+    const getStatusBadge = (status: string) => {
+        const statusConfig = {
+            menunggu: {
+                label: 'Menunggu',
+                icon: ClockIcon,
+                bgColor: 'bg-yellow-100',
+                textColor: 'text-yellow-700',
+                borderColor: 'border-yellow-300',
+            },
+            dikonfirmasi: {
+                label: 'Dikonfirmasi',
+                icon: CheckCircleIcon,
+                bgColor: 'bg-blue-100',
+                textColor: 'text-blue-700',
+                borderColor: 'border-blue-300',
+            },
+            menunggu_pengadaan: {
+                label: 'Menunggu Pengadaan',
+                icon: ShoppingCartIcon,
+                bgColor: 'bg-orange-100',
+                textColor: 'text-orange-700',
+                borderColor: 'border-orange-300',
+            },
+            siap_produksi: {
+                label: 'Siap Produksi',
+                icon: BeakerIcon,
+                bgColor: 'bg-cyan-100',
+                textColor: 'text-cyan-700',
+                borderColor: 'border-cyan-300',
+            },
+            sedang_produksi: {
+                label: 'Sedang Produksi',
+                icon: CogIcon,
+                bgColor: 'bg-purple-100',
+                textColor: 'text-purple-700',
+                borderColor: 'border-purple-300',
+            },
+            siap_dikirim: {
+                label: 'Siap Dikirim',
+                icon: ArchiveBoxIcon,
+                bgColor: 'bg-indigo-100',
+                textColor: 'text-indigo-700',
+                borderColor: 'border-indigo-300',
+            },
+            dikirim: {
+                label: 'Dikirim',
+                icon: TruckIcon,
+                bgColor: 'bg-teal-100',
+                textColor: 'text-teal-700',
+                borderColor: 'border-teal-300',
+            },
+            selesai: {
+                label: 'Selesai',
+                icon: CheckBadgeIcon,
+                bgColor: 'bg-green-100',
+                textColor: 'text-green-700',
+                borderColor: 'border-green-300',
+            },
+            dibatalkan: {
+                label: 'Dibatalkan',
+                icon: XCircleIcon,
+                bgColor: 'bg-red-100',
+                textColor: 'text-red-700',
+                borderColor: 'border-red-300',
+            },
+        };
+
+        const config = statusConfig[status as keyof typeof statusConfig];
+        if (!config) return <span className="text-gray-500 text-sm">{status}</span>;
+
+        const IconComponent = config.icon;
+
+        return (
+            <div
+                className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 ${config.bgColor} ${config.textColor} ${config.borderColor} text-sm font-medium whitespace-nowrap shadow-sm hover:scale-105 transition-transform duration-200`}
+                title={config.label}
+            >
+                <IconComponent className="h-4 w-4 flex-shrink-0" />
+                <span>{config.label}</span>
+            </div>
+        );
+    };
+
     const columns = useMemo(
         () => [
             {
@@ -117,11 +189,7 @@ export default function Index({ pesanan, filters, permissions, flash }: Props) {
                 sortable: true,
                 hideable: true,
                 defaultVisible: true,
-                render: (item: Pesanan) => (
-                    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColors[item.status]}`}>
-                        {statusLabels[item.status]}
-                    </span>
-                ),
+                render: (item: Pesanan) => getStatusBadge(item.status),
             },
         ],
         [],
@@ -137,10 +205,11 @@ export default function Index({ pesanan, filters, permissions, flash }: Props) {
                 options: [
                     { value: 'menunggu', label: 'Menunggu' },
                     { value: 'dikonfirmasi', label: 'Dikonfirmasi' },
-                    { value: 'diproses', label: 'Diproses' },
-                    { value: 'siap', label: 'Siap' },
+                    { value: 'menunggu_pengadaan', label: 'Menunggu Pengadaan' },
+                    { value: 'siap_produksi', label: 'Siap Produksi' },
+                    { value: 'sedang_produksi', label: 'Sedang Produksi' },
+                    { value: 'siap_dikirim', label: 'Siap Dikirim' },
                     { value: 'dikirim', label: 'Dikirim' },
-                    { value: 'diterima', label: 'Diterima' },
                     { value: 'selesai', label: 'Selesai' },
                     { value: 'dibatalkan', label: 'Dibatalkan' },
                 ],

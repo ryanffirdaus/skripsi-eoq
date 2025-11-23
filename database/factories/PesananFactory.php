@@ -19,7 +19,17 @@ class PesananFactory extends Factory
     {
         static $counter = 1;
 
-        $statuses = ['menunggu', 'dikonfirmasi', 'diproses', 'siap', 'dikirim', 'diterima', 'dibatalkan', 'selesai'];
+        $statuses = [
+            'menunggu', 
+            'dikonfirmasi', 
+            'menunggu_pengadaan', 
+            'siap_produksi', 
+            'sedang_produksi', 
+            'siap_dikirim', 
+            'dikirim', 
+            'selesai', 
+            'dibatalkan'
+        ];
 
         return [
             'pesanan_id' => 'PS' . str_pad($counter++, 3, '0', STR_PAD_LEFT),
