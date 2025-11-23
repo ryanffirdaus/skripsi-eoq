@@ -35,7 +35,7 @@ export function NotificationDropdown() {
 
     const fetchNotifications = async () => {
         try {
-            const response = await axios.get(route('notifications.index'));
+            const response = await axios.get('/notifications');
             setNotifications(response.data.notifications);
             setUnreadCount(response.data.unread_count);
         } catch (error) {
@@ -52,7 +52,7 @@ export function NotificationDropdown() {
 
     const markAsRead = async (id: string, url?: string) => {
         try {
-            await axios.post(route('notifications.mark-read', id));
+            await axios.post(`/notifications/${id}/read`);
             fetchNotifications();
             if (url) {
                 router.visit(url);
@@ -64,7 +64,7 @@ export function NotificationDropdown() {
 
     const markAllAsRead = async () => {
         try {
-            await axios.post(route('notifications.mark-all-read'));
+            await axios.post('/notifications/read-all');
             fetchNotifications();
         } catch (error) {
             console.error('Failed to mark all as read', error);

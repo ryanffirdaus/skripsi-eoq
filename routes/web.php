@@ -82,6 +82,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
     Route::post('notifications/{id}/read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.mark-read');
     Route::post('notifications/read-all', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
+
+    // Dashboard API routes
+    Route::get('/api/dashboard/{role}', [App\Http\Controllers\DashboardController::class, 'getDashboardData'])->name('dashboard.data');
 });
 
 require __DIR__ . '/settings.php';
