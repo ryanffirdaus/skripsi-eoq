@@ -1,7 +1,7 @@
 import ShowPageTemplate from '@/components/templates/show-page-template';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BreadcrumbItem } from '@/types';
-import { Building2, Package, Truck } from 'lucide-react';
+import { Package, Truck } from 'lucide-react';
 
 interface Item {
     nama_item: string;
@@ -23,6 +23,10 @@ interface Penerimaan {
     qty_diterima: number;
     pembelian: Pembelian;
     item: Item;
+    penerima: {
+        nama_penerima: string;
+        email_penerima: string;
+    };
     created_at: string;
     updated_at: string;
 }
@@ -96,22 +100,14 @@ export default function Show({ penerimaan }: Props) {
                                 <p className="text-sm font-medium text-gray-500">Tanggal Pembelian</p>
                                 <p className="mt-1 text-lg font-semibold">{formatDate(penerimaan.pembelian.tanggal_pembelian)}</p>
                             </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                {/* Informasi Pemasok */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Building2 className="h-5 w-5" />
-                            Informasi Pemasok
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div>
-                            <p className="text-sm font-medium text-gray-500">Nama Pemasok</p>
-                            <p className="mt-1 text-lg font-semibold">{penerimaan.pembelian.pemasok_nama}</p>
+                            <div>
+                                <p className="text-sm font-medium text-gray-500">Nama Pemasok</p>
+                                <p className="mt-1 text-lg font-semibold">{penerimaan.pembelian.pemasok_nama}</p>
+                            </div>
+                            <div>
+                                <p className="text-sm font-medium text-gray-500">Nama Penerima</p>
+                                <p className="mt-1 text-lg font-semibold">{penerimaan.penerima.nama_penerima}</p>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
@@ -121,14 +117,14 @@ export default function Show({ penerimaan }: Props) {
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <Package className="h-5 w-5" />
-                            Detail Item
+                            Detail Barang
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-4">
                             <div className="grid gap-4 md:grid-cols-2">
                                 <div>
-                                    <p className="text-sm font-medium text-gray-500">Nama Item</p>
+                                    <p className="text-sm font-medium text-gray-500">Nama Barang</p>
                                     <p className="mt-1 text-lg font-semibold">{penerimaan.item.nama_item}</p>
                                 </div>
                                 <div>

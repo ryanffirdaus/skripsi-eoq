@@ -154,7 +154,7 @@ class PenerimaanBahanBakuController extends Controller
 
             // Notify Manajer Pengadaan and Staf Pengadaan
             $usersToNotify = \App\Models\User::whereIn('role_id', ['R09', 'R04'])->get();
-            // We need to pass one of the created records or the whole batch. 
+            // We need to pass one of the created records or the whole batch.
             // The notification class expects a single PenerimaanBahanBaku object.
             // Let's fetch the first one created in this batch or create a notification that handles multiple?
             // For simplicity, we'll notify about the last one created or just generic.
@@ -167,9 +167,9 @@ class PenerimaanBahanBakuController extends Controller
             // We have $itemsToProcess, but we need the ID.
             // Let's fetch the latest one for this purchase detail.
             $latestPenerimaan = PenerimaanBahanBaku::where('pembelian_detail_id', $itemsToProcess[0]['pembelian_detail_id'])
-                                    ->latest('created_at')
-                                    ->first();
-            
+                ->latest('created_at')
+                ->first();
+
             if ($latestPenerimaan) {
                 \Illuminate\Support\Facades\Notification::send($usersToNotify, new \App\Notifications\GoodsReceivedNotification($latestPenerimaan));
             }
@@ -185,7 +185,8 @@ class PenerimaanBahanBakuController extends Controller
     {
         $penerimaanBahanBaku->load([
             'pembelianDetail.pembelian.pemasok',
-            'pembelianDetail.pengadaanDetail'
+            'pembelianDetail.pengadaanDetail',
+            'createdBy'
         ]);
 
         $pembelianDetail = $penerimaanBahanBaku->pembelianDetail;
@@ -208,6 +209,10 @@ class PenerimaanBahanBakuController extends Controller
                     'qty_dipesan' => $pengadaanDetail?->qty_diminta ?? 0,
                     'harga_satuan' => $pengadaanDetail?->harga_satuan ?? 0,
                     'total_harga' => $pengadaanDetail?->total_harga ?? 0,
+                ],
+                'penerima' => [
+                    'nama_penerima' => $penerimaanBahanBaku->createdBy?->nama_lengkap ?? '-',
+                    'email_penerima' => $penerimaanBahanBaku->createdBy?->email ?? '-',
                 ],
                 'created_at' => $penerimaanBahanBaku->created_at?->format('Y-m-d H:i:s'),
                 'updated_at' => $penerimaanBahanBaku->updated_at?->format('Y-m-d H:i:s'),
