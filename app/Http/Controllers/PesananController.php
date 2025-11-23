@@ -134,7 +134,7 @@ class PesananController extends Controller
             'produk.*.harga_satuan' => 'required|numeric|min:0',
         ]);
 
-        DB::transaction(function () use ($validated) {
+        $pesanan = DB::transaction(function () use ($validated) {
             // Create pesanan (total_harga will be auto-calculated by model)
             $pesanan = Pesanan::create([
                 'pelanggan_id' => $validated['pelanggan_id'],
@@ -152,6 +152,8 @@ class PesananController extends Controller
                     // subtotal will be auto-calculated by model
                 ]);
             }
+            
+            return $pesanan;
         });
 
         // Notify relevant users (e.g., Warehouse Manager, Admin)
