@@ -1,7 +1,7 @@
 import ShowPageTemplate from '@/components/templates/show-page-template';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BreadcrumbItem } from '@/types';
-import { Package, Building2, Truck } from 'lucide-react';
+import { Building2, Package, Truck } from 'lucide-react';
 
 interface Item {
     nama_item: string;
@@ -151,25 +151,6 @@ export default function Show({ penerimaan }: Props) {
                                     <p className="text-sm font-medium text-gray-500">Total Harga</p>
                                     <p className="mt-1 text-lg font-semibold">{formatCurrency(penerimaan.item.total_harga)}</p>
                                 </div>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                {/* Timestamp */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Informasi Sistem</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="grid gap-4 md:grid-cols-2">
-                            <div>
-                                <p className="text-sm font-medium text-gray-500">Dibuat Pada</p>
-                                <p className="mt-1 text-sm">{new Date(penerimaan.created_at).toLocaleString('id-ID')}</p>
-                            </div>
-                            <div>
-                                <p className="text-sm font-medium text-gray-500">Diperbarui Pada</p>
-                                <p className="mt-1 text-sm">{new Date(penerimaan.updated_at).toLocaleString('id-ID')}</p>
                             </div>
                         </div>
                     </CardContent>
