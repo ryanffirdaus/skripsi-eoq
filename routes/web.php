@@ -77,14 +77,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Penugasan Produksi CRUD routes
     Route::resource('penugasan-produksi', PenugasanProduksiController::class);
+});
 
-    // Notification routes
+// Dashboard API - Only requires auth, no verification needed
+Route::middleware(['auth'])->group(function () {
+    Route::get('/dashboard/data', [App\Http\Controllers\DashboardController::class, 'getDashboardDataForCurrentUser'])->name('dashboard.data.current');
+});
+
+// Notification routes - accessible to all authenticated users
+Route::middleware(['auth'])->group(function () {
     Route::get('notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
     Route::post('notifications/{id}/read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.mark-read');
     Route::post('notifications/read-all', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
-
-    // Dashboard API routes
-    Route::get('/api/dashboard/{role}', [App\Http\Controllers\DashboardController::class, 'getDashboardData'])->name('dashboard.data');
 });
 
 require __DIR__ . '/settings.php';

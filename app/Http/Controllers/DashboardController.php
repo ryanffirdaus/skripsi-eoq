@@ -15,6 +15,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class DashboardController extends Controller
@@ -46,7 +47,54 @@ class DashboardController extends Controller
     }
 
     /**
-     * Get dashboard data for specific role
+     * NEW FUNCTION: Get dashboard data for CURRENT authenticated user
+     * Auto-detects role and returns appropriate data
+     */
+    public function getDashboardDataForCurrentUser()
+    {
+        try {
+            $user = Auth::user();
+            $roleId = $user->role_id;
+
+            $dateFrom = now()->subDays(30)->format('Y-m-d');
+            $dateTo = now()->format('Y-m-d');
+
+            // Map role to data method
+            $roleMethodMap = [
+                'R01' => 'getAdminData',
+                'R02' => 'getStafgudangData',
+                'R03' => 'getStafrndData', // Staf RnD
+                'R04' => 'getStafpengadaanData',
+                'R05' => 'getStafpenjualanData',
+                'R06' => 'getStafkeuanganData',
+                'R07' => 'getManajergudangData',
+                'R08' => 'getManagerrndData', // Manajer RnD
+                'R09' => 'getManajerpengadaanData',
+                'R10' => 'getManajerkeuanganData',
+            ];
+
+            $method = $roleMethodMap[$roleId] ?? 'getAdminData';
+
+            if (method_exists($this, $method)) {
+                $data = $this->$method($dateFrom, $dateTo);
+                return response()->json($data);
+            }
+
+            return response()->json(['error' => 'Role not found'], 404);
+        } catch (\Exception $e) {
+            Log::error('Dashboard data error for role ' . ($user->role_id ?? 'unknown') . ': ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
+
+            return response()->json([
+                'error' => 'Failed to load dashboard data',
+                'message' => $e->getMessage(),
+                'kpis' => [],
+            ], 500);
+        }
+    }
+
+    /**
+     * Get dashboard data for specific role (OLD FUNCTION - kept for compatibility)
      */
     public function getDashboardData(Request $request, $role)
     {
@@ -55,14 +103,14 @@ class DashboardController extends Controller
             $dateTo = $request->input('date_to', now()->format('Y-m-d'));
 
             $method = 'get' . ucfirst(str_replace('-', '', $role)) . 'Data';
-            
+
             if (method_exists($this, $method)) {
                 return response()->json($this->$method($dateFrom, $dateTo));
             }
 
             return response()->json(['error' => 'Invalid role'], 404);
         } catch (\Exception $e) {
-            \Log::error('Dashboard API Error: ' . $e->getMessage());
+            Log::error('Dashboard API Error: ' . $e->getMessage());
             return response()->json([
                 'error' => 'Failed to load dashboard data',
                 'message' => $e->getMessage()
@@ -144,9 +192,28 @@ class DashboardController extends Controller
         ];
     }
 
+    private function getStafrndData($dateFrom, $dateTo)
+    {
+        return [
+            'kpis' => [
+                'activeAssignments' => \App\Models\PenugasanProduksi::whereIn('status', ['ditugaskan', 'proses'])->count(),
+                'completedToday' => \App\Models\PenugasanProduksi::whereDate('created_at', today())->where('status', 'selesai')->count(),
+                'totalProductsManufactured' => \App\Models\Produk::count(),
+            ],
+            'assignmentStatusDistribution' => $this->getAssignmentStatusDistribution(),
+            'productionTrend' => $this->getProductionTrend($dateFrom, $dateTo),
+            'taskCompletionRate' => $this->getTaskCompletionRate(),
+        ];
+    }
+
     private function getManajergudangData($dateFrom, $dateTo)
     {
         return $this->getStafgudangData($dateFrom, $dateTo);
+    }
+
+    private function getManagerrndData($dateFrom, $dateTo)
+    {
+        return $this->getStafrndData($dateFrom, $dateTo);
     }
 
     private function getManajerpengadaanData($dateFrom, $dateTo)
@@ -407,5 +474,47 @@ class DashboardController extends Controller
                     'value' => (float) $item->total,
                 ];
             });
+    }
+
+    // RnD Dashboard Helper Methods
+
+    private function getAssignmentStatusDistribution()
+    {
+        return \App\Models\PenugasanProduksi::select('status', DB::raw('COUNT(*) as count'))
+            ->groupBy('status')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'name' => ucfirst($item->status),
+                    'value' => $item->count,
+                ];
+            });
+    }
+
+    private function getProductionTrend($dateFrom, $dateTo)
+    {
+        return \App\Models\PenugasanProduksi::select(
+            DB::raw('DATE(created_at) as date'),
+            DB::raw('COUNT(*) as assignments_created'),
+            DB::raw('SUM(IF(status = "selesai", 1, 0)) as completed')
+        )
+            ->whereBetween('created_at', [$dateFrom, $dateTo])
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'date' => $item->date,
+                    'assigned' => $item->assignments_created,
+                    'completed' => $item->completed,
+                ];
+            });
+    }
+
+    private function getTaskCompletionRate()
+    {
+        $total = \App\Models\PenugasanProduksi::count();
+        $completed = \App\Models\PenugasanProduksi::where('status', 'selesai')->count();
+        return $total > 0 ? round(($completed / $total) * 100, 2) : 0;
     }
 }
