@@ -216,6 +216,7 @@ class PesananController extends Controller
     public function update(Request $request, $pesanan_id)
     {
         $pesanan = Pesanan::where('pesanan_id', $pesanan_id)->firstOrFail();
+        $oldStatus = $pesanan->status;
         if (!$this->isAdmin() && !$this->isStafPenjualan()) {
             abort(403, 'Anda tidak memiliki izin untuk mengedit pesanan.');
         }
@@ -253,6 +254,12 @@ class PesananController extends Controller
             }
             // total_harga will be auto-updated by model event
         });
+
+        // Check if status changed and send notification
+        if ($oldStatus !== $validated['status']) {
+             $usersToNotify = \App\Models\User::whereIn('role_id', ['R01', 'R02', 'R05'])->get(); // Admin, Gudang, Penjualan
+             \Illuminate\Support\Facades\Notification::send($usersToNotify, new \App\Notifications\PesananStatusChangedNotification($pesanan, $oldStatus, $validated['status']));
+        }
 
         return redirect()->route('pesanan.index')->with('flash', [
             'message' => 'Pesanan berhasil diperbarui.',

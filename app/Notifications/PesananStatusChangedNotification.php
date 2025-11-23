@@ -6,20 +6,24 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
-use App\Models\Pembelian;
+use App\Models\Pesanan;
 
-class PurchaseOrderCreatedNotification extends Notification
+class PesananStatusChangedNotification extends Notification
 {
     use Queueable;
 
-    protected $pembelian;
+    protected $pesanan;
+    protected $oldStatus;
+    protected $newStatus;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct(Pembelian $pembelian)
+    public function __construct(Pesanan $pesanan, $oldStatus, $newStatus)
     {
-        $this->pembelian = $pembelian;
+        $this->pesanan = $pesanan;
+        $this->oldStatus = $oldStatus;
+        $this->newStatus = $newStatus;
     }
 
     /**
@@ -40,11 +44,11 @@ class PurchaseOrderCreatedNotification extends Notification
     public function toArray(object $notifiable): array
     {
         return [
-            'title' => 'Purchase Order Baru',
-            'message' => 'PO #' . $this->pembelian->pembelian_id . ' telah dibuat untuk Pemasok ' . ($this->pembelian->pemasok->nama_pemasok ?? 'Unknown') . '.',
-            'action_url' => route('pembelian.edit', $this->pembelian->pembelian_id),
-            'type' => 'success',
-            'pembelian_id' => $this->pembelian->pembelian_id,
+            'title' => 'Status Pesanan Berubah',
+            'message' => 'Status pesanan #' . $this->pesanan->pesanan_id . ' berubah dari ' . $this->oldStatus . ' menjadi ' . $this->newStatus . '.',
+            'action_url' => route('pesanan.edit', $this->pesanan->pesanan_id),
+            'type' => 'info',
+            'pesanan_id' => $this->pesanan->pesanan_id,
         ];
     }
 }

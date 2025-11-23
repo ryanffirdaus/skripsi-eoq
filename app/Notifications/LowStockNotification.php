@@ -48,7 +48,7 @@ class LowStockNotification extends Notification
         return [
             'title' => 'Stok Menipis (Di Bawah ROP)',
             'message' => "Stok {$name} ({$stock}) telah mencapai titik pemesanan ulang ({$rop}). Segera lakukan pengadaan.",
-            'action_url' => $this->type === 'bahan_baku' ? route('bahan-baku.show', $id) : route('produk.show', $id),
+            'action_url' => $this->type === 'bahan_baku' ? route('bahan-baku.edit', $id) : route('produk.edit', $id),
             'type' => 'warning',
             'item_id' => $id,
             'item_type' => $this->type,

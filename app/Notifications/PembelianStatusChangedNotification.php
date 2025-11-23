@@ -8,18 +8,22 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use App\Models\Pembelian;
 
-class PurchaseOrderCreatedNotification extends Notification
+class PembelianStatusChangedNotification extends Notification
 {
     use Queueable;
 
     protected $pembelian;
+    protected $oldStatus;
+    protected $newStatus;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct(Pembelian $pembelian)
+    public function __construct(Pembelian $pembelian, $oldStatus, $newStatus)
     {
         $this->pembelian = $pembelian;
+        $this->oldStatus = $oldStatus;
+        $this->newStatus = $newStatus;
     }
 
     /**
@@ -40,10 +44,10 @@ class PurchaseOrderCreatedNotification extends Notification
     public function toArray(object $notifiable): array
     {
         return [
-            'title' => 'Purchase Order Baru',
-            'message' => 'PO #' . $this->pembelian->pembelian_id . ' telah dibuat untuk Pemasok ' . ($this->pembelian->pemasok->nama_pemasok ?? 'Unknown') . '.',
+            'title' => 'Status PO Berubah',
+            'message' => 'Status Purchase Order #' . $this->pembelian->pembelian_id . ' berubah dari ' . $this->oldStatus . ' menjadi ' . $this->newStatus . '.',
             'action_url' => route('pembelian.edit', $this->pembelian->pembelian_id),
-            'type' => 'success',
+            'type' => 'info',
             'pembelian_id' => $this->pembelian->pembelian_id,
         ];
     }

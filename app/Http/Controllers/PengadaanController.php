@@ -429,6 +429,10 @@ class PengadaanController extends Controller
 
             $pengadaan->updateTotalBiaya();
 
+            // Notify Manajer Gudang (R07) and Admin (R01)
+            $usersToNotify = \App\Models\User::whereIn('role_id', ['R01', 'R07'])->get();
+            \Illuminate\Support\Facades\Notification::send($usersToNotify, new \App\Notifications\NewPengadaanNotification($pengadaan));
+
             Log::info('Pengadaan Store - Success!');
 
             return redirect()->route('pengadaan.index')
@@ -709,14 +713,16 @@ class PengadaanController extends Controller
         if ($request->has('status')) {
             $updateData['status'] = $request->status;
         }
+        
+        $oldStatus = $pengadaan->status;
         $pengadaan->update($updateData);
 
         // Send notification if status changed
-        if ($request->has('status') && $request->status !== $pengadaan->getOriginal('status')) {
+        if ($oldStatus !== $pengadaan->status) {
              // Determine who to notify based on new status
              $rolesToNotify = ['R01']; // Always notify Admin
              
-             switch ($request->status) {
+             switch ($pengadaan->status) {
                  case 'menunggu_persetujuan_gudang':
                      $rolesToNotify[] = 'R07'; // Manajer Gudang
                      break;
@@ -736,11 +742,15 @@ class PengadaanController extends Controller
                  case 'diterima':
                      $rolesToNotify[] = 'R02'; // Staf Gudang (Penerima)
                      break;
+                 case 'ditolak':
+                 case 'dibatalkan':
+                     $rolesToNotify[] = 'R07'; // Manajer Gudang (Creator)
+                     $rolesToNotify[] = 'R09'; // Manajer Pengadaan
+                     break;
              }
 
              $usersToNotify = \App\Models\User::whereIn('role_id', $rolesToNotify)->get();
-             $statusLabel = $pengadaan->status; // Or get label from helper
-             \Illuminate\Support\Facades\Notification::send($usersToNotify, new \App\Notifications\PengadaanStatusChangedNotification($pengadaan, $statusLabel));
+             \Illuminate\Support\Facades\Notification::send($usersToNotify, new \App\Notifications\PengadaanStatusChangedNotification($pengadaan, $oldStatus, $pengadaan->status));
         }
 
         // Update each detail's pemasok_id dan harga_satuan (hanya jika allowed)

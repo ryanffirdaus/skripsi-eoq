@@ -25,7 +25,7 @@ class Pemasok extends Model
         'alamat',
         'catatan',
         'dibuat_oleh',
-        'diupdate_oleh',
+        'diubah_oleh',
         'dihapus_oleh'
     ];
 
@@ -47,7 +47,7 @@ class Pemasok extends Model
 
         static::updating(function ($model) {
             if (Auth::check()) {
-                $model->diupdate_oleh = Auth::user()->user_id;
+                $model->diubah_oleh = Auth::user()->user_id;
             }
         });
 
@@ -72,7 +72,7 @@ class Pemasok extends Model
 
     public function updatedBy()
     {
-        return $this->belongsTo(User::class, 'diupdate_oleh', 'user_id');
+        return $this->belongsTo(User::class, 'diubah_oleh', 'user_id');
     }
 
     public function deletedBy()

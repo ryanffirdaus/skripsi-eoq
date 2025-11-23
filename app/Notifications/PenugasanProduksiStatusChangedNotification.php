@@ -6,22 +6,22 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
-use App\Models\Pengadaan;
+use App\Models\PenugasanProduksi;
 
-class PengadaanStatusChangedNotification extends Notification
+class PenugasanProduksiStatusChangedNotification extends Notification
 {
     use Queueable;
 
-    protected $pengadaan;
+    protected $penugasan;
     protected $oldStatus;
     protected $newStatus;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct(Pengadaan $pengadaan, $oldStatus, $newStatus)
+    public function __construct(PenugasanProduksi $penugasan, $oldStatus, $newStatus)
     {
-        $this->pengadaan = $pengadaan;
+        $this->penugasan = $penugasan;
         $this->oldStatus = $oldStatus;
         $this->newStatus = $newStatus;
     }
@@ -44,12 +44,11 @@ class PengadaanStatusChangedNotification extends Notification
     public function toArray(object $notifiable): array
     {
         return [
-            'title' => 'Status Pengadaan Berubah',
-            'message' => 'Status pengadaan #' . $this->pengadaan->pengadaan_id . ' berubah dari ' . $this->oldStatus . ' menjadi ' . $this->newStatus . '.',
-            'action_url' => route('pengadaan.edit', $this->pengadaan->pengadaan_id),
+            'title' => 'Status Produksi Berubah',
+            'message' => 'Status penugasan produksi #' . $this->penugasan->penugasan_id . ' berubah dari ' . $this->oldStatus . ' menjadi ' . $this->newStatus . '.',
+            'action_url' => route('penugasan-produksi.edit', $this->penugasan->penugasan_id),
             'type' => 'info',
-            'pengadaan_id' => $this->pengadaan->pengadaan_id,
-            'status' => $this->pengadaan->status,
+            'penugasan_id' => $this->penugasan->penugasan_id,
         ];
     }
 }

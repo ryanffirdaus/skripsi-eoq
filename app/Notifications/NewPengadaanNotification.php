@@ -6,20 +6,20 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
-use App\Models\Pembelian;
+use App\Models\Pengadaan;
 
-class PurchaseOrderCreatedNotification extends Notification
+class NewPengadaanNotification extends Notification
 {
     use Queueable;
 
-    protected $pembelian;
+    protected $pengadaan;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct(Pembelian $pembelian)
+    public function __construct(Pengadaan $pengadaan)
     {
-        $this->pembelian = $pembelian;
+        $this->pengadaan = $pengadaan;
     }
 
     /**
@@ -40,11 +40,11 @@ class PurchaseOrderCreatedNotification extends Notification
     public function toArray(object $notifiable): array
     {
         return [
-            'title' => 'Purchase Order Baru',
-            'message' => 'PO #' . $this->pembelian->pembelian_id . ' telah dibuat untuk Pemasok ' . ($this->pembelian->pemasok->nama_pemasok ?? 'Unknown') . '.',
-            'action_url' => route('pembelian.edit', $this->pembelian->pembelian_id),
-            'type' => 'success',
-            'pembelian_id' => $this->pembelian->pembelian_id,
+            'title' => 'Pengajuan Pengadaan Baru',
+            'message' => 'Pengadaan baru #' . $this->pengadaan->pengadaan_id . ' telah dibuat untuk Pesanan #' . $this->pengadaan->pesanan_id . '.',
+            'action_url' => route('pengadaan.edit', $this->pengadaan->pengadaan_id),
+            'type' => 'info',
+            'pengadaan_id' => $this->pengadaan->pengadaan_id,
         ];
     }
 }

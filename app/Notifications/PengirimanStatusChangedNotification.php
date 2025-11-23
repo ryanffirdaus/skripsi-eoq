@@ -6,20 +6,24 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
-use App\Models\Pesanan;
+use App\Models\Pengiriman;
 
-class NewOrderNotification extends Notification
+class PengirimanStatusChangedNotification extends Notification
 {
     use Queueable;
 
-    protected $pesanan;
+    protected $pengiriman;
+    protected $oldStatus;
+    protected $newStatus;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct(Pesanan $pesanan)
+    public function __construct(Pengiriman $pengiriman, $oldStatus, $newStatus)
     {
-        $this->pesanan = $pesanan;
+        $this->pengiriman = $pengiriman;
+        $this->oldStatus = $oldStatus;
+        $this->newStatus = $newStatus;
     }
 
     /**
@@ -40,11 +44,11 @@ class NewOrderNotification extends Notification
     public function toArray(object $notifiable): array
     {
         return [
-            'title' => 'Pesanan Baru Masuk',
-            'message' => 'Pesanan baru #' . $this->pesanan->pesanan_id . ' dari ' . ($this->pesanan->pelanggan->nama_pelanggan ?? 'Pelanggan') . ' perlu diproses.',
-            'action_url' => route('pesanan.edit', $this->pesanan->pesanan_id),
+            'title' => 'Status Pengiriman Berubah',
+            'message' => 'Status pengiriman #' . $this->pengiriman->pengiriman_id . ' berubah dari ' . $this->oldStatus . ' menjadi ' . $this->newStatus . '.',
+            'action_url' => route('pengiriman.edit', $this->pengiriman->pengiriman_id),
             'type' => 'info',
-            'pesanan_id' => $this->pesanan->pesanan_id,
+            'pengiriman_id' => $this->pengiriman->pengiriman_id,
         ];
     }
 }

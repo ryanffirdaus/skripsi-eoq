@@ -439,7 +439,13 @@ class PembelianController extends Controller
                 $updateData['status'] = $request->status;
             }
 
+            $oldStatus = $pembelian->status;
             $pembelian->update($updateData);
+
+            if ($oldStatus !== $pembelian->status) {
+                 $usersToNotify = \App\Models\User::whereIn('role_id', ['R01', 'R09', 'R07'])->get(); // Admin, Manajer Pengadaan, Manajer Gudang
+                 \Illuminate\Support\Facades\Notification::send($usersToNotify, new \App\Notifications\PembelianStatusChangedNotification($pembelian, $oldStatus, $pembelian->status));
+            }
 
             // Detail items tidak perlu diupdate karena data diambil dari pengadaan_detail
             // Model event akan otomatis update total biaya
@@ -497,7 +503,13 @@ class PembelianController extends Controller
             'status' => 'required|in:draft,menunggu,dipesan,dikirim,dikonfirmasi,diterima,dibatalkan',
         ]);
 
+        $oldStatus = $pembelian->status;
         $pembelian->update(['status' => $validated['status']]);
+
+        if ($oldStatus !== $pembelian->status) {
+             $usersToNotify = \App\Models\User::whereIn('role_id', ['R01', 'R09', 'R07'])->get(); // Admin, Manajer Pengadaan, Manajer Gudang
+             \Illuminate\Support\Facades\Notification::send($usersToNotify, new \App\Notifications\PembelianStatusChangedNotification($pembelian, $oldStatus, $pembelian->status));
+        }
 
         return back()->with('flash', [
             'message' => 'Status pembelian berhasil diperbarui!',

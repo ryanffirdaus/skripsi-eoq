@@ -247,6 +247,7 @@ class PenugasanProduksiController extends Controller
     public function update(Request $request, PenugasanProduksi $penugasan_produksi)
     {
         $user = Auth::user();
+        $oldStatus = $penugasan_produksi->status;
 
         // Authorization: Admin (R01), Manajer RnD (R08), atau Staf RnD (R03) untuk diri sendiri
         if (!$this->isAdmin() && !$this->hasRole('R08') && $user->role_id !== 'R03') {
@@ -321,6 +322,13 @@ class PenugasanProduksiController extends Controller
             ]);
         }
 
+
+        
+        if ($oldStatus !== $penugasan_produksi->status) {
+             $usersToNotify = \App\Models\User::whereIn('role_id', ['R01', 'R08', 'R03'])->get(); // Admin, Manajer RnD, Staf RnD
+             \Illuminate\Support\Facades\Notification::send($usersToNotify, new \App\Notifications\PenugasanProduksiStatusChangedNotification($penugasan_produksi, $oldStatus, $penugasan_produksi->status));
+        }
+
         return redirect()->route('penugasan-produksi.index')
             ->with('success', 'Penugasan produksi berhasil diperbarui');
     }
@@ -373,9 +381,15 @@ class PenugasanProduksiController extends Controller
             ], 422);
         }
 
+        $oldStatus = $penugasan_produksi->status;
         $penugasan_produksi->update([
             'status' => $validated['status'],
         ]);
+
+        if ($oldStatus !== $penugasan_produksi->status) {
+             $usersToNotify = \App\Models\User::whereIn('role_id', ['R01', 'R08', 'R03'])->get(); // Admin, Manajer RnD, Staf RnD
+             \Illuminate\Support\Facades\Notification::send($usersToNotify, new \App\Notifications\PenugasanProduksiStatusChangedNotification($penugasan_produksi, $oldStatus, $penugasan_produksi->status));
+        }
 
         return response()->json([
             'success' => true,

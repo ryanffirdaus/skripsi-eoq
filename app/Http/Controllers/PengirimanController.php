@@ -305,11 +305,17 @@ class PengirimanController extends Controller
         }
 
         // Update data pengiriman dengan data yang sudah tervalidasi
+        $oldStatus = $pengiriman->status;
         $pengiriman->update($validatedData);
 
         // Update status pesanan terkait berdasarkan status pengiriman
         if ($validatedData['status'] === 'dikirim' || $validatedData['status'] === 'selesai') {
             $pengiriman->pesanan()->update(['status' => $validatedData['status']]);
+        }
+
+        if ($oldStatus !== $pengiriman->status) {
+             $usersToNotify = \App\Models\User::whereIn('role_id', ['R01', 'R02', 'R07'])->get(); // Admin, Staf Gudang, Manajer Gudang
+             \Illuminate\Support\Facades\Notification::send($usersToNotify, new \App\Notifications\PengirimanStatusChangedNotification($pengiriman, $oldStatus, $pengiriman->status));
         }
 
         return redirect()->route('pengiriman.index')
@@ -353,7 +359,13 @@ class PengirimanController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
+        $oldStatus = $pengiriman->status;
         $pengiriman->update($request->only(['status', 'tanggal_kirim', 'tanggal_diterima']));
+
+        if ($oldStatus !== $pengiriman->status) {
+             $usersToNotify = \App\Models\User::whereIn('role_id', ['R01', 'R02', 'R07'])->get(); // Admin, Staf Gudang, Manajer Gudang
+             \Illuminate\Support\Facades\Notification::send($usersToNotify, new \App\Notifications\PengirimanStatusChangedNotification($pengiriman, $oldStatus, $pengiriman->status));
+        }
 
         return response()->json([
             'message' => 'Status pengiriman berhasil diperbarui!',

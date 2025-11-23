@@ -45,7 +45,7 @@ class PenerimaanBahanBaku extends Model
         });
 
         static::updating(function ($model) {
-            if (Auth::check() && !$model->diupdate_oleh) {
+            if (Auth::check() && !$model->diubah_oleh) {
                 $model->diubah_oleh = Auth::id();
             }
         });

@@ -42,7 +42,7 @@ class GoodsReceivedNotification extends Notification
         return [
             'title' => 'Bahan Baku Diterima',
             'message' => 'Penerimaan #' . $this->penerimaan->penerimaan_id . ' dari PO #' . $this->penerimaan->pembelian_id . ' telah selesai.',
-            'action_url' => route('penerimaan-bahan-baku.show', $this->penerimaan->penerimaan_id),
+            'action_url' => route('penerimaan-bahan-baku.edit', $this->penerimaan->penerimaan_id),
             'type' => 'success',
             'penerimaan_id' => $this->penerimaan->penerimaan_id,
         ];

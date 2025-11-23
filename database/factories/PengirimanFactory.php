@@ -40,7 +40,7 @@ class PengirimanFactory extends Factory
             'tanggal_diterima' => $tanggalDiterima,
             'catatan' => $this->faker->optional(0.3)->sentence(),
             'dibuat_oleh' => User::factory(),
-            'diupdate_oleh' => function (array $attributes) {
+            'diubah_oleh' => function (array $attributes) {
                 return $attributes['dibuat_oleh'];
             },
         ];
