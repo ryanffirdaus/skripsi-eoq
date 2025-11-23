@@ -232,12 +232,12 @@ export default function TableTemplate<T extends Record<string, unknown>>({
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={title} />
 
-            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto p-4">
+            <div className="flex h-full flex-1 flex-col gap-2 overflow-hidden p-3 sm:gap-3 sm:p-4 md:gap-4 md:p-6">
                 {/* Flash Message */}
                 {message && (
                     <Alert
                         className={cn(
-                            'border',
+                            'border text-sm',
                             flash?.type === 'error'
                                 ? 'border-red-200 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-900/30 dark:text-red-300'
                                 : flash?.type === 'warning'
@@ -250,11 +250,11 @@ export default function TableTemplate<T extends Record<string, unknown>>({
                 )}
 
                 {/* Header */}
-                <div className="flex items-center justify-between">
-                    <h1 className={cn(colors.text.primary, 'text-2xl font-bold')}>{title}</h1>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <h1 className={cn(colors.text.primary, 'text-xl font-bold sm:text-2xl')}>{title}</h1>
                     {createUrl && (
                         <Link href={createUrl}>
-                            <Button className="flex items-center gap-2">
+                            <Button className="flex items-center gap-2 px-3 text-xs sm:px-4 sm:text-sm">
                                 <PlusIcon className="h-4 w-4" />
                                 <span>{createButtonText}</span>
                             </Button>
@@ -263,11 +263,11 @@ export default function TableTemplate<T extends Record<string, unknown>>({
                 </div>
 
                 {/* Search and Filter Bar */}
-                <div className={cn('flex flex-col gap-4 rounded-lg p-4', colors.card.base)}>
-                    <form onSubmit={handleSearch} className="flex flex-col gap-4 sm:flex-row">
+                <div className={cn('flex flex-col gap-2 rounded-lg p-3 sm:gap-3 sm:p-4', colors.card.base)}>
+                    <form onSubmit={handleSearch} className="flex flex-col gap-2 sm:gap-3">
                         {/* Search Input */}
-                        <div className="relative flex-1">
-                            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                        <div className="relative w-full">
+                            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2 sm:pl-3">
                                 <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
                             </div>
                             <input
@@ -280,16 +280,24 @@ export default function TableTemplate<T extends Record<string, unknown>>({
                         </div>
 
                         {/* Filter Toggle */}
-                        <div className="flex gap-2">
-                            <Button type="submit" className="flex items-center gap-2">
+                        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+                            <Button
+                                type="submit"
+                                className="flex flex-1 items-center justify-center gap-2 px-3 text-xs sm:flex-none sm:px-4 sm:text-sm"
+                            >
                                 <MagnifyingGlassIcon className="h-4 w-4" />
-                                Search
+                                <span>Search</span>
                             </Button>
 
                             {hasActiveFilters && (
-                                <Button type="button" variant="outline" onClick={clearFilters} className="flex items-center gap-2">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={clearFilters}
+                                    className="flex flex-1 items-center justify-center gap-2 px-3 text-xs sm:flex-none sm:px-4 sm:text-sm"
+                                >
                                     <XMarkIcon className="h-4 w-4" />
-                                    Clear
+                                    <span>Clear</span>
                                 </Button>
                             )}
                         </div>
@@ -384,28 +392,30 @@ export default function TableTemplate<T extends Record<string, unknown>>({
 
                     {/* Pagination */}
                     {data.last_page > 1 && (
-                        <div className={cn('border-t px-4 py-3', colors.border.primary, colors.background.primary)}>
-                            <div className="flex items-center justify-between">
+                        <div className={cn('border-t px-3 py-2 sm:px-4 sm:py-3', colors.border.primary, colors.background.primary)}>
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                                 <div className="flex items-center gap-2">
-                                    <span className={cn('text-sm', colors.text.secondary)}>
-                                        Page {data.current_page} of {data.last_page}
+                                    <span className={cn('text-xs sm:text-sm', colors.text.secondary)}>
+                                        Hal {data.current_page} dari {data.last_page}
                                     </span>
                                 </div>
-                                <div className="flex items-center gap-1">
+                                <div className="flex items-center gap-1 overflow-x-auto">
                                     {data.links.map((link, index) => (
                                         <button
                                             key={index}
                                             onClick={() => handlePagination(link.url)}
                                             disabled={!link.url}
                                             className={cn(
-                                                'rounded px-3 py-1 text-sm',
+                                                'rounded px-2 py-1 text-xs whitespace-nowrap sm:px-3',
                                                 link.active
                                                     ? 'bg-blue-600 text-white'
                                                     : cn('border', colors.border.primary, colors.hover.primary, colors.text.secondary),
                                                 !link.url && 'cursor-not-allowed opacity-50',
                                             )}
-                                            dangerouslySetInnerHTML={{ __html: link.label }}
-                                        />
+                                            title={link.label}
+                                        >
+                                            {link.label.includes('Previous') ? 'Sebelumnya' : link.label.includes('Next') ? 'Berikutnya' : link.label}
+                                        </button>
                                     ))}
                                 </div>
                             </div>

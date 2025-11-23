@@ -1,0 +1,172 @@
+/**
+ * Mobile Responsive Enhancement CSS
+ * Additional utilities for ensuring mobile responsiveness
+ */
+
+@layer components {
+  /* Responsive containers */
+  .container-responsive {
+    @apply px-3 py-2 sm:px-4 sm:py-3 md:px-6 md:py-4;
+  }
+
+  .container-tight {
+    @apply px-2 py-1 sm:px-3 sm:py-2;
+  }
+
+  /* Responsive text */
+  .text-responsive-lg {
+    @apply text-2xl sm:text-3xl md:text-4xl;
+  }
+
+  .text-responsive-md {
+    @apply text-xl sm:text-2xl md:text-3xl;
+  }
+
+  .text-responsive-sm {
+    @apply text-sm sm:text-base md:text-base;
+  }
+
+  /* Responsive spacing */
+  .gap-responsive {
+    @apply gap-2 sm:gap-3 md:gap-4 lg:gap-6;
+  }
+
+  .gap-responsive-sm {
+    @apply gap-1 sm:gap-2 md:gap-3 lg:gap-4;
+  }
+
+  /* Responsive flex */
+  .flex-responsive {
+    @apply flex flex-col sm:flex-row;
+  }
+
+  .flex-responsive-between {
+    @apply flex flex-col sm:flex-row sm:items-center sm:justify-between gap-responsive;
+  }
+
+  /* Responsive grid */
+  .grid-responsive-2 {
+    @apply grid grid-cols-1 gap-responsive sm:grid-cols-2;
+  }
+
+  .grid-responsive-3 {
+    @apply grid grid-cols-1 gap-responsive sm:grid-cols-2 md:grid-cols-3;
+  }
+
+  .grid-responsive-4 {
+    @apply grid grid-cols-1 gap-responsive sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4;
+  }
+
+  /* Responsive cards */
+  .card-responsive {
+    @apply rounded-lg md:rounded-xl p-3 sm:p-4 md:p-6;
+  }
+
+  /* Responsive buttons */
+  .btn-responsive-sm {
+    @apply px-2 py-1 sm:px-3 sm:py-1.5 text-xs sm:text-sm;
+  }
+
+  .btn-responsive-md {
+    @apply px-3 py-2 sm:px-4 sm:py-2 text-sm sm:text-base;
+  }
+
+  /* Responsive table cells */
+  .table-cell-responsive {
+    @apply px-3 py-2 sm:px-4 sm:py-3 md:px-6 md:py-4 text-xs sm:text-sm md:text-base;
+  }
+
+  /* Mobile-specific tweaks */
+  @media (max-width: 640px) {
+    /* Hide overflow on small screens */
+    .overflow-auto {
+      overflow-x: auto;
+      overflow-y: auto;
+    }
+
+    /* Ensure readable touch targets */
+    button,
+    a,
+    input,
+    select,
+    textarea {
+      min-height: 44px;
+    }
+
+    /* Reduce padding in tight spaces */
+    .p-4 {
+      @apply p-3;
+    }
+
+    .px-6 {
+      @apply px-4;
+    }
+
+    .py-4 {
+      @apply py-3;
+    }
+  }
+
+  /* Ensure icons scale properly */
+  svg {
+    @apply flex-shrink-0;
+  }
+
+  /* Responsive input sizing */
+  input[type='text'],
+  input[type='email'],
+  input[type='password'],
+  input[type='number'],
+  select,
+  textarea {
+    @apply w-full p-2 sm:p-2.5 text-sm sm:text-base;
+    min-height: 36px;
+
+    @media (min-width: 640px) {
+      min-height: 40px;
+    }
+  }
+
+  /* Ensure tables are scrollable on mobile */
+  table {
+    @apply w-full;
+  }
+
+  .table-wrapper {
+    @apply overflow-x-auto -mx-3 px-3 sm:-mx-4 sm:px-4 md:-mx-6 md:px-6;
+  }
+
+  /* Responsive heading spacing */
+  h1, h2, h3, h4, h5, h6 {
+    @apply break-words;
+  }
+
+  /* Better mobile navigation */
+  nav {
+    @apply flex flex-wrap gap-2 sm:gap-4;
+  }
+
+  /* Responsive dialog */
+  [role='dialog'] {
+    @apply max-w-md sm:max-w-lg md:max-w-2xl;
+  }
+
+  /* Better mobile dropdowns */
+  [role='menu'],
+  [role='listbox'] {
+    @apply max-h-screen;
+  }
+
+  /* Responsive grid for sidebar layouts */
+  .sidebar-layout {
+    @apply grid grid-cols-1 md:grid-cols-4 gap-4;
+  }
+
+  .sidebar-main {
+    @apply md:col-span-3;
+  }
+
+  .sidebar-side {
+    @apply md:col-span-1;
+  }
+}

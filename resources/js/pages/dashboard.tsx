@@ -130,43 +130,43 @@ export default function EnhancedDashboard({ stats, auth }: Props) {
         return (
             <AppLayout breadcrumbs={breadcrumbs}>
                 <Head title="Dashboard Admin" />
-                <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div className="space-y-6">
-                        <div className="mt-6">
-                            <h1 className="text-3xl font-bold">Dashboard Admin</h1>
-                            <p className="mt-1 text-gray-500 dark:text-gray-400">Pantau sistem dan kelola operasional</p>
+                <div className="mx-auto w-full max-w-7xl px-3 py-2 sm:px-6 sm:py-4 lg:px-8">
+                    <div className="space-y-4 sm:space-y-6">
+                        <div>
+                            <h1 className="text-2xl font-bold sm:text-3xl">Dashboard Admin</h1>
+                            <p className="mt-1 text-xs text-gray-500 sm:text-sm dark:text-gray-400">Pantau sistem dan kelola operasional</p>
                         </div>
 
                         {/* KPIs */}
-                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+                        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3 md:gap-4 lg:grid-cols-4">
                             <MetricCard
                                 title="Total Pengguna"
                                 value={dashboardData.kpis.totalUsers || 0}
-                                icon={<Users className="h-6 w-6 text-blue-600" />}
+                                icon={<Users className="h-5 w-5 text-blue-600 sm:h-6 sm:w-6" />}
                                 color="text-blue-600"
                             />
                             <MetricCard
                                 title="Total Produk"
                                 value={dashboardData.kpis.totalProduk || 0}
-                                icon={<Package className="h-6 w-6 text-green-600" />}
+                                icon={<Package className="h-5 w-5 text-green-600 sm:h-6 sm:w-6" />}
                                 color="text-green-600"
                             />
                             <MetricCard
                                 title="Pesanan Hari Ini"
                                 value={dashboardData.kpis.ordersToday || 0}
-                                icon={<ShoppingCart className="h-6 w-6 text-purple-600" />}
+                                icon={<ShoppingCart className="h-5 w-5 text-purple-600 sm:h-6 sm:w-6" />}
                                 color="text-purple-600"
                             />
                             <MetricCard
                                 title="Pendapatan Hari Ini"
                                 value={`Rp ${((dashboardData.kpis.revenueToday || 0) / 1000).toFixed(0)}K`}
-                                icon={<DollarSign className="h-6 w-6 text-orange-600" />}
+                                icon={<DollarSign className="h-5 w-5 text-orange-600 sm:h-6 sm:w-6" />}
                                 color="text-orange-600"
                             />
                         </div>
 
                         {/* Charts */}
-                        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                        <div className="grid grid-cols-1 gap-3 sm:gap-4 md:gap-6 lg:grid-cols-2">
                             <ChartCard title="Tren Penjualan Bulanan" description="Pesanan dan pendapatan 12 bulan terakhir">
                                 <LineChart
                                     data={dashboardData.salesTrend || []}

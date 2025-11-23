@@ -36,23 +36,31 @@ export function MetricCard({ title, value, change, trend = 'neutral', icon, colo
 
     return (
         <Card>
-            <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm font-medium text-gray-500 dark:text-gray-400">{title}</CardTitle>
-                    {icon && <div className={`rounded-lg p-2 ${color.replace('text-', 'bg-').replace('-600', '-100')} dark:${color.replace('text-', 'bg-').replace('-600', '-900')}`}>{icon}</div>}
+            <CardHeader className="px-3 py-2 pb-2 sm:px-4 sm:py-3">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <CardTitle className="text-xs font-medium text-gray-500 sm:text-sm dark:text-gray-400">{title}</CardTitle>
+                    {icon && (
+                        <div
+                            className={`w-fit rounded-lg p-2 ${color.replace('text-', 'bg-').replace('-600', '-100')} dark:${color.replace('text-', 'bg-').replace('-600', '-900')}`}
+                        >
+                            {icon}
+                        </div>
+                    )}
                 </div>
             </CardHeader>
-            <CardContent>
-                <div className="flex items-baseline justify-between">
-                    <div className={`text-3xl font-bold ${color}`}>{typeof value === 'number' ? value.toLocaleString('id-ID') : value}</div>
+            <CardContent className="px-3 py-2 sm:px-4 sm:py-3">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-baseline sm:justify-between">
+                    <div className={`text-2xl font-bold sm:text-3xl ${color}`}>
+                        {typeof value === 'number' ? value.toLocaleString('id-ID') : value}
+                    </div>
                     {change !== undefined && (
-                        <div className={`flex items-center gap-1 text-sm ${getTrendColor()}`}>
+                        <div className={`flex items-center gap-1 text-xs sm:text-sm ${getTrendColor()}`}>
                             {getTrendIcon()}
                             <span className="font-medium">{Math.abs(change)}%</span>
                         </div>
                     )}
                 </div>
-                {subtitle && <CardDescription className="mt-1">{subtitle}</CardDescription>}
+                {subtitle && <CardDescription className="mt-1 text-xs sm:text-sm">{subtitle}</CardDescription>}
             </CardContent>
         </Card>
     );

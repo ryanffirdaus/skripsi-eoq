@@ -40,35 +40,42 @@ export default function FormTemplate({
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={title} />
 
-            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto p-4">
+            <div className="flex h-full flex-1 flex-col gap-2 overflow-hidden p-3 sm:gap-3 sm:p-4 md:gap-4 md:p-6">
                 {/* Header */}
-                <div className="mb-4 flex items-center justify-between">
-                    <h1 className={cn(colors.text.primary, 'text-2xl font-bold')}>{title}</h1>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <h1 className={cn(colors.text.primary, 'text-xl font-bold sm:text-2xl')}>{title}</h1>
                 </div>
 
                 {/* Form Card */}
-                <div className={cn(colors.card.base, className)}>
-                    <div className={colors.card.body}>
-                        <form onSubmit={onSubmit} className="space-y-6">
+                <div className={cn(colors.card.base, 'overflow-hidden rounded-lg md:rounded-xl', className)}>
+                    <div className={cn('p-3 sm:p-4 md:p-6', colors.card.body)}>
+                        <form onSubmit={onSubmit} className="space-y-4 sm:space-y-6">
                             {/* Main Content */}
                             {children}
 
                             {/* Dynamic Sections */}
                             {sections &&
                                 sections.map((section, index) => (
-                                    <div key={index} className={cn('border-t pt-6', colors.border.primary, section.className)}>
-                                        {section.title && <h3 className={cn(colors.text.primary, 'mb-4 text-lg font-medium')}>{section.title}</h3>}
+                                    <div key={index} className={cn('border-t pt-4 sm:pt-6', colors.border.primary, section.className)}>
+                                        {section.title && (
+                                            <h3 className={cn(colors.text.primary, 'mb-3 text-base font-medium sm:mb-4 sm:text-lg')}>
+                                                {section.title}
+                                            </h3>
+                                        )}
                                         {section.children}
                                     </div>
                                 ))}
 
                             {/* Action Buttons */}
-                            <div className={cn('flex justify-end gap-3 border-t pt-6', colors.border.primary)}>
-                                <Link href={backUrl}>
+                            <div
+                                className={cn('flex flex-col gap-2 border-t pt-4 sm:flex-row sm:justify-end sm:gap-3 sm:pt-6', colors.border.primary)}
+                            >
+                                <Link href={backUrl} className="w-full sm:w-auto">
                                     <Button
                                         type="button"
                                         variant="outline"
                                         className={cn(
+                                            'w-full',
                                             colors.background.primary,
                                             colors.border.secondary,
                                             colors.text.secondary,
@@ -78,7 +85,7 @@ export default function FormTemplate({
                                         Batal
                                     </Button>
                                 </Link>
-                                <Button type="submit" disabled={processing} className="flex items-center gap-2">
+                                <Button type="submit" disabled={processing} className="flex w-full items-center justify-center gap-2 sm:w-auto">
                                     <CheckIcon className="h-4 w-4" />
                                     <span>{processing ? processingText : submitText}</span>
                                 </Button>
