@@ -99,6 +99,11 @@ class PenerimaanBahanBaku extends Model
         return $this->belongsTo(User::class, 'diubah_oleh', 'user_id');
     }
 
+    public function updatedBy()
+    {
+        return $this->belongsTo(User::class, 'diubah_oleh', 'user_id');
+    }
+
     // Relasi ke user yang menghapus
     public function deletedBy()
     {

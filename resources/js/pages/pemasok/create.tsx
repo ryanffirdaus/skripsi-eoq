@@ -31,7 +31,7 @@ export default function Create() {
     };
 
     return (
-        <FormTemplate title="Tambah Pemasok Baru" breadcrumbs={breadcrumbs} backUrl="/pemasok" onSubmit={handleSubmit} processing={processing}>
+        <FormTemplate title="Tambah Pemasok" breadcrumbs={breadcrumbs} backUrl="/pemasok" onSubmit={handleSubmit} processing={processing}>
             {/* Informasi Pemasok */}
             <div className="space-y-6">
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">

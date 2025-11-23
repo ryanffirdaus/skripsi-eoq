@@ -58,7 +58,6 @@ export default function Edit({ user, roles }: Props) {
             backUrl="/users"
             onSubmit={handleSubmit}
             processing={processing}
-            submitText="Simpan"
             processingText="Memperbarui..."
         >
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">

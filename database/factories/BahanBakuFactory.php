@@ -16,6 +16,8 @@ class BahanBakuFactory extends Factory
      */
     public function definition(): array
     {
+        static $counter = 1;
+
         $iotComponents = [
             'Arduino Uno R3',
             'Raspberry Pi 4',
@@ -66,6 +68,7 @@ class BahanBakuFactory extends Factory
         $rop = ($permintaan_harian_rata2 * $waktu_tunggu_rata2) + $safety_stock;
 
         return [
+            'bahan_baku_id' => 'BB' . str_pad($counter++, 3, '0', STR_PAD_LEFT),
             'nama_bahan' => $nama_bahan,
             'stok_bahan' => $stok_bahan,
             'satuan_bahan' => $this->faker->randomElement($units),

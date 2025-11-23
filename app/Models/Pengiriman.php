@@ -136,6 +136,11 @@ class Pengiriman extends Model
         return $this->belongsTo(User::class, 'diubah_oleh', 'user_id');
     }
 
+    public function updatedBy()
+    {
+        return $this->belongsTo(User::class, 'diubah_oleh', 'user_id');
+    }
+
     // Scopes
     public function scopeByStatus($query, $status)
     {

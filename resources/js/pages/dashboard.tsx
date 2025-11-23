@@ -35,6 +35,10 @@ interface DashboardData {
         expensesMonth?: number;
         profitMargin?: number;
         outstandingPayments?: number;
+        activeAssignments?: number;
+        completedToday?: number;
+        totalProductsManufactured?: number;
+        taskCompletionRate?: number;
     };
     salesTrend?: any[];
     orderStatusDistribution?: any[];
@@ -52,10 +56,11 @@ interface DashboardData {
     revenueVsExpenses?: any[];
     cashFlowTrend?: any[];
     paymentStatusDistribution?: any[];
+    productionTrend?: any[];
+    assignmentStatusDistribution?: any[];
 }
 
 interface Props {
-    stats: any;
     auth: {
         user: {
             role_id: string;
@@ -64,25 +69,10 @@ interface Props {
     };
 }
 
-export default function EnhancedDashboard({ stats, auth }: Props) {
+export default function EnhancedDashboard({ auth }: Props) {
     const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
     const [loading, setLoading] = useState(true);
     const userRole = auth?.user?.role_id || '';
-
-    // Map role_id to API endpoint
-    const getRoleEndpoint = (): string => {
-        const roleMap: Record<string, string> = {
-            R01: 'admin',
-            R02: 'staf-gudang',
-            R05: 'staf-penjualan',
-            R04: 'staf-pengadaan',
-            R06: 'staf-keuangan',
-            R07: 'manajer-gudang',
-            R09: 'manajer-pengadaan',
-            R10: 'manajer-keuangan',
-        };
-        return roleMap[userRole] || 'admin';
-    };
 
     useEffect(() => {
         const fetchDashboardData = async () => {
@@ -134,7 +124,6 @@ export default function EnhancedDashboard({ stats, auth }: Props) {
                     <div className="space-y-4 sm:space-y-6">
                         <div>
                             <h1 className="text-2xl font-bold sm:text-3xl">Dashboard Admin</h1>
-                            <p className="mt-1 text-xs text-gray-500 sm:text-sm dark:text-gray-400">Pantau sistem dan kelola operasional</p>
                         </div>
 
                         {/* KPIs */}
@@ -217,7 +206,6 @@ export default function EnhancedDashboard({ stats, auth }: Props) {
                     <div className="space-y-6">
                         <div>
                             <h1 className="text-3xl font-bold">Dashboard Staf Gudang</h1>
-                            <p className="mt-1 text-gray-500 dark:text-gray-400">Kelola inventori dan pengiriman</p>
                         </div>
 
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -283,7 +271,6 @@ export default function EnhancedDashboard({ stats, auth }: Props) {
                     <div className="space-y-6">
                         <div>
                             <h1 className="text-3xl font-bold">Dashboard Staf Penjualan</h1>
-                            <p className="mt-1 text-gray-500 dark:text-gray-400">Analisis penjualan dan performa produk</p>
                         </div>
 
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -352,7 +339,6 @@ export default function EnhancedDashboard({ stats, auth }: Props) {
                     <div className="space-y-6">
                         <div>
                             <h1 className="text-3xl font-bold">Dashboard Staf Pengadaan</h1>
-                            <p className="mt-1 text-gray-500 dark:text-gray-400">Monitor pengadaan dan supplier</p>
                         </div>
 
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -417,7 +403,6 @@ export default function EnhancedDashboard({ stats, auth }: Props) {
                     <div className="space-y-6">
                         <div>
                             <h1 className="text-3xl font-bold">Dashboard Staf Keuangan</h1>
-                            <p className="mt-1 text-gray-500 dark:text-gray-400">Analisis keuangan dan cash flow</p>
                         </div>
 
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
@@ -483,7 +468,6 @@ export default function EnhancedDashboard({ stats, auth }: Props) {
                     <div className="space-y-6">
                         <div>
                             <h1 className="text-3xl font-bold">Dashboard Staf RnD</h1>
-                            <p className="mt-1 text-gray-500 dark:text-gray-400">Monitor penugasan produksi dan penyelesaian tugas</p>
                         </div>
 
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -537,7 +521,6 @@ export default function EnhancedDashboard({ stats, auth }: Props) {
                     <div className="space-y-6">
                         <div>
                             <h1 className="text-3xl font-bold">Dashboard Manajer RnD</h1>
-                            <p className="mt-1 text-gray-500 dark:text-gray-400">Monitor penugasan produksi dan penyelesaian tugas</p>
                         </div>
 
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -591,7 +574,6 @@ export default function EnhancedDashboard({ stats, auth }: Props) {
                     <div className="space-y-6">
                         <div>
                             <h1 className="text-3xl font-bold">Dashboard Manajer Pengadaan</h1>
-                            <p className="mt-1 text-gray-500 dark:text-gray-400">Monitor pengadaan dan supplier</p>
                         </div>
 
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -656,7 +638,6 @@ export default function EnhancedDashboard({ stats, auth }: Props) {
                     <div className="space-y-6">
                         <div>
                             <h1 className="text-3xl font-bold">Dashboard Manajer Keuangan</h1>
-                            <p className="mt-1 text-gray-500 dark:text-gray-400">Analisis keuangan dan cash flow</p>
                         </div>
 
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
@@ -723,7 +704,6 @@ export default function EnhancedDashboard({ stats, auth }: Props) {
                     <div className="space-y-6">
                         <div>
                             <h1 className="text-3xl font-bold">Dashboard Manajer Gudang</h1>
-                            <p className="mt-1 text-gray-500 dark:text-gray-400">Kelola inventori dan pengiriman</p>
                         </div>
 
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">

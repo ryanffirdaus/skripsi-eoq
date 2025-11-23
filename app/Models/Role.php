@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Str;
 
 class Role extends Model
 {
@@ -54,7 +53,7 @@ class Role extends Model
         parent::boot();
 
         static::creating(function ($model) {
-            $latestRole = static::withTrashed()->latest('role_id')->first();
+            $latestRole = static::latest('role_id')->first();
             $nextId = $latestRole ? intval(substr($latestRole->role_id, 2)) + 1 : 1;
             $model->role_id = 'RL' . str_pad($nextId, 3, '0', STR_PAD_LEFT);
         });

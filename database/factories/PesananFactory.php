@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Pelanggan;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -16,13 +17,17 @@ class PesananFactory extends Factory
      */
     public function definition(): array
     {
+        static $counter = 1;
+
         $statuses = ['menunggu', 'dikonfirmasi', 'diproses', 'siap', 'dikirim', 'diterima', 'dibatalkan', 'selesai'];
-        $statusWeights = [20, 15, 20, 10, 15, 10, 5, 5]; // Weighted probability for more realistic distribution
 
         return [
+            'pesanan_id' => 'PS' . str_pad($counter++, 3, '0', STR_PAD_LEFT),
+            'pelanggan_id' => Pelanggan::factory(),
             'tanggal_pemesanan' => $this->faker->dateTimeBetween('-6 months', 'now'),
             'status' => $this->faker->randomElement($statuses),
-            'total_harga' => 0, // Will be calculated when products are attached
+            'total_harga' => $this->faker->numberBetween(100000, 10000000),
+            'catatan' => $this->faker->optional()->sentence(),
         ];
     }
 }

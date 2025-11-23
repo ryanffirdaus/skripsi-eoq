@@ -16,6 +16,8 @@ class PelangganFactory extends Factory
      */
     public function definition(): array
     {
+        static $counter = 1;
+
         $companies = [
             'PT Teknologi Maju',
             'CV Smart Solutions',
@@ -44,6 +46,7 @@ class PelangganFactory extends Factory
         $alamat_pengiriman = $this->faker->boolean(80) ? $alamat_pembayaran : $this->faker->streetAddress() . ', ' . $city . ' ' . $this->faker->postcode();
 
         return [
+            'pelanggan_id' => 'PL' . str_pad($counter++, 3, '0', STR_PAD_LEFT),
             'nama_pelanggan' => $nama,
             'email_pelanggan' => $this->faker->unique()->safeEmail(),
             'nomor_telepon' => $this->faker->phoneNumber(),

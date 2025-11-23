@@ -16,6 +16,8 @@ class ProdukFactory extends Factory
      */
     public function definition(): array
     {
+        static $counter = 1;
+
         $iotProducts = [
             'Smart Home Security System',
             'IoT Weather Monitoring Station',
@@ -63,6 +65,7 @@ class ProdukFactory extends Factory
         $rop = ($permintaan_harian_rata2 * $waktu_tunggu_rata2) + $safety_stock;
 
         return [
+            'produk_id' => 'PR' . str_pad($counter++, 3, '0', STR_PAD_LEFT),
             'nama_produk' => $nama_produk,
             'stok_produk' => $stok_produk,
             'satuan_produk' => $this->faker->randomElement($units),

@@ -82,6 +82,11 @@ class Produk extends Model
         return $this->belongsTo(User::class, 'diubah_oleh', 'user_id');
     }
 
+    public function updatedBy()
+    {
+        return $this->belongsTo(User::class, 'diubah_oleh', 'user_id');
+    }
+
     public function deletedBy()
     {
         return $this->belongsTo(User::class, 'dihapus_oleh', 'user_id');

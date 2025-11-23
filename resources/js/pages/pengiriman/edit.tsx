@@ -63,7 +63,6 @@ export default function Edit({ pengiriman }: Props) {
             backUrl="/pengiriman"
             onSubmit={handleSubmit}
             processing={processing}
-            submitText="Perbarui Pengiriman"
             processingText="Memperbarui..."
         >
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">

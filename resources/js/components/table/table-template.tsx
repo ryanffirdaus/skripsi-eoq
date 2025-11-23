@@ -265,36 +265,35 @@ export default function TableTemplate<T extends Record<string, unknown>>({
                 {/* Search and Filter Bar */}
                 <div className={cn('flex flex-col gap-2 rounded-lg p-3 sm:gap-3 sm:p-4', colors.card.base)}>
                     <form onSubmit={handleSearch} className="flex flex-col gap-2 sm:gap-3">
-                        {/* Search Input */}
-                        <div className="relative w-full">
-                            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2 sm:pl-3">
-                                <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
+                        {/* Search Input Row */}
+                        <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
+                            {/* Search Input */}
+                            <div className="relative flex-1">
+                                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2 sm:pl-3">
+                                    <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
+                                </div>
+                                <input
+                                    type="text"
+                                    placeholder={searchPlaceholder}
+                                    value={search}
+                                    onChange={(e) => setSearch(e.target.value)}
+                                    className={cn(colors.input.base, 'pl-10')}
+                                />
                             </div>
-                            <input
-                                type="text"
-                                placeholder={searchPlaceholder}
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                className={cn(colors.input.base, 'pl-10')}
-                            />
-                        </div>
 
-                        {/* Filter Toggle */}
-                        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
-                            <Button
-                                type="submit"
-                                className="flex flex-1 items-center justify-center gap-2 px-3 text-xs sm:flex-none sm:px-4 sm:text-sm"
-                            >
+                            {/* Search Button */}
+                            <Button type="submit" className="flex items-center justify-center gap-2 px-3 text-xs sm:w-auto sm:px-4 sm:text-sm">
                                 <MagnifyingGlassIcon className="h-4 w-4" />
                                 <span>Search</span>
                             </Button>
 
+                            {/* Clear Button */}
                             {hasActiveFilters && (
                                 <Button
                                     type="button"
                                     variant="outline"
                                     onClick={clearFilters}
-                                    className="flex flex-1 items-center justify-center gap-2 px-3 text-xs sm:flex-none sm:px-4 sm:text-sm"
+                                    className="flex items-center justify-center gap-2 px-3 text-xs sm:w-auto sm:px-4 sm:text-sm"
                                 >
                                     <XMarkIcon className="h-4 w-4" />
                                     <span>Clear</span>

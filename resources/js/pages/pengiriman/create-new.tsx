@@ -58,7 +58,7 @@ export default function Create({ pesanan }: Props) {
     const selectedPesanan = pesanan.find((p) => p.pesanan_id === data.pesanan_id);
 
     return (
-        <FormTemplate title="Buat Pengiriman" breadcrumbs={breadcrumbs} backUrl="/pengiriman" onSubmit={handleSubmit} processing={processing}>
+        <FormTemplate title="Tambah Pengiriman" breadcrumbs={breadcrumbs} backUrl="/pengiriman" onSubmit={handleSubmit} processing={processing}>
             {/* Informasi Pesanan */}
             <div className="space-y-6">
                 <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Informasi Pesanan</h3>

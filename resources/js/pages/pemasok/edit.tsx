@@ -52,7 +52,6 @@ export default function Edit({ pemasok }: Props) {
             backUrl="/pemasok"
             onSubmit={handleSubmit}
             processing={processing}
-            submitText="Update Pemasok"
         >
             {/* Informasi Pemasok */}
             <div className="space-y-6">
