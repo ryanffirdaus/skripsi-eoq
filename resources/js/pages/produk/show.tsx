@@ -31,9 +31,9 @@ interface Produk {
     harga_jual: number;
     demand_tahunan: number;
     dibuat_oleh_id?: string;
-    diupdate_oleh_id?: string;
+    diubah_oleh_id?: string;
     dibuat_oleh?: UserRef | null;
-    diupdate_oleh?: UserRef | null;
+    diubah_oleh?: UserRef | null;
     created_at: string;
     updated_at: string;
     bahan_baku?: BahanBaku[];
@@ -220,7 +220,7 @@ export default function Show({ produk, permissions }: Props) {
                             createdAt={produk.created_at}
                             updatedAt={produk.updated_at}
                             createdBy={produk.dibuat_oleh?.nama_lengkap}
-                            updatedBy={produk.diupdate_oleh?.nama_lengkap}
+                            updatedBy={produk.diubah_oleh?.nama_lengkap}
                         />
                     </div>
                 </div>

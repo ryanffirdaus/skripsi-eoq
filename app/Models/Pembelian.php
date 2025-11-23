@@ -29,7 +29,7 @@ class Pembelian extends Model
         'status', // Contoh: draft, sent, confirmed, partially_received, fully_received, cancelled
         'catatan',
         'dibuat_oleh',
-        'diupdate_oleh',
+        'diubah_oleh',
         'dihapus_oleh'
     ];
 
@@ -59,7 +59,7 @@ class Pembelian extends Model
 
         static::updating(function ($model) {
             if (Auth::check()) {
-                $model->diupdate_oleh = Auth::user()->user_id;
+                $model->diubah_oleh = Auth::user()->user_id;
             }
         });
 
@@ -112,9 +112,9 @@ class Pembelian extends Model
         return $this->belongsTo(User::class, 'dibuat_oleh', 'user_id');
     }
 
-    public function updatedBy()
+    public function diubahOleh()
     {
-        return $this->belongsTo(User::class, 'diupdate_oleh', 'user_id');
+        return $this->belongsTo(User::class, 'diubah_oleh', 'user_id');
     }
 
     public function deletedBy()

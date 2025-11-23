@@ -28,7 +28,7 @@ class Pengiriman extends Model
         'tanggal_diterima',
         'catatan',
         'dibuat_oleh',
-        'diupdate_oleh'
+        'diubah_oleh'
     ];
 
     protected $casts = [
@@ -53,11 +53,11 @@ class Pengiriman extends Model
         });
 
         static::updating(function ($model) {
-            $model->diupdate_oleh = Auth::id();
+            $model->diubah_oleh = Auth::id();
         });
 
         static::deleting(function ($model) {
-            $model->diupdate_oleh = Auth::id();
+            $model->diubah_oleh = Auth::id();
             $model->dihapus_oleh = Auth::id();
         });
     }
@@ -131,9 +131,9 @@ class Pengiriman extends Model
         return $this->belongsTo(User::class, 'dibuat_oleh', 'user_id');
     }
 
-    public function updatedBy()
+    public function diubahOleh()
     {
-        return $this->belongsTo(User::class, 'diupdate_oleh', 'user_id');
+        return $this->belongsTo(User::class, 'diubah_oleh', 'user_id');
     }
 
     // Scopes

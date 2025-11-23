@@ -711,6 +711,38 @@ class PengadaanController extends Controller
         }
         $pengadaan->update($updateData);
 
+        // Send notification if status changed
+        if ($request->has('status') && $request->status !== $pengadaan->getOriginal('status')) {
+             // Determine who to notify based on new status
+             $rolesToNotify = ['R01']; // Always notify Admin
+             
+             switch ($request->status) {
+                 case 'menunggu_persetujuan_gudang':
+                     $rolesToNotify[] = 'R07'; // Manajer Gudang
+                     break;
+                 case 'menunggu_alokasi_pemasok':
+                     $rolesToNotify[] = 'R04'; // Staf Pengadaan
+                     $rolesToNotify[] = 'R09'; // Manajer Pengadaan
+                     break;
+                 case 'menunggu_persetujuan_pengadaan':
+                     $rolesToNotify[] = 'R09'; // Manajer Pengadaan
+                     break;
+                 case 'menunggu_persetujuan_keuangan':
+                     $rolesToNotify[] = 'R10'; // Manajer Keuangan
+                     break;
+                 case 'diproses':
+                     $rolesToNotify[] = 'R04'; // Staf Pengadaan
+                     break;
+                 case 'diterima':
+                     $rolesToNotify[] = 'R02'; // Staf Gudang (Penerima)
+                     break;
+             }
+
+             $usersToNotify = \App\Models\User::whereIn('role_id', $rolesToNotify)->get();
+             $statusLabel = $pengadaan->status; // Or get label from helper
+             \Illuminate\Support\Facades\Notification::send($usersToNotify, new \App\Notifications\PengadaanStatusChangedNotification($pengadaan, $statusLabel));
+        }
+
         // Update each detail's pemasok_id dan harga_satuan (hanya jika allowed)
         if ($canEditDetail) {
             foreach ($request->details as $detailData) {

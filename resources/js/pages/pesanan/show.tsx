@@ -43,7 +43,7 @@ interface Pesanan {
     created_at: string;
     updated_at: string;
     dibuat_oleh?: UserRef;
-    diupdate_oleh?: UserRef;
+    diubah_oleh?: UserRef;
 }
 
 interface Props {
@@ -244,7 +244,7 @@ export default function Show({ pesanan, permissions = {} }: Props) {
                             createdAt={pesanan.created_at}
                             updatedAt={pesanan.updated_at}
                             createdBy={pesanan.dibuat_oleh?.nama_lengkap}
-                            updatedBy={pesanan.diupdate_oleh?.nama_lengkap}
+                            updatedBy={pesanan.diubah_oleh?.nama_lengkap}
                         />
                     </div>
                 </div>

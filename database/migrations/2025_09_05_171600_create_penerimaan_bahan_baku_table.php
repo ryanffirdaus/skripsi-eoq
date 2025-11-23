@@ -15,16 +15,16 @@ return new class extends Migration
             $table->string('penerimaan_id', 6)->primary(); // PN0000001
             $table->string('pembelian_detail_id', 8);
             $table->integer('qty_diterima');
-            $table->string('created_by', 6)->nullable();
-            $table->string('updated_by', 6)->nullable();
-            $table->string('deleted_by', 6)->nullable();
+            $table->string('dibuat_oleh', 6)->nullable();
+            $table->string('diubah_oleh', 6)->nullable();
+            $table->string('dihapus_oleh', 6)->nullable();
             $table->timestamps();
             $table->softDeletes();
 
             $table->foreign('pembelian_detail_id')->references('pembelian_detail_id')->on('pembelian_detail')->onDelete('cascade');
-            $table->foreign('created_by')->references('user_id')->on('users')->onDelete('set null');
-            $table->foreign('updated_by')->references('user_id')->on('users')->onDelete('set null');
-            $table->foreign('deleted_by')->references('user_id')->on('users')->onDelete('set null');
+            $table->foreign('dibuat_oleh')->references('user_id')->on('users')->onDelete('set null');
+            $table->foreign('diubah_oleh')->references('user_id')->on('users')->onDelete('set null');
+            $table->foreign('dihapus_oleh')->references('user_id')->on('users')->onDelete('set null');
         });
     }
 

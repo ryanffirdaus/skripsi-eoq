@@ -36,12 +36,12 @@ return new class extends Migration
             $table->text('catatan')->nullable();
 
             // Foreign keys untuk tracking user
-            $table->string('created_by', 6)->nullable();
-            $table->foreign('created_by')->references('user_id')->on('users')->onDelete('set null');
-            $table->string('updated_by', 6)->nullable();
-            $table->foreign('updated_by')->references('user_id')->on('users')->onDelete('set null');
-            $table->string('deleted_by', 6)->nullable();
-            $table->foreign('deleted_by')->references('user_id')->on('users')->onDelete('set null');
+            $table->string('dibuat_oleh', 6)->nullable();
+            $table->foreign('dibuat_oleh')->references('user_id')->on('users')->onDelete('set null');
+            $table->string('diubah_oleh', 6)->nullable();
+            $table->foreign('diubah_oleh')->references('user_id')->on('users')->onDelete('set null');
+            $table->string('dihapus_oleh', 6)->nullable();
+            $table->foreign('dihapus_oleh')->references('user_id')->on('users')->onDelete('set null');
 
             $table->timestamps();
             $table->softDeletes();

@@ -27,7 +27,7 @@ class Pelanggan extends Model
         'alamat_pembayaran',
         'alamat_pengiriman',
         'dibuat_oleh',
-        'diupdate_oleh',
+        'diubah_oleh',
         'dihapus_oleh'
     ];
 
@@ -45,13 +45,13 @@ class Pelanggan extends Model
 
             if (Auth::id()) {
                 $model->dibuat_oleh = Auth::id();
-                $model->diupdate_oleh = Auth::id();
+                $model->diubah_oleh = Auth::id();
             }
         });
 
         static::updating(function ($model) {
             if (Auth::id()) {
-                $model->diupdate_oleh = Auth::id();
+                $model->diubah_oleh = Auth::id();
             }
         });
 
@@ -67,9 +67,9 @@ class Pelanggan extends Model
         return $this->belongsTo(User::class, 'dibuat_oleh', 'user_id');
     }
 
-    public function updatedBy()
+    public function diubahOleh()
     {
-        return $this->belongsTo(User::class, 'diupdate_oleh', 'user_id');
+        return $this->belongsTo(User::class, 'diubah_oleh', 'user_id');
     }
 
     public function deletedBy()

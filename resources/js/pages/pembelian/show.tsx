@@ -66,7 +66,7 @@ interface Pembelian extends Record<string, unknown> {
     created_at: string;
     updated_at: string;
     dibuat_oleh?: { user_id: string; nama_lengkap: string };
-    diupdate_oleh?: { user_id: string; nama_lengkap: string };
+    diubah_oleh?: { user_id: string; nama_lengkap: string };
 }
 
 interface Props {
@@ -388,7 +388,7 @@ export default function Show({ pembelian }: Props) {
                             <div>
                                 <p className="font-medium text-gray-500">Diperbarui</p>
                                 <p>{formatDate(pembelian.updated_at)}</p>
-                                {pembelian.diupdate_oleh && <p className="text-xs text-gray-500">oleh {pembelian.diupdate_oleh.nama_lengkap}</p>}
+                                {pembelian.diubah_oleh && <p className="text-xs text-gray-500">oleh {pembelian.diubah_oleh.nama_lengkap}</p>}
                             </div>
                         </CardContent>
                     </Card>

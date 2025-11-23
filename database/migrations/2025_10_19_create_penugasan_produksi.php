@@ -31,17 +31,17 @@ return new class extends Migration
             $table->date('deadline');
             $table->text('catatan')->nullable();
 
-            // created_by: siapa yang menugaskan
-            $table->string('created_by', 6)->nullable();
-            $table->foreign('created_by')->references('user_id')->on('users')->onDelete('set null');
+            // dibuat_oleh: siapa yang menugaskan
+            $table->string('dibuat_oleh', 6)->nullable();
+            $table->foreign('dibuat_oleh')->references('user_id')->on('users')->onDelete('set null');
 
-            // updated_by: siapa yang terakhir update
-            $table->string('updated_by', 6)->nullable();
-            $table->foreign('updated_by')->references('user_id')->on('users')->onDelete('set null');
+            // diubah_oleh: siapa yang terakhir update
+            $table->string('diubah_oleh', 6)->nullable();
+            $table->foreign('diubah_oleh')->references('user_id')->on('users')->onDelete('set null');
 
-            // deleted_by: siapa yang menghapus
-            $table->string('deleted_by', 6)->nullable();
-            $table->foreign('deleted_by')->references('user_id')->on('users')->onDelete('set null');
+            // dihapus_oleh: siapa yang menghapus
+            $table->string('dihapus_oleh', 6)->nullable();
+            $table->foreign('dihapus_oleh')->references('user_id')->on('users')->onDelete('set null');
 
             $table->timestamps();
             $table->softDeletes();
@@ -50,7 +50,7 @@ return new class extends Migration
             $table->index('pengadaan_detail_id');
             $table->index('user_id');
             $table->index('status');
-            $table->index('created_by');
+            
         });
     }
 

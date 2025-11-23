@@ -77,6 +77,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Penugasan Produksi CRUD routes
     Route::resource('penugasan-produksi', PenugasanProduksiController::class);
+
+    // Notification routes
+    Route::get('notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('notifications/{id}/read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.mark-read');
+    Route::post('notifications/read-all', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
 });
 
 require __DIR__ . '/settings.php';

@@ -24,11 +24,11 @@ return new class extends Migration
 
             // Status Pengiriman
             $table->enum('status', [
-                'pending',
+                'menunggu',
                 'dikirim',
                 'selesai',
                 'dibatalkan'
-            ])->default('pending');
+            ])->default('menunggu');
 
             // Tanggal Penting
             $table->date('tanggal_kirim')->nullable();
@@ -38,16 +38,16 @@ return new class extends Migration
             $table->text('catatan')->nullable();
 
             // Audit Trail
-            $table->string('created_by', 6)->nullable();
-            $table->string('updated_by', 6)->nullable();
-            $table->string('deleted_by', 6)->nullable();
+            $table->string('dibuat_oleh', 6)->nullable();
+            $table->string('diubah_oleh', 6)->nullable();
+            $table->string('dihapus_oleh', 6)->nullable();
             $table->softDeletes();
             $table->timestamps();
 
             // Foreign Keys untuk Audit
-            $table->foreign('created_by')->references('user_id')->on('users')->onDelete('set null');
-            $table->foreign('updated_by')->references('user_id')->on('users')->onDelete('set null');
-            $table->foreign('deleted_by')->references('user_id')->on('users')->onDelete('set null');
+            $table->foreign('dibuat_oleh')->references('user_id')->on('users')->onDelete('set null');
+            $table->foreign('diubah_oleh')->references('user_id')->on('users')->onDelete('set null');
+            $table->foreign('dihapus_oleh')->references('user_id')->on('users')->onDelete('set null');
 
             // Indexes
             $table->index(['status']);

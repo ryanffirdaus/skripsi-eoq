@@ -15,19 +15,22 @@ return new class extends Migration
             $table->string('pengadaan_id', 6)->primary(); // PA0000001
             $table->enum('jenis_pengadaan', ['pesanan', 'rop']); // Trigger: order-based, ROP-based, or manual
             $table->string('pesanan_id', 6)->nullable(); // Reference to pesanan if triggered by order
-            $table->enum('status', ['pending', 'disetujui_gudang', 'disetujui_pengadaan', 'disetujui_keuangan', 'diproses', 'diterima', 'dibatalkan', 'ditolak'])
-                ->default('pending');
+            $table->enum('status', ['draft', 'menunggu_persetujuan_gudang', 'menunggu_alokasi_pemasok', 'menunggu_persetujuan_pengadaan', 'menunggu_persetujuan_keuangan', 'diproses', 'diterima', 'dibatalkan', 'ditolak'])
+                ->default('draft');
             $table->text('catatan')->nullable();
-            $table->string('created_by', 6)->nullable();
-            $table->string('updated_by', 6)->nullable();
-            $table->string('deleted_by', 6)->nullable();
+            $table->text('alasan_penolakan')->nullable();
+            $table->string('ditolak_oleh', 6)->nullable();
+            $table->string('dibuat_oleh', 6)->nullable();
+            $table->string('diubah_oleh', 6)->nullable();
+            $table->string('dihapus_oleh', 6)->nullable();
             $table->softDeletes();
             $table->timestamps();
 
             $table->foreign('pesanan_id')->references('pesanan_id')->on('pesanan')->onDelete('set null');
-            $table->foreign('created_by')->references('user_id')->on('users')->onDelete('set null');
-            $table->foreign('updated_by')->references('user_id')->on('users')->onDelete('set null');
-            $table->foreign('deleted_by')->references('user_id')->on('users')->onDelete('set null');
+            $table->foreign('dibuat_oleh')->references('user_id')->on('users')->onDelete('set null');
+            $table->foreign('diubah_oleh')->references('user_id')->on('users')->onDelete('set null');
+            $table->foreign('dihapus_oleh')->references('user_id')->on('users')->onDelete('set null');
+            $table->foreign('ditolak_oleh')->references('user_id')->on('users')->onDelete('set null');
         });
     }
 

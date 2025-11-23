@@ -154,6 +154,10 @@ class PesananController extends Controller
             }
         });
 
+        // Notify relevant users (e.g., Warehouse Manager, Admin)
+        $usersToNotify = \App\Models\User::whereIn('role_id', ['R01', 'R02'])->get();
+        \Illuminate\Support\Facades\Notification::send($usersToNotify, new \App\Notifications\NewOrderNotification($pesanan));
+
         return redirect()->route('pesanan.index')->with('flash', [
             'message' => 'Pesanan berhasil dibuat.',
             'type' => 'success'

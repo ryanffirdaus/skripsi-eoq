@@ -42,7 +42,7 @@ interface Pelanggan {
     created_at: string;
     updated_at: string;
     dibuat_oleh?: UserRef;
-    diupdate_oleh?: UserRef;
+    diubah_oleh?: UserRef;
     pesanan?: Pesanan[];
 }
 
@@ -258,7 +258,7 @@ export default function Show({ pelanggan }: Props) {
                             createdAt={pelanggan.created_at}
                             updatedAt={pelanggan.updated_at}
                             createdBy={pelanggan.dibuat_oleh?.nama_lengkap}
-                            updatedBy={pelanggan.diupdate_oleh?.nama_lengkap}
+                            updatedBy={pelanggan.diubah_oleh?.nama_lengkap}
                             createdLabel="Terdaftar"
                         />
                     </div>

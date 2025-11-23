@@ -38,7 +38,7 @@ class BahanBaku extends Model
         'rop_bahan',
         'eoq_bahan',
         'dibuat_oleh',
-        'diupdate_oleh',
+        'diubah_oleh',
         'dihapus_oleh'
     ];
 
@@ -57,12 +57,12 @@ class BahanBaku extends Model
 
         static::created(function ($model) {
             $model->dibuat_oleh = Auth::id();
-            $model->diupdate_oleh = Auth::id();
+            $model->diubah_oleh = Auth::id();
             $model->saveQuietly(); // Prevent triggering events again
         });
 
         static::updating(function ($model) {
-            $model->diupdate_oleh = Auth::id();
+            $model->diubah_oleh = Auth::id();
             $model->saveQuietly(); // Prevent triggering events again
         });
 
@@ -77,9 +77,9 @@ class BahanBaku extends Model
         return $this->belongsTo(User::class, 'dibuat_oleh', 'user_id');
     }
 
-    public function updatedBy()
+    public function diubahOleh()
     {
-        return $this->belongsTo(User::class, 'diupdate_oleh', 'user_id');
+        return $this->belongsTo(User::class, 'diubah_oleh', 'user_id');
     }
 
     public function deletedBy()

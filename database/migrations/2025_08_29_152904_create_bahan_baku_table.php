@@ -28,15 +28,16 @@ return new class extends Migration
             $table->integer('safety_stock_bahan');
             $table->integer('rop_bahan');
             $table->integer('eoq_bahan');
-            $table->string('created_by', 6)->nullable();
-            $table->string('updated_by', 6)->nullable();
-            $table->string('deleted_by', 6)->nullable();
+            
+            $table->string('dibuat_oleh', 6)->nullable();
+            $table->string('diubah_oleh', 6)->nullable();
+            $table->string('dihapus_oleh', 6)->nullable();
             $table->softDeletes();
             $table->timestamps();
 
-            $table->foreign('created_by')->references('user_id')->on('users')->onDelete('set null');
-            $table->foreign('updated_by')->references('user_id')->on('users')->onDelete('set null');
-            $table->foreign('deleted_by')->references('user_id')->on('users')->onDelete('set null');
+            $table->foreign('dibuat_oleh')->references('user_id')->on('users')->onDelete('set null');
+            $table->foreign('diubah_oleh')->references('user_id')->on('users')->onDelete('set null');
+            $table->foreign('dihapus_oleh')->references('user_id')->on('users')->onDelete('set null');
         });
     }
 

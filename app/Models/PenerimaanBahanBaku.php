@@ -21,7 +21,7 @@ class PenerimaanBahanBaku extends Model
         'pembelian_detail_id',
         'qty_diterima',
         'dibuat_oleh',
-        'diupdate_oleh',
+        'diubah_oleh',
         'dihapus_oleh',
     ];
 
@@ -46,7 +46,7 @@ class PenerimaanBahanBaku extends Model
 
         static::updating(function ($model) {
             if (Auth::check() && !$model->diupdate_oleh) {
-                $model->diupdate_oleh = Auth::id();
+                $model->diubah_oleh = Auth::id();
             }
         });
 
@@ -94,9 +94,9 @@ class PenerimaanBahanBaku extends Model
     }
 
     // Relasi ke user yang mengubah
-    public function updatedBy()
+    public function diubahOleh()
     {
-        return $this->belongsTo(User::class, 'diupdate_oleh', 'user_id');
+        return $this->belongsTo(User::class, 'diubah_oleh', 'user_id');
     }
 
     // Relasi ke user yang menghapus

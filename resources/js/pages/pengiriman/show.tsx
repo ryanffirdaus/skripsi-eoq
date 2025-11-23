@@ -39,7 +39,7 @@ interface Pengiriman {
     catatan?: string;
     pesanan: Pesanan;
     dibuat_oleh?: string;
-    diupdate_oleh?: string;
+    diubah_oleh?: string;
     created_at?: string;
     updated_at?: string;
     createdBy?: User;

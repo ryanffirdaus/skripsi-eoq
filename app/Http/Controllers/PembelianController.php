@@ -222,6 +222,10 @@ class PembelianController extends Controller
 
             DB::commit();
 
+            // Notify Manajer Pengadaan and Manajer Gudang
+            $usersToNotify = \App\Models\User::whereIn('role_id', ['R09', 'R07'])->get();
+            \Illuminate\Support\Facades\Notification::send($usersToNotify, new \App\Notifications\PurchaseOrderCreatedNotification($pembelian));
+
             return redirect()->route('pembelian.index')->with('flash', [
                 'message' => 'Purchase Order (PO) berhasil dibuat.',
                 'type' => 'success',

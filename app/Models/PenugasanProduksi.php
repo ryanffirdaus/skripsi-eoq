@@ -28,7 +28,7 @@ class PenugasanProduksi extends Model
         'deadline',
         'catatan',
         'dibuat_oleh',
-        'diupdate_oleh',
+        'diubah_oleh',
         'dihapus_oleh',
     ];
 
@@ -66,7 +66,7 @@ class PenugasanProduksi extends Model
 
         static::updating(function ($model) {
             if (Auth::check()) {
-                $model->diupdate_oleh = Auth::user()->user_id;
+                $model->diubah_oleh = Auth::user()->user_id;
             }
         });
 
@@ -95,9 +95,9 @@ class PenugasanProduksi extends Model
         return $this->belongsTo(User::class, 'dibuat_oleh', 'user_id');
     }
 
-    public function updatedBy()
+    public function diubahOleh()
     {
-        return $this->belongsTo(User::class, 'diupdate_oleh', 'user_id');
+        return $this->belongsTo(User::class, 'diubah_oleh', 'user_id');
     }
 
     public function deletedBy()

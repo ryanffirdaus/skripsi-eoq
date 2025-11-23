@@ -23,9 +23,10 @@ interface User {
     created_at: string;
     updated_at: string;
     dibuat_oleh_id?: string;
-    diupdate_oleh_id?: string;
+    diubah_oleh_id?: string;
     dibuat_oleh?: UserRef | null; // This is the relationship
-    diupdate_oleh?: UserRef | null; // This is the relationship
+    diubah_oleh?: UserRef | null; // This is the relationship
+    role?: Role;
 }
 
 interface Props {
@@ -118,7 +119,7 @@ export default function Show({ user }: Props) {
                     createdAt={user.created_at}
                     updatedAt={user.updated_at}
                     createdBy={user.dibuat_oleh?.nama_lengkap}
-                    updatedBy={user.diupdate_oleh?.nama_lengkap}
+                    updatedBy={user.diubah_oleh?.nama_lengkap}
                 />
             </div>
         </ShowPageTemplate>

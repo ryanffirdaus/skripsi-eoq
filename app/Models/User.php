@@ -48,7 +48,7 @@ class User extends Authenticatable
         'password',
         'role_id',
         'dibuat_oleh',
-        'diupdate_oleh',
+        'diubah_oleh',
         'dihapus_oleh'
     ];
 
@@ -89,12 +89,12 @@ class User extends Authenticatable
 
         static::created(function ($model) {
             $model->dibuat_oleh = Auth::id() ?? null;
-            $model->diupdate_oleh = Auth::id() ?? null;
+            $model->diubah_oleh = Auth::id() ?? null;
             $model->saveQuietly(); // Prevent triggering events again
         });
 
         static::updating(function ($model) {
-            $model->diupdate_oleh = Auth::id();
+            $model->diubah_oleh = Auth::id();
             $model->saveQuietly(); // Prevent triggering events again
         });
 
@@ -119,7 +119,7 @@ class User extends Authenticatable
 
     public function bahanBakuUpdatedBy()
     {
-        return $this->hasMany(BahanBaku::class, 'diupdate_oleh', 'user_id');
+        return $this->hasMany(BahanBaku::class, 'diubah_oleh', 'user_id');
     }
 
     public function bahanBakuDeletedBy()
@@ -134,7 +134,7 @@ class User extends Authenticatable
 
     public function produkUpdatedBy()
     {
-        return $this->hasMany(Produk::class, 'diupdate_oleh', 'user_id');
+        return $this->hasMany(Produk::class, 'diubah_oleh', 'user_id');
     }
 
     public function produkDeletedBy()
@@ -149,7 +149,7 @@ class User extends Authenticatable
 
     public function pelangganUpdatedBy()
     {
-        return $this->hasMany(Pelanggan::class, 'diupdate_oleh', 'user_id');
+        return $this->hasMany(Pelanggan::class, 'diubah_oleh', 'user_id');
     }
 
     public function pelangganDeletedBy()
@@ -164,7 +164,7 @@ class User extends Authenticatable
 
     public function pesananUpdatedBy()
     {
-        return $this->hasMany(Pesanan::class, 'diupdate_oleh', 'user_id');
+        return $this->hasMany(Pesanan::class, 'diubah_oleh', 'user_id');
     }
 
     public function pesananDeletedBy()
@@ -178,9 +178,9 @@ class User extends Authenticatable
         return $this->belongsTo(User::class, 'dibuat_oleh', 'user_id');
     }
 
-    public function updatedBy()
+    public function diubahOleh()
     {
-        return $this->belongsTo(User::class, 'diupdate_oleh', 'user_id');
+        return $this->belongsTo(User::class, 'diubah_oleh', 'user_id');
     }
 
     // Relationships for PenugasanProduksi (Production Assignment)
@@ -199,7 +199,7 @@ class User extends Authenticatable
     // Penugasan yang di-update oleh user ini
     public function penugasanUpdated()
     {
-        return $this->hasMany(PenugasanProduksi::class, 'diupdate_oleh', 'user_id');
+        return $this->hasMany(PenugasanProduksi::class, 'diubah_oleh', 'user_id');
     }
 
     // Penugasan yang dihapus oleh user ini

@@ -10,3 +10,7 @@ Artisan::command('inspire', function () {
 // Note: Automatic pengadaan is now handled by observers
 // When stock changes (via pengiriman delivery, manual adjustment, etc.)
 // the observers will automatically trigger pengadaan creation
+
+use Illuminate\Support\Facades\Schedule;
+
+Schedule::command('inventory:update-metrics')->daily();

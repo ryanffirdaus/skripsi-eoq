@@ -24,9 +24,9 @@ interface BahanBaku {
     eoq: number;
     harga_per_unit: number;
     dibuat_oleh_id?: string;
-    diupdate_oleh_id?: string;
+    diubah_oleh_id?: string;
     dibuat_oleh?: UserRef | null;
-    diupdate_oleh?: UserRef | null;
+    diubah_oleh?: UserRef | null;
     created_at: string;
     updated_at: string;
 }
@@ -184,7 +184,7 @@ export default function Show({ bahanBaku, permissions }: Props) {
                     createdAt={bahanBaku.created_at}
                     updatedAt={bahanBaku.updated_at}
                     createdBy={bahanBaku.dibuat_oleh?.nama_lengkap}
-                    updatedBy={bahanBaku.diupdate_oleh?.nama_lengkap}
+                    updatedBy={bahanBaku.diubah_oleh?.nama_lengkap}
                 />
             </div>
         </ShowPageTemplate>

@@ -43,7 +43,7 @@ class PengirimanSeeder extends Seeder
                 'status' => $status,
                 'catatan' => fake()->optional(0.3)->sentence(),
                 'dibuat_oleh' => fake()->randomElement($userIds),
-                'diupdate_oleh' => fake()->randomElement($userIds),
+                'diubah_oleh' => fake()->randomElement($userIds),
                 'created_at' => now(),
                 'updated_at' => now(),
             ];

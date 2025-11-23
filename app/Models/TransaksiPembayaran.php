@@ -25,7 +25,7 @@ class TransaksiPembayaran extends Model
         'bukti_pembayaran',
         'catatan',
         'dibuat_oleh',
-        'diupdate_oleh',
+        'diubah_oleh',
         'dihapus_oleh',
     ];
 
@@ -47,13 +47,13 @@ class TransaksiPembayaran extends Model
 
             if (Auth::check()) {
                 $model->dibuat_oleh = Auth::user()->user_id;
-                $model->diupdate_oleh = Auth::user()->user_id;
+                $model->diubah_oleh = Auth::user()->user_id;
             }
         });
 
         static::updating(function ($model) {
             if (Auth::check()) {
-                $model->diupdate_oleh = Auth::user()->user_id;
+                $model->diubah_oleh = Auth::user()->user_id;
             }
         });
 
@@ -74,9 +74,9 @@ class TransaksiPembayaran extends Model
         return $this->belongsTo(User::class, 'dibuat_oleh', 'user_id');
     }
 
-    public function updatedBy()
+    public function diubahOleh()
     {
-        return $this->belongsTo(User::class, 'diupdate_oleh', 'user_id');
+        return $this->belongsTo(User::class, 'diubah_oleh', 'user_id');
     }
 
     public function deletedBy()
