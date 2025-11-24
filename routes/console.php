@@ -13,4 +13,10 @@ Artisan::command('inspire', function () {
 
 use Illuminate\Support\Facades\Schedule;
 
-Schedule::command('inventory:update-metrics')->daily();
+// Schedule automatic inventory metrics update
+// Runs daily at midnight to recalculate EOQ, ROP, and Safety Stock based on historical data
+Schedule::command('inventory:update-metrics')
+    ->weekly()
+    ->mondays()
+    ->at('00:00')
+    ->appendOutputTo(storage_path('logs/inventory-metrics-update.log'));
