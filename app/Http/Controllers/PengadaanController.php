@@ -45,21 +45,25 @@ class PengadaanController extends Controller
         if (in_array($user->role_id, ['R02', 'R07'])) {
             // Staf/Manajer Gudang - lihat SEMUA status (karena mereka yang membuat)
         } elseif (in_array($user->role_id, ['R04', 'R09'])) {
-            // Staf/Manajer Pengadaan - lihat dari "pending_supplier_allocation" ke atas
+            // Staf/Manajer Pengadaan - lihat dari "menunggu_alokasi_pemasok" ke atas
             $query->whereIn('status', [
-                'pending_supplier_allocation',
-                'pending_approval_pengadaan',
-                'pending_approval_keuangan',
-                'processed',
-                'received',
+                'menunggu_alokasi_pemasok',
+                'menunggu_persetujuan_pengadaan',
+                'menunggu_persetujuan_keuangan',
+                'diproses',
+                'diterima',
+                'dibatalkan',
+                'ditolak'
             ]);
         } elseif (in_array($user->role_id, ['R06', 'R10'])) {
-            // Staf/Manajer Keuangan - lihat dari "pending_approval_pengadaan" ke atas
+            // Staf/Manajer Keuangan - lihat dari "menunggu_persetujuan_pengadaan" ke atas
             $query->whereIn('status', [
-                'pending_approval_pengadaan',
-                'pending_approval_keuangan',
-                'processed',
-                'received',
+                'menunggu_persetujuan_pengadaan',
+                'menunggu_persetujuan_keuangan',
+                'diproses',
+                'diterima',
+                'dibatalkan',
+                'ditolak'
             ]);
         }
 
@@ -562,7 +566,8 @@ class PengadaanController extends Controller
             ->get();
 
         // Status options untuk update status di halaman edit (SOURCE OF TRUTH: migration)
-        $statusOptions = [
+        $allStatusOptions = [
+            ['value' => 'draft', 'label' => 'Draft'],
             ['value' => 'menunggu_persetujuan_gudang', 'label' => 'Menunggu Persetujuan Gudang'],
             ['value' => 'menunggu_alokasi_pemasok', 'label' => 'Menunggu Alokasi Pemasok'],
             ['value' => 'menunggu_persetujuan_pengadaan', 'label' => 'Menunggu Persetujuan Pengadaan'],
@@ -570,7 +575,103 @@ class PengadaanController extends Controller
             ['value' => 'diproses', 'label' => 'Diproses'],
             ['value' => 'diterima', 'label' => 'Diterima'],
             ['value' => 'dibatalkan', 'label' => 'Dibatalkan'],
+            ['value' => 'ditolak', 'label' => 'Ditolak'],
         ];
+
+        // Filter status options based on role and current status
+        $statusOptions = [];
+        $currentStatus = $pengadaan->status;
+
+        if ($this->isAdmin()) {
+            // Admin sees all options
+            $statusOptions = $allStatusOptions;
+        } else {
+            // Default: always allow current status (so it shows up correctly)
+            // But we might want to filter what they can CHANGE to.
+            // The frontend usually filters out the current status from the dropdown if needed,
+            // but here we define what is AVAILABLE to switch TO.
+
+            switch ($user->role_id) {
+                case 'R02': // Staf Gudang
+                    if ($currentStatus === 'draft') {
+                        $statusOptions = [
+                            ['value' => 'menunggu_persetujuan_gudang', 'label' => 'Menunggu Persetujuan Gudang'],
+                            ['value' => 'dibatalkan', 'label' => 'Dibatalkan'],
+                        ];
+                    } elseif ($currentStatus === 'diproses') {
+                        $statusOptions = [
+                            ['value' => 'diterima', 'label' => 'Diterima'],
+                        ];
+                    }
+                    // Can cancel if pending approval gudang? Usually creator can cancel.
+                    if ($currentStatus === 'menunggu_persetujuan_gudang') {
+                         $statusOptions[] = ['value' => 'dibatalkan', 'label' => 'Dibatalkan'];
+                    }
+                    break;
+
+                case 'R07': // Manajer Gudang
+                    if ($currentStatus === 'menunggu_persetujuan_gudang') {
+                        $statusOptions = [
+                            ['value' => 'menunggu_alokasi_pemasok', 'label' => 'Setujui (Lanjut ke Alokasi Pemasok)'],
+                            ['value' => 'ditolak', 'label' => 'Tolak'],
+                        ];
+                    }
+                    break;
+
+                case 'R04': // Staf Pengadaan
+                    if ($currentStatus === 'menunggu_alokasi_pemasok') {
+                        $statusOptions = [
+                            ['value' => 'menunggu_persetujuan_pengadaan', 'label' => 'Ajukan Persetujuan Pengadaan'],
+                        ];
+                    }
+                    break;
+
+                case 'R09': // Manajer Pengadaan
+                    if ($currentStatus === 'menunggu_persetujuan_pengadaan') {
+                        $statusOptions = [
+                            ['value' => 'menunggu_persetujuan_keuangan', 'label' => 'Setujui (Lanjut ke Keuangan)'],
+                            ['value' => 'ditolak', 'label' => 'Tolak'],
+                        ];
+                    }
+                    break;
+
+                case 'R10': // Manajer Keuangan
+                    if ($currentStatus === 'menunggu_persetujuan_keuangan') {
+                        $statusOptions = [
+                            ['value' => 'diproses', 'label' => 'Setujui & Proses'],
+                            ['value' => 'ditolak', 'label' => 'Tolak'],
+                        ];
+                    }
+                    break;
+            }
+            
+            }
+            
+            // Ensure current status is in the list so it displays correctly in the dropdown
+            // Find label for current status
+            $currentStatusOption = null;
+            foreach ($allStatusOptions as $option) {
+                if ($option['value'] === $currentStatus) {
+                    $currentStatusOption = $option;
+                    break;
+                }
+            }
+
+            // If found, check if it's already in the allowed options
+            if ($currentStatusOption) {
+                $hasCurrent = false;
+                foreach ($statusOptions as $option) {
+                    if ($option['value'] === $currentStatus) {
+                        $hasCurrent = true;
+                        break;
+                    }
+                }
+
+                // If not in allowed options, add it (so it shows as selected)
+                if (!$hasCurrent) {
+                    array_unshift($statusOptions, $currentStatusOption);
+                }
+            }
 
         $user = Auth::user();
 
@@ -616,10 +717,12 @@ class PengadaanController extends Controller
         $user = Auth::user();
 
         // Authorization check
+        $canEdit = $this->canEditPengadaan($pengadaan);
         $canEditDetail = $this->canEditPengadaanDetail($pengadaan);
         $canApprove = $this->canApprovePengadaan($pengadaan);
 
-        if (!$canEditDetail && !$canApprove) {
+        // Allow if can edit (notes), edit detail, or approve
+        if (!$canEdit && !$canEditDetail && !$canApprove) {
             return redirect()->route('pengadaan.index')
                 ->with('flash', [
                     'message' => 'Anda tidak memiliki izin untuk mengubah pengadaan ini.',
@@ -636,7 +739,7 @@ class PengadaanController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'status' => 'nullable|in:draft,menunggu_persetujuan_gudang,menunggu_alokasi_pemasok,menunggu_persetujuan_pengadaan,menunggu_persetujuan_keuangan,diproses,diterima,dibatalkan',
+            'status' => 'nullable|in:draft,menunggu_persetujuan_gudang,menunggu_alokasi_pemasok,menunggu_persetujuan_pengadaan,menunggu_persetujuan_keuangan,diproses,diterima,dibatalkan,ditolak',
             'catatan' => 'nullable|string',
             'details' => 'required|array|min:1',
             'details.*.pengadaan_detail_id' => 'required|exists:pengadaan_detail,pengadaan_detail_id',
@@ -651,9 +754,30 @@ class PengadaanController extends Controller
         }
 
         // Validasi status transition dan role permission
+        
+        // 1. Save Details First (PENTING: Simpan data detail sebelum validasi status)
+        // Ini memungkinkan Staf Pengadaan mengisi pemasok/harga dan mengubah status dalam satu request
+        foreach ($request->details as $detailData) {
+            $detail = PengadaanDetail::find($detailData['pengadaan_detail_id']);
+            // Pastikan detail milik pengadaan ini
+            if ($detail && $detail->pengadaan_id === $pengadaan->pengadaan_id) {
+                $detail->update([
+                    'pemasok_id' => $detailData['pemasok_id'],
+                    'harga_satuan' => $detailData['harga_satuan'],
+                ]);
+            }
+        }
+
+        // 2. Refresh model to get updated details for validation
+        $pengadaan->refresh();
+
         if ($request->has('status') && $request->status !== $pengadaan->status) {
             // Check if user dapat melakukan approval ini
-            if (!$canApprove) {
+            // OR if user is cancelling and has permission to delete/cancel
+            $isCancelling = $request->status === 'dibatalkan';
+            $canCancel = $this->canDeletePengadaan($pengadaan); // Reuse delete logic for cancel rights
+
+            if (!$canApprove && !($isCancelling && $canCancel)) {
                 return redirect()->back()
                     ->with('flash', [
                         'message' => 'Anda tidak memiliki izin untuk mengubah status pengadaan ini.',
@@ -685,14 +809,30 @@ class PengadaanController extends Controller
             }
 
             // Only Staf Pengadaan (R04) bisa submit ke menunggu_persetujuan_pengadaan (setelah pemasok dialokasikan)
-            if ($request->status === 'menunggu_persetujuan_pengadaan' && $user->role_id !== 'R01' && $user->role_id !== 'R04') {
-                return redirect()->back()
-                    ->with('flash', [
-                        'message' => 'Hanya Staf Pengadaan atau Admin yang bisa mengajukan persetujuan pengadaan.',
-                        'type' => 'error'
-                    ])
-                    ->withInput();
+            // Only Staf Pengadaan (R04) and Manajer Pengadaan (R09) can submit to 'menunggu_persetujuan_pengadaan' (after supplier allocation)
+            if ($request->status === 'menunggu_persetujuan_pengadaan') {
+                if (!in_array($user->role_id, ['R01', 'R04', 'R09'])) {
+                    return redirect()->back()
+                        ->with('flash', [
+                            'message' => 'Hanya Staf Pengadaan, Manajer Pengadaan, atau Admin yang bisa mengajukan persetujuan pengadaan.',
+                            'type' => 'error'
+                        ])
+                        ->withInput();
+                }
+
+                // Validation: ensure supplier and price are filled for bahan_baku items
+                if (!$this->isPengadaanDetailFilled($pengadaan)) {
+                    return redirect()->back()
+                        ->with('flash', [
+                            'message' => 'Mohon lengkapi data Pemasok dan Harga Satuan untuk semua item sebelum mengajukan persetujuan.',
+                            'type' => 'error'
+                        ])
+                        ->withInput();
+                }
             }
+
+
+
 
             // Only Manajer Pengadaan (R09) bisa approve ke menunggu_persetujuan_keuangan
             if ($request->status === 'menunggu_persetujuan_keuangan' && $user->role_id !== 'R01' && $user->role_id !== 'R09') {
@@ -844,12 +984,21 @@ class PengadaanController extends Controller
                 ]);
         }
 
-        if (!$pengadaan->canBeCancelled()) {
+        if (!$pengadaan->canBeCancelled() && $pengadaan->status !== 'dibatalkan') {
             return redirect()->route('pengadaan.index')
                 ->with('flash', [
                     'message' => 'Pengadaan tidak dapat dihapus karena statusnya sudah ' . $pengadaan->status,
                     'type' => 'error'
                 ]);
+        }
+
+        // Revert Pesanan status if exists
+        if ($pengadaan->pesanan_id) {
+            $pesanan = Pesanan::find($pengadaan->pesanan_id);
+            if ($pesanan) {
+                // Revert to 'dikonfirmasi' so it appears in the dropdown again
+                $pesanan->update(['status' => Pesanan::STATUS_DIKONFIRMASI]);
+            }
         }
 
         $pengadaan->delete();

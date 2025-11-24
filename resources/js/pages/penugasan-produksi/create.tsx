@@ -15,6 +15,8 @@ interface PengadaanDetail {
     qty_diminta: number;
     qty_disetujui: number;
     satuan: string;
+    sisa_quota_produksi: number;
+    total_ditugaskan: number;
 }
 
 interface Props {
@@ -49,12 +51,15 @@ export default function Create({ pengadaanDetails, workers }: Props) {
 
     // Get max quantity for selected pengadaan detail
     const selectedDetail = pengadaanDetails.find((p) => p.pengadaan_detail_id === data.pengadaan_detail_id);
-    const maxQty = selectedDetail?.qty_disetujui ?? selectedDetail?.qty_diminta ?? 0;
+    const maxQty = selectedDetail?.sisa_quota_produksi ?? 0;
 
-    const pengadaanDetailOptions = pengadaanDetails.map((detail) => ({
-        value: detail.pengadaan_detail_id,
-        label: `${detail.nama_item} (Minta: ${detail.qty_diminta}, Disetujui: ${detail.qty_disetujui} ${detail.satuan})`,
-    }));
+    const pengadaanDetailOptions = pengadaanDetails.map((detail) => {
+        const approvedQty = detail.qty_disetujui ?? detail.qty_diminta;
+        return {
+            value: detail.pengadaan_detail_id,
+            label: `${detail.nama_item} (Total: ${approvedQty}, Sisa: ${detail.sisa_quota_produksi} ${detail.satuan})`,
+        };
+    });
 
     const workerOptions = workers.map((worker) => ({
         value: worker.user_id,

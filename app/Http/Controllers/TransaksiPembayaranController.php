@@ -232,8 +232,10 @@ class TransaksiPembayaranController extends Controller
             }
         }
 
-        // Generate ID transaksi
-        $lastTransaksi = TransaksiPembayaran::latest('transaksi_pembayaran_id')->first();
+        // Generate ID transaksi (Robust way: include trashed & sort numerically)
+        $lastTransaksi = TransaksiPembayaran::withTrashed()
+            ->orderByRaw('CAST(SUBSTRING(transaksi_pembayaran_id, 3) AS UNSIGNED) DESC')
+            ->first();
         $lastNumber = $lastTransaksi ? (int) substr($lastTransaksi->transaksi_pembayaran_id, 2) : 0;
         $newNumber = $lastNumber + 1;
         $transaksiId = 'TP' . str_pad($newNumber, 4, '0', STR_PAD_LEFT);
@@ -255,6 +257,12 @@ class TransaksiPembayaranController extends Controller
             'bukti_pembayaran'        => $buktiPath,
             'catatan'                 => $request->catatan,
         ]);
+
+        // Update status Pembelian jika pembayaran berhasil
+        // Jika status masih draft atau menunggu, ubah menjadi dipesan agar muncul di penerimaan
+        if (in_array($pembelian->status, ['draft', 'menunggu'])) {
+            $pembelian->update(['status' => 'dipesan']);
+        }
 
         return redirect()->route('transaksi-pembayaran.index')
             ->with('flash', [

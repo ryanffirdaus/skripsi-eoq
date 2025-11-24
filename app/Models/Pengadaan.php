@@ -179,13 +179,22 @@ class Pengadaan extends Model
     {
         $user = Auth::user();
 
-        // Admin (R01) dapat edit di SEMUA status tanpa exception
+        // Admin can edit any status
         if ($user && $user->role_id === 'R01') {
             return true;
         }
 
-        // Bisa edit di tahap: menunggu_persetujuan_gudang, menunggu_alokasi_pemasok (untuk input pemasok/harga)
-        // Tidak bisa edit setelah menunggu_persetujuan_pengadaan, menunggu_persetujuan_keuangan, diproses, diterima, dibatalkan
+        // Manajer Pengadaan can edit when status is menunggu_persetujuan_pengadaan
+        if ($user && $user->role_id === 'R09' && $this->status === 'menunggu_persetujuan_pengadaan') {
+            return true;
+        }
+
+        // Manajer Keuangan can edit when status is menunggu_persetujuan_keuangan
+        if ($user && $user->role_id === 'R10' && $this->status === 'menunggu_persetujuan_keuangan') {
+            return true;
+        }
+
+        // Default editable statuses for Staf Pengadaan and others
         return in_array($this->status, ['menunggu_persetujuan_gudang', 'menunggu_alokasi_pemasok']);
     }
 

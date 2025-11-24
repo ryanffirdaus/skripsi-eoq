@@ -54,14 +54,14 @@ trait PengadaanAuthorization
             return true;
         }
 
-        // Staf Gudang: delete menunggu_persetujuan_gudang
+        // Staf Gudang: delete menunggu_persetujuan_gudang OR dibatalkan
         if ($roleId === 'R02') {
-            return $status === 'menunggu_persetujuan_gudang';
+            return in_array($status, ['menunggu_persetujuan_gudang', 'dibatalkan']);
         }
 
-        // Manajer Gudang: delete pending
+        // Manajer Gudang: delete pending OR dibatalkan
         if ($roleId === 'R07') {
-            return $status === 'menunggu_persetujuan_gudang';
+            return in_array($status, ['menunggu_persetujuan_gudang', 'dibatalkan']);
         }
 
         return false;
@@ -134,6 +134,16 @@ trait PengadaanAuthorization
             return true;
         }
 
+        // R09 (Manajer Pengadaan): dapat edit di status menunggu_persetujuan_pengadaan
+        if ($roleId === 'R09' && $pengadaan->status === 'menunggu_persetujuan_pengadaan') {
+            return true;
+        }
+
+        // R10 (Manajer Keuangan): dapat edit di status menunggu_persetujuan_keuangan
+        if ($roleId === 'R10' && $pengadaan->status === 'menunggu_persetujuan_keuangan') {
+            return true;
+        }
+
         return false;
     }
 
@@ -169,7 +179,8 @@ trait PengadaanAuthorization
      */
     protected function isPengadaanDetailFilled(Pengadaan $pengadaan): bool
     {
-        return $pengadaan->details()
+        return $pengadaan->detail()
+            ->where('jenis_barang', 'bahan_baku') // Hanya cek bahan baku yang butuh pemasok
             ->where(function ($query) {
                 $query->whereNull('pemasok_id')
                     ->orWhereNull('harga_satuan');

@@ -14,18 +14,18 @@ class PengirimanObserver
      */
     public function updated(Pengiriman $pengiriman): void
     {
-        // Check if status changed to 'diterima' (delivered)
-        if ($pengiriman->wasChanged('status') && $pengiriman->status === 'diterima') {
+        // Check if status changed to 'dikirim' (shipped)
+        if ($pengiriman->wasChanged('status') && $pengiriman->status === 'dikirim') {
             $this->reduceStock($pengiriman);
         }
     }
 
     /**
-     * Reduce stock when pengiriman is delivered
+     * Reduce stock when pengiriman is shipped
      */
     private function reduceStock(Pengiriman $pengiriman): void
     {
-        Log::info("Processing stock reduction for delivered pengiriman: {$pengiriman->pengiriman_id}");
+        Log::info("Processing stock reduction for shipped pengiriman: {$pengiriman->pengiriman_id}");
 
         // Load pesanan and its details
         $pengiriman->load(['pesanan.produk']);
@@ -50,7 +50,10 @@ class PengirimanObserver
      */
     public function created(Pengiriman $pengiriman): void
     {
-        // No action needed on creation
+        // Check if created with status 'dikirim'
+        if ($pengiriman->status === 'dikirim') {
+            $this->reduceStock($pengiriman);
+        }
     }
 
     /**
