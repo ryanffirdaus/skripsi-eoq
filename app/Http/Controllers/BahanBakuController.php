@@ -122,9 +122,21 @@ class BahanBakuController extends Controller
             'biaya_penyimpanan_bahan' => ['required', 'numeric', 'min:0'],
         ]);
 
-        // Calculate safety stock
-        $safety_stock_bahan = ($validated['permintaan_harian_maksimum_bahan'] * $validated['waktu_tunggu_maksimum_bahan']) -
-            ($validated['permintaan_harian_rata2_bahan'] * $validated['waktu_tunggu_rata2_bahan']);
+        // Calculate safety stock using Z-Score Method (95% Service Level)
+        // Z = 1.65 for 95% service level
+        $zScore = 1.65;
+        
+        // Estimate standard deviations from the range
+        $stdDevDemand = ($validated['permintaan_harian_maksimum_bahan'] - $validated['permintaan_harian_rata2_bahan']) / 1.65;
+        $stdDevLeadTime = ($validated['waktu_tunggu_maksimum_bahan'] - $validated['waktu_tunggu_rata2_bahan']) / 1.65;
+        
+        // Calculate combined variability: √[(L_avg × σ_demand)² + (D_avg × σ_leadtime)²]
+        $variance = pow($validated['waktu_tunggu_rata2_bahan'] * $stdDevDemand, 2) + 
+                   pow($validated['permintaan_harian_rata2_bahan'] * $stdDevLeadTime, 2);
+        $stdDevTotal = sqrt($variance);
+        
+        // Safety Stock = Z × σ_total
+        $safety_stock_bahan = max(0, round($zScore * $stdDevTotal));
 
         // Calculate reorder point (ROP)
         $rop_bahan = ($validated['permintaan_harian_rata2_bahan'] * $validated['waktu_tunggu_rata2_bahan']) + $safety_stock_bahan;
@@ -196,9 +208,21 @@ class BahanBakuController extends Controller
             'biaya_penyimpanan_bahan' => ['required', 'numeric', 'min:0'],
         ]);
 
-        // Recalculate safety stock
-        $safety_stock_bahan = ($validated['permintaan_harian_maksimum_bahan'] * $validated['waktu_tunggu_maksimum_bahan']) -
-            ($validated['permintaan_harian_rata2_bahan'] * $validated['waktu_tunggu_rata2_bahan']);
+        // Recalculate safety stock using Z-Score Method (95% Service Level)
+        // Z = 1.65 for 95% service level
+        $zScore = 1.65;
+        
+        // Estimate standard deviations from the range
+        $stdDevDemand = ($validated['permintaan_harian_maksimum_bahan'] - $validated['permintaan_harian_rata2_bahan']) / 1.65;
+        $stdDevLeadTime = ($validated['waktu_tunggu_maksimum_bahan'] - $validated['waktu_tunggu_rata2_bahan']) / 1.65;
+        
+        // Calculate combined variability: √[(L_avg × σ_demand)² + (D_avg × σ_leadtime)²]
+        $variance = pow($validated['waktu_tunggu_rata2_bahan'] * $stdDevDemand, 2) + 
+                   pow($validated['permintaan_harian_rata2_bahan'] * $stdDevLeadTime, 2);
+        $stdDevTotal = sqrt($variance);
+        
+        // Safety Stock = Z × σ_total
+        $safety_stock_bahan = max(0, round($zScore * $stdDevTotal));
 
         // Recalculate reorder point (ROP)
         $rop_bahan = ($validated['permintaan_harian_rata2_bahan'] * $validated['waktu_tunggu_rata2_bahan']) + $safety_stock_bahan;

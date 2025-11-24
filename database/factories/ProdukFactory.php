@@ -60,8 +60,23 @@ class ProdukFactory extends Factory
         // Hitung EOQ: √((2 * D * S) / H)
         $eoq = sqrt((2 * $permintaan_tahunan * $biaya_pemesanan) / $biaya_penyimpanan);
 
-        // Hitung ROP: (d * L) + SS
-        $safety_stock = $permintaan_harian_max * $waktu_tunggu_max - $permintaan_harian_rata2 * $waktu_tunggu_rata2;
+        // Calculate Safety Stock using Z-Score Method (95% Service Level)
+        // Z = 1.65 for 95% service level
+        $zScore = 1.65;
+        
+        // Estimate standard deviations from the range
+        $stdDevDemand = ($permintaan_harian_max - $permintaan_harian_rata2) / 1.65;
+        $stdDevLeadTime = ($waktu_tunggu_max - $waktu_tunggu_rata2) / 1.65;
+        
+        // Calculate combined variability: √[(L_avg × σ_demand)² + (D_avg × σ_leadtime)²]
+        $variance = pow($waktu_tunggu_rata2 * $stdDevDemand, 2) + 
+                   pow($permintaan_harian_rata2 * $stdDevLeadTime, 2);
+        $stdDevTotal = sqrt($variance);
+        
+        // Safety Stock = Z × σ_total
+        $safety_stock = round($zScore * $stdDevTotal);
+        
+        // Calculate ROP: (d * L) + SS
         $rop = ($permintaan_harian_rata2 * $waktu_tunggu_rata2) + $safety_stock;
 
         return [

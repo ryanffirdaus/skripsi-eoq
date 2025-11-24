@@ -135,9 +135,21 @@ class ProdukController extends Controller
         ]);
 
         $produk = DB::transaction(function () use ($validated) {
-            // Calculate safety stock
-            $safety_stock_produk = ($validated['permintaan_harian_maksimum_produk'] * $validated['waktu_tunggu_maksimum_produk']) -
-                ($validated['permintaan_harian_rata2_produk'] * $validated['waktu_tunggu_rata2_produk']);
+            // Calculate safety stock using Z-Score Method (95% Service Level)
+            // Z = 1.65 for 95% service level
+            $zScore = 1.65;
+            
+            // Estimate standard deviations from the range
+            $stdDevDemand = ($validated['permintaan_harian_maksimum_produk'] - $validated['permintaan_harian_rata2_produk']) / 1.65;
+            $stdDevLeadTime = ($validated['waktu_tunggu_maksimum_produk'] - $validated['waktu_tunggu_rata2_produk']) / 1.65;
+            
+            // Calculate combined variability: √[(L_avg × σ_demand)² + (D_avg × σ_leadtime)²]
+            $variance = pow($validated['waktu_tunggu_rata2_produk'] * $stdDevDemand, 2) + 
+                       pow($validated['permintaan_harian_rata2_produk'] * $stdDevLeadTime, 2);
+            $stdDevTotal = sqrt($variance);
+            
+            // Safety Stock = Z × σ_total
+            $safety_stock_produk = max(0, round($zScore * $stdDevTotal));
 
             // Calculate reorder point (ROP)
             $rop_produk = ($validated['permintaan_harian_rata2_produk'] * $validated['waktu_tunggu_rata2_produk']) + $safety_stock_produk;
@@ -242,9 +254,21 @@ class ProdukController extends Controller
         ]);
 
         DB::transaction(function () use ($validated, $produk) {
-            // Recalculate safety stock
-            $safety_stock_produk = ($validated['permintaan_harian_maksimum_produk'] * $validated['waktu_tunggu_maksimum_produk']) -
-                ($validated['permintaan_harian_rata2_produk'] * $validated['waktu_tunggu_rata2_produk']);
+            // Recalculate safety stock using Z-Score Method (95% Service Level)
+            // Z = 1.65 for 95% service level
+            $zScore = 1.65;
+            
+            // Estimate standard deviations from the range
+            $stdDevDemand = ($validated['permintaan_harian_maksimum_produk'] - $validated['permintaan_harian_rata2_produk']) / 1.65;
+            $stdDevLeadTime = ($validated['waktu_tunggu_maksimum_produk'] - $validated['waktu_tunggu_rata2_produk']) / 1.65;
+            
+            // Calculate combined variability: √[(L_avg × σ_demand)² + (D_avg × σ_leadtime)²]
+            $variance = pow($validated['waktu_tunggu_rata2_produk'] * $stdDevDemand, 2) + 
+                       pow($validated['permintaan_harian_rata2_produk'] * $stdDevLeadTime, 2);
+            $stdDevTotal = sqrt($variance);
+            
+            // Safety Stock = Z × σ_total
+            $safety_stock_produk = max(0, round($zScore * $stdDevTotal));
 
             // Recalculate reorder point (ROP)
             $rop_produk = ($validated['permintaan_harian_rata2_produk'] * $validated['waktu_tunggu_rata2_produk']) + $safety_stock_produk;

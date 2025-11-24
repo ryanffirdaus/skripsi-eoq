@@ -44,11 +44,30 @@ class InventoryCalculationService
             $bahan->waktu_tunggu_rata2_bahan = $leadTimeStats['avg_lead_time'];
             $bahan->waktu_tunggu_maksimum_bahan = $leadTimeStats['max_lead_time'];
 
-            // 3. Calculate SS, ROP, EOQ
-            // Safety Stock = (Max Daily Usage * Max Lead Time) - (Avg Daily Usage * Avg Lead Time)
-            $ss = ($demandStats['max_daily'] * $leadTimeStats['max_lead_time']) - 
-                  ($demandStats['avg_daily'] * $leadTimeStats['avg_lead_time']);
-            $bahan->safety_stock_bahan = max(0, $ss);
+            // 3. Calculate SS, ROP, EOQ using Z-Score Method (95% Service Level)
+            // Safety Stock = Z × σ × √(Lead Time)
+            // Z = 1.65 for 95% service level
+            // σ (standard deviation) estimated from range: (max - avg) / 1.65
+            
+            $zScore = 1.65; // 95% service level
+            
+            // Estimate standard deviations from the range
+            $stdDevDemand = $demandStats['max_daily'] > $demandStats['avg_daily'] 
+                ? ($demandStats['max_daily'] - $demandStats['avg_daily']) / 1.65 
+                : 0;
+            $stdDevLeadTime = $leadTimeStats['max_lead_time'] > $leadTimeStats['avg_lead_time']
+                ? ($leadTimeStats['max_lead_time'] - $leadTimeStats['avg_lead_time']) / 1.65
+                : 0;
+            
+            // Calculate combined variability during lead time
+            // Formula: √[(L_avg × σ_demand)² + (D_avg × σ_leadtime)²]
+            $variance = pow($leadTimeStats['avg_lead_time'] * $stdDevDemand, 2) + 
+                       pow($demandStats['avg_daily'] * $stdDevLeadTime, 2);
+            $stdDevTotal = sqrt($variance);
+            
+            // Safety Stock = Z × σ_total
+            $ss = $zScore * $stdDevTotal;
+            $bahan->safety_stock_bahan = max(0, round($ss));
 
             // ROP = (Avg Daily Usage * Avg Lead Time) + Safety Stock
             $rop = ($demandStats['avg_daily'] * $leadTimeStats['avg_lead_time']) + $bahan->safety_stock_bahan;
@@ -91,10 +110,30 @@ class InventoryCalculationService
             $produk->waktu_tunggu_rata2_produk = $leadTimeStats['avg_lead_time'];
             $produk->waktu_tunggu_maksimum_produk = $leadTimeStats['max_lead_time'];
 
-            // 3. Calculate SS, ROP, EOQ
-            $ss = ($demandStats['max_daily'] * $leadTimeStats['max_lead_time']) - 
-                  ($demandStats['avg_daily'] * $leadTimeStats['avg_lead_time']);
-            $produk->safety_stock_produk = max(0, $ss);
+            // 3. Calculate SS, ROP, EOQ using Z-Score Method (95% Service Level)
+            // Safety Stock = Z × σ × √(Lead Time)
+            // Z = 1.65 for 95% service level
+            // σ (standard deviation) estimated from range: (max - avg) / 1.65
+            
+            $zScore = 1.65; // 95% service level
+            
+            // Estimate standard deviations from the range
+            $stdDevDemand = $demandStats['max_daily'] > $demandStats['avg_daily'] 
+                ? ($demandStats['max_daily'] - $demandStats['avg_daily']) / 1.65 
+                : 0;
+            $stdDevLeadTime = $leadTimeStats['max_lead_time'] > $leadTimeStats['avg_lead_time']
+                ? ($leadTimeStats['max_lead_time'] - $leadTimeStats['avg_lead_time']) / 1.65
+                : 0;
+            
+            // Calculate combined variability during lead time
+            // Formula: √[(L_avg × σ_demand)² + (D_avg × σ_leadtime)²]
+            $variance = pow($leadTimeStats['avg_lead_time'] * $stdDevDemand, 2) + 
+                       pow($demandStats['avg_daily'] * $stdDevLeadTime, 2);
+            $stdDevTotal = sqrt($variance);
+            
+            // Safety Stock = Z × σ_total
+            $ss = $zScore * $stdDevTotal;
+            $produk->safety_stock_produk = max(0, round($ss));
 
             $rop = ($demandStats['avg_daily'] * $leadTimeStats['avg_lead_time']) + $produk->safety_stock_produk;
             $produk->rop_produk = max(0, $rop);
