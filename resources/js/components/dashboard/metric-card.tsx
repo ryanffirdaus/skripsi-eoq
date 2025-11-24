@@ -36,21 +36,21 @@ export function MetricCard({ title, value, change, trend = 'neutral', icon, colo
 
     return (
         <Card>
-            <CardHeader className="px-3 py-2 pb-2 sm:px-4 sm:py-3">
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <CardHeader className="px-3 py-1.5 pb-0 sm:px-3 sm:py-2 sm:pb-0">
+                <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between">
                     <CardTitle className="text-xs font-medium text-gray-500 sm:text-sm dark:text-gray-400">{title}</CardTitle>
                     {icon && (
                         <div
-                            className={`w-fit rounded-lg p-2 ${color.replace('text-', 'bg-').replace('-600', '-100')} dark:${color.replace('text-', 'bg-').replace('-600', '-900')}`}
+                            className={`w-fit rounded-lg p-1.5 ${color.replace('text-', 'bg-').replace('-600', '-100')} dark:${color.replace('text-', 'bg-').replace('-600', '-900')}`}
                         >
                             {icon}
                         </div>
                     )}
                 </div>
             </CardHeader>
-            <CardContent className="px-3 py-2 sm:px-4 sm:py-3">
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-baseline sm:justify-between">
-                    <div className={`text-2xl font-bold sm:text-3xl ${color}`}>
+            <CardContent className="px-3 pt-1.5 pb-2 sm:px-3 sm:pt-2 sm:pb-2">
+                <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
+                    <div className={`text-xl font-bold sm:text-2xl ${color}`}>
                         {typeof value === 'number' ? value.toLocaleString('id-ID') : value}
                     </div>
                     {change !== undefined && (
@@ -60,7 +60,7 @@ export function MetricCard({ title, value, change, trend = 'neutral', icon, colo
                         </div>
                     )}
                 </div>
-                {subtitle && <CardDescription className="mt-1 text-xs sm:text-sm">{subtitle}</CardDescription>}
+                {subtitle && <CardDescription className="mt-0.5 text-xs sm:text-sm">{subtitle}</CardDescription>}
             </CardContent>
         </Card>
     );

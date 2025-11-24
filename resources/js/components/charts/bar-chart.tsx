@@ -1,3 +1,4 @@
+import { formatCompactNumber } from '@/lib/utils';
 import type React from 'react';
 import { Bar, BarChart as RechartsBarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
@@ -21,11 +22,11 @@ export function BarChart({ data, xKey, yKey, colors = ['#3b82f6'], showGrid = tr
                 {layout === 'horizontal' ? (
                     <>
                         <XAxis dataKey={xKey} stroke="#6b7280" style={{ fontSize: '12px' }} />
-                        <YAxis stroke="#6b7280" style={{ fontSize: '12px' }} tickFormatter={(value) => value.toLocaleString('id-ID')} />
+                        <YAxis stroke="#6b7280" style={{ fontSize: '12px' }} tickFormatter={formatCompactNumber} />
                     </>
                 ) : (
                     <>
-                        <XAxis type="number" stroke="#6b7280" style={{ fontSize: '12px' }} tickFormatter={(value) => value.toLocaleString('id-ID')} />
+                        <XAxis type="number" stroke="#6b7280" style={{ fontSize: '12px' }} tickFormatter={formatCompactNumber} />
                         <YAxis dataKey={xKey} type="category" stroke="#6b7280" style={{ fontSize: '12px' }} width={100} />
                     </>
                 )}

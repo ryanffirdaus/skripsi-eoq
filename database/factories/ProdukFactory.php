@@ -46,8 +46,8 @@ class ProdukFactory extends Factory
 
         $nama_produk = $this->faker->randomElement($iotProducts);
         $stok_produk = $this->faker->numberBetween(5, 100);
-        $hpp_produk = $this->faker->numberBetween(200000, 2000000);
-        $harga_jual = $hpp_produk * $this->faker->randomFloat(2, 1.2, 2.5); // Markup 20% - 150%
+        $hpp_produk = $this->faker->numberBetween(50000, 500000); // Reduced from 200k-2M
+        $harga_jual = $hpp_produk * $this->faker->randomFloat(2, 1.2, 1.8); // Reduced markup from 2.5 to 1.8
 
         $permintaan_harian_rata2 = $this->faker->numberBetween(1, 5);
         $permintaan_harian_max = $permintaan_harian_rata2 + $this->faker->numberBetween(1, 3);

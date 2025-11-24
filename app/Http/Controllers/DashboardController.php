@@ -242,23 +242,35 @@ class DashboardController extends Controller
             ->map(function ($item) {
                 return [
                     'month' => $item->month,
-                    'orders' => $item->order_count,
-                    'revenue' => (float) $item->total_revenue,
+                    'Pesanan' => $item->order_count,
+                    'Pendapatan' => (float) $item->total_revenue,
                 ];
             });
     }
 
+    /**
+     * Format status name to proper case
+     */
+    private function formatStatusName($status)
+    {
+        return ucwords(str_replace('_', ' ', $status));
+    }
+
     private function getOrderStatusDistribution()
     {
-        return Pesanan::select('status', DB::raw('COUNT(*) as count'))
+        $allStatuses = ['menunggu', 'dikonfirmasi', 'diproses', 'siap', 'dikirim', 'diterima', 'selesai'];
+        $counts = Pesanan::select('status', DB::raw('COUNT(*) as count'))
             ->groupBy('status')
-            ->get()
-            ->map(function ($item) {
-                return [
-                    'name' => ucfirst($item->status),
-                    'value' => $item->count,
-                ];
-            });
+            ->pluck('count', 'status')
+            ->toArray();
+        $result = [];
+        foreach ($allStatuses as $status) {
+            $result[] = [
+                'name' => $this->formatStatusName($status),
+                'value' => $counts[$status] ?? 0,
+            ];
+        }
+        return $result;
     }
 
     private function getMonthlyProcurementSpending($months = 6)
@@ -274,7 +286,7 @@ class DashboardController extends Controller
             ->map(function ($item) {
                 return [
                     'month' => $item->month,
-                    'spending' => (float) $item->spending,
+                    'Pengeluaran' => (float) $item->spending,
                 ];
             });
     }
@@ -297,18 +309,21 @@ class DashboardController extends Controller
 
     private function getStockMovementTrend($dateFrom, $dateTo)
     {
-        return BahanBaku::select(
-            DB::raw('DATE(created_at) as date'),
-            DB::raw('COUNT(*) as items_added')
+        // Use Pembelian (Purchase Orders) to track stock movement
+        return Pembelian::select(
+            DB::raw('DATE(tanggal_pembelian) as date'),
+            DB::raw('COUNT(*) as purchases'),
+            DB::raw('SUM(total_biaya) as total_value')
         )
-            ->whereBetween('created_at', [$dateFrom, $dateTo])
+            ->whereBetween('tanggal_pembelian', [$dateFrom, $dateTo])
             ->groupBy('date')
             ->orderBy('date')
             ->get()
             ->map(function ($item) {
                 return [
                     'date' => $item->date,
-                    'movement' => $item->items_added,
+                    'Pergerakan' => $item->purchases, // Number of purchase orders
+                    'Nilai' => (float) $item->total_value, // Total value
                 ];
             });
     }
@@ -357,8 +372,8 @@ class DashboardController extends Controller
             ->map(function ($item) {
                 return [
                     'date' => $item->date,
-                    'orders' => $item->orders,
-                    'revenue' => (float) $item->revenue,
+                    'Pesanan' => $item->orders,
+                    'Pendapatan' => (float) $item->revenue,
                 ];
             });
     }
@@ -368,7 +383,7 @@ class DashboardController extends Controller
         $statuses = ['menunggu', 'dikonfirmasi', 'diproses', 'siap', 'dikirim', 'diterima', 'selesai'];
         return collect($statuses)->map(function ($status) {
             return [
-                'name' => ucfirst($status),
+                'name' => $this->formatStatusName($status),
                 'value' => Pesanan::where('status', $status)->count(),
             ];
         });
@@ -426,15 +441,19 @@ class DashboardController extends Controller
 
     private function getPOStatusDistribution()
     {
-        return Pembelian::select('status', DB::raw('COUNT(*) as count'))
+        $allStatuses = ['menunggu', 'dipesan', 'dikirim', 'diterima', 'selesai', 'dibatalkan']; // Common PO statuses
+        $counts = Pembelian::select('status', DB::raw('COUNT(*) as count'))
             ->groupBy('status')
-            ->get()
-            ->map(function ($item) {
-                return [
-                    'name' => ucfirst($item->status),
-                    'value' => $item->count,
-                ];
-            });
+            ->pluck('count', 'status')
+            ->toArray();
+        $result = [];
+        foreach ($allStatuses as $status) {
+            $result[] = [
+                'name' => $this->formatStatusName($status),
+                'value' => $counts[$status] ?? 0,
+            ];
+        }
+        return $result;
     }
 
     private function calculateProfitMargin()
@@ -451,8 +470,8 @@ class DashboardController extends Controller
             $month = now()->subMonths($i)->format('Y-m');
             $data[] = [
                 'month' => $month,
-                'revenue' => (float) Pesanan::where('created_at', 'like', "$month%")->sum('total_harga'),
-                'expenses' => (float) Pembelian::where('created_at', 'like', "$month%")->sum('total_biaya'),
+                'Pendapatan' => (float) Pesanan::where('created_at', 'like', "$month%")->sum('total_harga'),
+                'Pengeluaran' => (float) Pembelian::where('created_at', 'like', "$month%")->sum('total_biaya'),
             ];
         }
         return $data;
@@ -465,30 +484,38 @@ class DashboardController extends Controller
 
     private function getPaymentStatusDistribution()
     {
-        return TransaksiPembayaran::select('jenis_pembayaran', DB::raw('SUM(total_pembayaran) as total'))
+        $allPaymentTypes = ['tunai', 'transfer', 'kredit', 'pelunasan']; // Assuming these are the possible payment types
+        $counts = TransaksiPembayaran::select('jenis_pembayaran', DB::raw('SUM(total_pembayaran) as total'))
             ->groupBy('jenis_pembayaran')
-            ->get()
-            ->map(function ($item) {
-                return [
-                    'name' => ucfirst($item->jenis_pembayaran),
-                    'value' => (float) $item->total,
-                ];
-            });
+            ->pluck('total', 'jenis_pembayaran')
+            ->toArray();
+        $result = [];
+        foreach ($allPaymentTypes as $type) {
+            $result[] = [
+                'name' => $this->formatStatusName($type),
+                'value' => (float) ($counts[$type] ?? 0),
+            ];
+        }
+        return $result;
     }
 
     // RnD Dashboard Helper Methods
 
     private function getAssignmentStatusDistribution()
     {
-        return \App\Models\PenugasanProduksi::select('status', DB::raw('COUNT(*) as count'))
+        $allStatuses = ['ditugaskan', 'proses', 'selesai', 'dibatalkan'];
+        $counts = \App\Models\PenugasanProduksi::select('status', DB::raw('COUNT(*) as count'))
             ->groupBy('status')
-            ->get()
-            ->map(function ($item) {
-                return [
-                    'name' => ucfirst($item->status),
-                    'value' => $item->count,
-                ];
-            });
+            ->pluck('count', 'status')
+            ->toArray();
+        $result = [];
+        foreach ($allStatuses as $status) {
+            $result[] = [
+                'name' => $this->formatStatusName($status),
+                'value' => $counts[$status] ?? 0,
+            ];
+        }
+        return $result;
     }
 
     private function getProductionTrend($dateFrom, $dateTo)
@@ -505,8 +532,8 @@ class DashboardController extends Controller
             ->map(function ($item) {
                 return [
                     'date' => $item->date,
-                    'assigned' => $item->assignments_created,
-                    'completed' => $item->completed,
+                    'Ditugaskan' => $item->assignments_created,
+                    'Selesai' => $item->completed,
                 ];
             });
     }

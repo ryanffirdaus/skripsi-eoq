@@ -1,5 +1,6 @@
+import { formatCompactNumber } from '@/lib/utils';
 import type React from 'react';
-import { CartesianGrid, Line, LineChart as RechartsLineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { CartesianGrid, Legend, Line, LineChart as RechartsLineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 interface LineChartProps {
     data: any[];
@@ -18,7 +19,7 @@ export function LineChart({ data, xKey, yKey, colors = ['#3b82f6'], showGrid = t
             <RechartsLineChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                 {showGrid && <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />}
                 <XAxis dataKey={xKey} stroke="#6b7280" style={{ fontSize: '12px' }} />
-                <YAxis stroke="#6b7280" style={{ fontSize: '12px' }} tickFormatter={(value) => value.toLocaleString('id-ID')} />
+                <YAxis stroke="#6b7280" style={{ fontSize: '12px' }} tickFormatter={formatCompactNumber} />
                 <Tooltip
                     contentStyle={{
                         backgroundColor: '#fff',
@@ -28,6 +29,7 @@ export function LineChart({ data, xKey, yKey, colors = ['#3b82f6'], showGrid = t
                     }}
                     formatter={(value: any) => [typeof value === 'number' ? value.toLocaleString('id-ID') : value]}
                 />
+                <Legend wrapperStyle={{ fontSize: '12px' }} />
                 {yKeys.map((key, index) => (
                     <Line key={key} type="monotone" dataKey={key} stroke={colors[index % colors.length]} strokeWidth={2} dot={{ fill: colors[index % colors.length], r: 4 }} activeDot={{ r: 6 }} />
                 ))}

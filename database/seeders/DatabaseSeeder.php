@@ -38,14 +38,18 @@ class DatabaseSeeder extends Seeder
             ProdukSeeder::class,
             PemasokSeeder::class,
             PelangganSeeder::class,
-            PesananSeeder::class,
-            PengirimanSeeder::class,
-            PengadaanSeeder::class,
-            PembelianSeeder::class, // Must be after PengadaanSeeder
-            PenerimaanBahanBakuSeeder::class, // Must be after PembelianSeeder
-            TransaksiPembayaranSeeder::class, // Must be after PembelianSeeder
-            PenugasanProduksiSeeder::class, // Must be after PengadaanSeeder and User creation
             NotificationSeeder::class, // Must be after User creation
+            
+            // Historical Data Seeder (Replaces individual transactional seeders)
+            DashboardSeeder::class,
+            
+            // PesananSeeder::class,
+            // PengirimanSeeder::class,
+            // PengadaanSeeder::class,
+            // PembelianSeeder::class, // Must be after PengadaanSeeder
+            // PenerimaanBahanBakuSeeder::class, // Must be after PembelianSeeder
+            // TransaksiPembayaranSeeder::class, // Must be after PembelianSeeder
+            // PenugasanProduksiSeeder::class, // Must be after PengadaanSeeder and User creation
             // ReturBahanBakuSeeder::class, // Must be after PenerimaanBahanBakuSeeder
         ]);
     }

@@ -1,5 +1,6 @@
+import { formatCompactNumber } from '@/lib/utils';
 import type React from 'react';
-import { Area, AreaChart as RechartsAreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { Area, AreaChart as RechartsAreaChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 interface AreaChartProps {
     data: any[];
@@ -17,7 +18,7 @@ export function AreaChart({ data, xKey, yKey, color = '#3b82f6', gradient = true
             <RechartsAreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                 {showGrid && <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />}
                 <XAxis dataKey={xKey} stroke="#6b7280" style={{ fontSize: '12px' }} />
-                <YAxis stroke="#6b7280" style={{ fontSize: '12px' }} tickFormatter={(value) => value.toLocaleString('id-ID')} />
+                <YAxis stroke="#6b7280" style={{ fontSize: '12px' }} tickFormatter={formatCompactNumber} />
                 <Tooltip
                     contentStyle={{
                         backgroundColor: '#fff',
@@ -27,6 +28,7 @@ export function AreaChart({ data, xKey, yKey, color = '#3b82f6', gradient = true
                     }}
                     formatter={(value: any) => [typeof value === 'number' ? value.toLocaleString('id-ID') : value, yKey]}
                 />
+                <Legend wrapperStyle={{ fontSize: '12px' }} />
                 {gradient ? (
                     <>
                         <defs>
