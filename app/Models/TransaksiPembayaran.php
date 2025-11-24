@@ -40,7 +40,7 @@ class TransaksiPembayaran extends Model
 
         static::creating(function ($model) {
             if (!$model->transaksi_pembayaran_id) {
-                $latest = static::withTrashed()->orderBy('transaksi_pembayaran_id', 'desc')->first();
+                $latest = static::withTrashed()->orderByRaw('CAST(SUBSTRING(transaksi_pembayaran_id, 3) AS UNSIGNED) DESC')->first();
                 $nextNumber = $latest ? (int)substr($latest->transaksi_pembayaran_id, 2) + 1 : 1;
                 $model->transaksi_pembayaran_id = 'TP' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
             }

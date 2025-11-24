@@ -81,7 +81,7 @@ class User extends Authenticatable
         static::creating(function ($model) {
             // Generate the next ID if not provided
             if (!$model->user_id) {
-                $latest = static::withTrashed()->orderBy('user_id', 'desc')->first();
+                $latest = static::withTrashed()->orderByRaw('CAST(SUBSTRING(user_id, 3) AS UNSIGNED) DESC')->first();
                 $nextId = $latest ? (int) substr($latest->user_id, 2) + 1 : 1;
                 $model->user_id = 'US' . str_pad($nextId, 3, '0', STR_PAD_LEFT);
             }

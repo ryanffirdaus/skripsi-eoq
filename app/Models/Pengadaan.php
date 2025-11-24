@@ -37,7 +37,7 @@ class Pengadaan extends Model
 
         static::creating(function ($model) {
             if (!$model->pengadaan_id) {
-                $latest = static::withTrashed()->orderBy('pengadaan_id', 'desc')->first();
+                $latest = static::withTrashed()->orderByRaw('CAST(SUBSTRING(pengadaan_id, 3) AS UNSIGNED) DESC')->first();
                 $nextNumber = $latest ? (int)substr($latest->pengadaan_id, 2) + 1 : 1;
                 $model->pengadaan_id = 'PG' . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
             }

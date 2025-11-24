@@ -33,7 +33,7 @@ class PenerimaanBahanBakuDetail extends Model
         parent::boot();
         static::creating(function ($model) {
             if (!$model->getKey()) {
-                $latest = static::withTrashed()->orderBy('penerimaan_detail_id', 'desc')->first();
+                $latest = static::withTrashed()->orderByRaw('CAST(SUBSTRING(penerimaan_detail_id, 4) AS UNSIGNED) DESC')->first();
                 $nextNumber = $latest ? (int)substr($latest->penerimaan_detail_id, 3) + 1 : 1;
                 $model->{$model->getKeyName()} = 'PND' . str_pad($nextNumber, 7, '0', STR_PAD_LEFT);
             }

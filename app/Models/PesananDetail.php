@@ -36,7 +36,7 @@ class PesananDetail extends Model
 
         static::creating(function ($model) {
             if (!$model->pesanan_detail_id) {
-                $latest = static::withTrashed()->orderBy('pesanan_detail_id', 'desc')->first();
+                $latest = static::withTrashed()->orderByRaw('CAST(SUBSTRING(pesanan_detail_id, 4) AS UNSIGNED) DESC')->first();
                 $nextNumber = $latest ? (int)substr($latest->pesanan_detail_id, 3) + 1 : 1;
                 $model->pesanan_detail_id = 'PSD' . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
             }

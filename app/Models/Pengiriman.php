@@ -64,7 +64,7 @@ class Pengiriman extends Model
 
     public static function generateId(): string
     {
-        $lastId = static::withTrashed()->orderBy('pengiriman_id', 'desc')->first();
+        $lastId = static::withTrashed()->orderByRaw('CAST(SUBSTRING(pengiriman_id, 4) AS UNSIGNED) DESC')->first();
 
         if (!$lastId) {
             return 'PGR001';

@@ -54,7 +54,7 @@ class PenugasanProduksi extends Model
         static::creating(function ($model) {
             // Auto-generate penugasan_id
             if (!$model->penugasan_id) {
-                $latest = static::withTrashed()->orderBy('penugasan_id', 'desc')->first();
+                $latest = static::withTrashed()->orderByRaw('CAST(SUBSTRING(penugasan_id, 3) AS UNSIGNED) DESC')->first();
                 $nextId = $latest ? (int) substr($latest->penugasan_id, 2) + 1 : 1;
                 $model->penugasan_id = 'PN' . str_pad($nextId, 3, '0', STR_PAD_LEFT);
             }

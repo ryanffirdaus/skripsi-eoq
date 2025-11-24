@@ -35,7 +35,7 @@ class Pemasok extends Model
 
         static::creating(function ($model) {
             if (!$model->pemasok_id) {
-                $latest = static::withTrashed()->orderBy('pemasok_id', 'desc')->first();
+                $latest = static::withTrashed()->orderByRaw('CAST(SUBSTRING(pemasok_id, 3) AS UNSIGNED) DESC')->first();
                 $nextNumber = $latest ? (int)substr($latest->pemasok_id, 2) + 1 : 1;
                 $model->pemasok_id = 'PM' . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
             }
