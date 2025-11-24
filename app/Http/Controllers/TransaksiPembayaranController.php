@@ -353,7 +353,7 @@ class TransaksiPembayaranController extends Controller
             'pemasok_nama'            => $transaksiPembayaran->pembelian->pemasok->nama_pemasok ?? 'N/A',
             'jenis_pembayaran'        => $transaksiPembayaran->jenis_pembayaran,
             'tanggal_pembayaran'      => date('Y-m-d', strtotime($transaksiPembayaran->tanggal_pembayaran)),
-            'jumlah_pembayaran'       => (float) $transaksiPembayaran->total_pembayaran, // Fix: use total_pembayaran
+            'total_pembayaran'        => (float) $transaksiPembayaran->total_pembayaran,
             'bukti_pembayaran'        => $transaksiPembayaran->bukti_pembayaran
                 ? Storage::url($transaksiPembayaran->bukti_pembayaran)
                 : null,

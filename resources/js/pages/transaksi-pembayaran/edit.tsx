@@ -23,7 +23,7 @@ interface Transaksi {
     pemasok_nama: string;
     jenis_pembayaran: string;
     tanggal_pembayaran: string;
-    jumlah_pembayaran: number;
+    total_pembayaran: number;
     bukti_pembayaran?: string;
     catatan?: string;
 }
@@ -40,17 +40,18 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function Edit({ transaksi }: Props) {
-    const { data, setData, put, processing, errors } = useForm({
+    const { data, setData, post, processing, errors } = useForm({
         jenis_pembayaran: transaksi.jenis_pembayaran,
         tanggal_pembayaran: transaksi.tanggal_pembayaran,
-        jumlah_pembayaran: transaksi.jumlah_pembayaran.toString(),
+        jumlah_pembayaran: transaksi.total_pembayaran.toString(),
         bukti_pembayaran: null as File | null,
         catatan: transaksi.catatan || '',
+        _method: 'PUT',
     });
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        put(`/transaksi-pembayaran/${transaksi.transaksi_pembayaran_id}`);
+        post(`/transaksi-pembayaran/${transaksi.transaksi_pembayaran_id}`);
     };
 
     return (
