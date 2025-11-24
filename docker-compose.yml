@@ -1,0 +1,66 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: skripsi-eoq-app
+    container_name: skripsi-eoq-app
+    volumes:
+      - .:/var/www/html
+      # ✅ PENTING 1: Pakai folder vendor dari dalam Image (Anonymous Volume)
+      - /var/www/html/vendor
+      # ✅ PENTING 2: Pakai hasil build Vite dari dalam Image & Share ke Nginx
+      - vite_assets:/var/www/html/public/build
+    networks:
+      - laravel-network
+    depends_on:
+      - db
+
+  db:
+    image: mysql:8.0
+    container_name: skripsi-eoq-db
+    ports:
+      - "7306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: "root"
+      MYSQL_DATABASE: "skripsi-eoq"
+      TZ: Asia/Jakarta
+    command: --default-time-zone='+07:00'
+    volumes:
+      - db_data_skripsi:/var/lib/mysql
+    networks:
+      - laravel-network
+
+  web:
+    image: nginx:alpine
+    container_name: skripsi-eoq-web
+    ports:
+      - "7080:80"
+    volumes:
+      - .:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+      # ✅ PENTING 3: Nginx juga harus akses volume build yang sama dengan app
+      - vite_assets:/var/www/html/public/build
+    networks:
+      - laravel-network
+    depends_on:
+      - app
+
+  adminer:
+    image: adminer:latest
+    container_name: skripsi-eoq-adminer
+    ports:
+      - "7081:8080"
+    depends_on:
+      - db
+    networks:
+      - laravel-network
+
+networks:
+  laravel-network:
+    driver: bridge
+
+volumes:
+  db_data_skripsi:
+  # ✅ PENTING 4: Definisi volume assets
+  vite_assets:
