@@ -360,12 +360,14 @@ class TransaksiPembayaranController extends Controller
             'pembelian_id'            => $transaksiPembayaran->pembelian_id,
             'pemasok_nama'            => $transaksiPembayaran->pembelian->pemasok->nama_pemasok ?? 'N/A',
             'jenis_pembayaran'        => $transaksiPembayaran->jenis_pembayaran,
-            'tanggal_pembayaran'      => date('Y-m-d', strtotime($transaksiPembayaran->tanggal_pembayaran)),
-            'total_pembayaran'        => (float) $transaksiPembayaran->getRawOriginal('total_pembayaran'),
+            'tanggal_pembayaran'      => $transaksiPembayaran->tanggal_pembayaran
+                ? date('Y-m-d', strtotime($transaksiPembayaran->tanggal_pembayaran))
+                : date('Y-m-d'),
+            'total_pembayaran'        => (float) ($transaksiPembayaran->getRawOriginal('total_pembayaran') ?? 0),
             'bukti_pembayaran'        => $transaksiPembayaran->bukti_pembayaran
                 ? Storage::url($transaksiPembayaran->bukti_pembayaran)
                 : null,
-            'catatan'                 => $transaksiPembayaran->catatan,
+            'catatan'                 => $transaksiPembayaran->catatan ?? '',
         ];
 
         return Inertia::render('transaksi-pembayaran/edit', [
