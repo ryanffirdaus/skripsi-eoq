@@ -355,6 +355,8 @@ class TransaksiPembayaranController extends Controller
                 ];
             });
 
+        $totalPembayaran = (float) ($transaksiPembayaran->getRawOriginal('total_pembayaran') ?? 0);
+
         $data = [
             'transaksi_pembayaran_id' => $transaksiPembayaran->transaksi_pembayaran_id,
             'pembelian_id'            => $transaksiPembayaran->pembelian_id,
@@ -363,7 +365,8 @@ class TransaksiPembayaranController extends Controller
             'tanggal_pembayaran'      => $transaksiPembayaran->tanggal_pembayaran
                 ? date('Y-m-d', strtotime($transaksiPembayaran->tanggal_pembayaran))
                 : date('Y-m-d'),
-            'total_pembayaran'        => (float) ($transaksiPembayaran->getRawOriginal('total_pembayaran') ?? 0),
+            'total_pembayaran'        => $totalPembayaran,
+            'jumlah_pembayaran'       => $totalPembayaran, // Alias untuk frontend
             'bukti_pembayaran'        => $transaksiPembayaran->bukti_pembayaran
                 ? Storage::url($transaksiPembayaran->bukti_pembayaran)
                 : null,
