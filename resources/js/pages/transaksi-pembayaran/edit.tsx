@@ -43,7 +43,7 @@ export default function Edit({ transaksi }: Props) {
     const { data, setData, post, processing, errors } = useForm({
         jenis_pembayaran: transaksi.jenis_pembayaran,
         tanggal_pembayaran: transaksi.tanggal_pembayaran,
-        jumlah_pembayaran: transaksi.total_pembayaran.toString(),
+        jumlah_pembayaran: (transaksi.total_pembayaran ?? 0).toString(),
         bukti_pembayaran: null as File | null,
         catatan: transaksi.catatan || '',
         _method: 'PUT',

@@ -68,7 +68,7 @@ class TransaksiPembayaranController extends Controller
                 'pemasok_nama'            => $item->pembelian->pemasok->nama_pemasok ?? 'N/A',
                 'tanggal_pembayaran'      => $item->tanggal_pembayaran?->format('d M Y'),
                 'jenis_pembayaran'        => $item->jenis_pembayaran,
-                'total_pembayaran'        => (float) $item->total_pembayaran, // Fix: send as total_pembayaran to match frontend
+                'total_pembayaran'        => (float) $item->getRawOriginal('total_pembayaran'), // Fix: send as total_pembayaran to match frontend
                 'bukti_pembayaran'        => $item->bukti_pembayaran,
                 'catatan'                 => $item->catatan,
                 'created_at'              => $item->created_at?->format('Y-m-d H:i:s'),
@@ -315,7 +315,7 @@ class TransaksiPembayaranController extends Controller
             ],
             'jenis_pembayaran'        => $transaksiPembayaran->jenis_pembayaran,
             'tanggal_pembayaran'      => $transaksiPembayaran->tanggal_pembayaran,
-            'total_pembayaran'        => (float) $transaksiPembayaran->total_pembayaran, // Fix: send as total_pembayaran to match frontend
+            'total_pembayaran'        => (float) $transaksiPembayaran->getRawOriginal('total_pembayaran'), // Fix: send as total_pembayaran to match frontend
             'bukti_pembayaran'        => $transaksiPembayaran->bukti_pembayaran
                 ? Storage::url($transaksiPembayaran->bukti_pembayaran)
                 : null,
@@ -361,7 +361,7 @@ class TransaksiPembayaranController extends Controller
             'pemasok_nama'            => $transaksiPembayaran->pembelian->pemasok->nama_pemasok ?? 'N/A',
             'jenis_pembayaran'        => $transaksiPembayaran->jenis_pembayaran,
             'tanggal_pembayaran'      => date('Y-m-d', strtotime($transaksiPembayaran->tanggal_pembayaran)),
-            'total_pembayaran'        => (float) $transaksiPembayaran->total_pembayaran,
+            'total_pembayaran'        => (float) $transaksiPembayaran->getRawOriginal('total_pembayaran'),
             'bukti_pembayaran'        => $transaksiPembayaran->bukti_pembayaran
                 ? Storage::url($transaksiPembayaran->bukti_pembayaran)
                 : null,
