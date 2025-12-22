@@ -17,12 +17,12 @@ class PengadaanService
      */
     public function detectBelowROP()
     {
-        $bahanBakuBelowROP = BahanBaku::whereRaw('stok_saat_ini <= reorder_point')
-            ->where('reorder_point', '>', 0)
+        $bahanBakuBelowROP = BahanBaku::whereRaw('stok_bahan <= rop_bahan')
+            ->where('rop_bahan', '>', 0)
             ->get();
 
-        $produkBelowROP = Produk::whereRaw('stok_saat_ini <= reorder_point')
-            ->where('reorder_point', '>', 0)
+        $produkBelowROP = Produk::whereRaw('stok_produk <= rop_produk')
+            ->where('rop_produk', '>', 0)
             ->get();
 
         return [
@@ -54,35 +54,35 @@ class PengadaanService
 
         // Add bahan baku below ROP
         foreach ($itemsBelowROP['bahan_baku'] as $bahanBaku) {
-            $qtyNeeded = $bahanBaku->eoq ?: max(100, $bahanBaku->reorder_point * 2);
+            $qtyNeeded = $bahanBaku->eoq_bahan ?: max(100, $bahanBaku->rop_bahan * 2);
 
             PengadaanDetail::create([
                 'pengadaan_id' => $pengadaan->pengadaan_id,
                 'item_type' => 'bahan_baku',
                 'item_id' => $bahanBaku->bahan_baku_id,
                 'nama_item' => $bahanBaku->nama_bahan,
-                'satuan' => $bahanBaku->satuan,
+                'satuan' => $bahanBaku->satuan_bahan,
                 'qty_diminta' => $qtyNeeded,
-                'harga_satuan' => $bahanBaku->harga_per_unit,
-                'total_harga' => $qtyNeeded * $bahanBaku->harga_per_unit,
-                'alasan_kebutuhan' => "Stok saat ini ({$bahanBaku->stok_saat_ini}) di bawah ROP ({$bahanBaku->reorder_point})"
+                'harga_satuan' => $bahanBaku->harga_bahan,
+                'total_harga' => $qtyNeeded * $bahanBaku->harga_bahan,
+                'alasan_kebutuhan' => "Stok saat ini ({$bahanBaku->stok_bahan}) di bawah ROP ({$bahanBaku->rop_bahan})"
             ]);
         }
 
         // Add produk below ROP
         foreach ($itemsBelowROP['produk'] as $produk) {
-            $qtyNeeded = $produk->eoq ?: max(50, $produk->reorder_point * 2);
+            $qtyNeeded = $produk->eoq_produk ?: max(50, $produk->rop_produk * 2);
 
             PengadaanDetail::create([
                 'pengadaan_id' => $pengadaan->pengadaan_id,
                 'item_type' => 'produk',
                 'item_id' => $produk->produk_id,
                 'nama_item' => $produk->nama_produk,
-                'satuan' => $produk->satuan,
+                'satuan' => $produk->satuan_produk,
                 'qty_diminta' => $qtyNeeded,
-                'harga_satuan' => $produk->harga_jual * 0.7, // Assume 70% of selling price as procurement cost
-                'total_harga' => $qtyNeeded * ($produk->harga_jual * 0.7),
-                'alasan_kebutuhan' => "Stok saat ini ({$produk->stok_saat_ini}) di bawah ROP ({$produk->reorder_point})"
+                'harga_satuan' => $produk->hpp_produk,
+                'total_harga' => $qtyNeeded * $produk->hpp_produk,
+                'alasan_kebutuhan' => "Stok saat ini ({$produk->stok_produk}) di bawah ROP ({$produk->rop_produk})"
             ]);
         }
 
@@ -115,7 +115,7 @@ class PengadaanService
                     $requiredMaterials[$bahanBaku->bahan_baku_id] = [
                         'bahan_baku' => $bahanBaku,
                         'qty_needed' => $qtyRequired,
-                        'stok_tersedia' => $bahanBaku->stok_saat_ini
+                        'stok_tersedia' => $bahanBaku->stok_bahan
                     ];
                 }
             }
@@ -183,11 +183,11 @@ class PengadaanService
                 // Update stock
                 if ($detail->item_type === 'bahan_baku') {
                     $bahanBaku = BahanBaku::find($detail->item_id);
-                    $bahanBaku->stok_saat_ini += $qtyReceived;
+                    $bahanBaku->stok_bahan += $qtyReceived;
                     $bahanBaku->save();
                 } elseif ($detail->item_type === 'produk') {
                     $produk = Produk::find($detail->item_id);
-                    $produk->stok_saat_ini += $qtyReceived;
+                    $produk->stok_produk += $qtyReceived;
                     $produk->save();
                 }
             }
@@ -282,13 +282,13 @@ class PengadaanService
         $shortages = [];
         foreach ($requiredMaterials as $bahanBakuId => $qtyNeeded) {
             $bahanBaku = BahanBaku::find($bahanBakuId);
-            if ($bahanBaku->stok_saat_ini < $qtyNeeded) {
+            if ($bahanBaku->stok_bahan < $qtyNeeded) {
                 $shortages[] = [
                     'bahan_baku_id' => $bahanBakuId,
                     'nama_bahan' => $bahanBaku->nama_bahan,
                     'qty_needed' => $qtyNeeded,
-                    'qty_available' => $bahanBaku->stok_saat_ini,
-                    'qty_shortage' => $qtyNeeded - $bahanBaku->stok_saat_ini
+                    'qty_available' => $bahanBaku->stok_bahan,
+                    'qty_shortage' => $qtyNeeded - $bahanBaku->stok_bahan
                 ];
             }
         }
