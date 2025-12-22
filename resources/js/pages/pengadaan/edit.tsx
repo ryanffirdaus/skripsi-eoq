@@ -97,10 +97,10 @@ export default function Edit({ pengadaan, pemasoks, statusOptions, auth }: Props
         if (userRole === 'R01') {
             return true; // Admin bisa edit di status apapun
         }
-        // Staf/Manajer Gudang (R02, R07), Staf/Manajer Pengadaan (R04, R09)
-        const isAuthorizedRole = ['R02', 'R04', 'R07', 'R09'].includes(userRole || '');
-        // Only when status is draft or menunggu_alokasi_pemasok
-        const isEditableStatus = pengadaan.status === 'draft' || pengadaan.status === 'menunggu_alokasi_pemasok';
+        // Staf/Manajer Gudang (R02, R07), Staf/Manajer Pengadaan (R04, R09), Manajer Keuangan (R10)
+        const isAuthorizedRole = ['R02', 'R04', 'R07', 'R09', 'R10'].includes(userRole || '');
+        // Bisa edit qty/harga SEBELUM status 'diproses' (sebelum approved keuangan)
+        const isEditableStatus = ['draft', 'menunggu_persetujuan_gudang', 'menunggu_alokasi_pemasok', 'menunggu_persetujuan_pengadaan', 'menunggu_persetujuan_keuangan'].includes(pengadaan.status);
         return isAuthorizedRole && isEditableStatus;
     };
 
