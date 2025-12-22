@@ -19,10 +19,13 @@ class ProdukObserver
      */
     public function updated(Produk $produk): void
     {
-        // Check if stock is below ROP and ROP > 0
-        if ($produk->reorder_point > 0 && $produk->stok_saat_ini <= $produk->reorder_point) {
-            // Trigger auto procurement
-            $this->pengadaanService->generateROPProcurement();
+        // Only check if stock was changed
+        if ($produk->wasChanged('stok_produk')) {
+            // Check if stock is below ROP and ROP > 0
+            if ($produk->rop_produk > 0 && $produk->stok_produk <= $produk->rop_produk) {
+                // Trigger auto procurement
+                $this->pengadaanService->generateROPProcurement();
+            }
         }
     }
 }

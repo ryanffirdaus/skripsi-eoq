@@ -19,11 +19,13 @@ class BahanBakuObserver
      */
     public function updated(BahanBaku $bahanBaku): void
     {
-        // Check if stock is below ROP and ROP > 0
-        if ($bahanBaku->reorder_point > 0 && $bahanBaku->stok_saat_ini <= $bahanBaku->reorder_point) {
-            // Trigger auto procurement
-            // We don't have a specific supplier here, so we let the service handle default or logic
-            $this->pengadaanService->generateROPProcurement();
+        // Only check if stock was changed
+        if ($bahanBaku->wasChanged('stok_bahan')) {
+            // Check if stock is below ROP and ROP > 0
+            if ($bahanBaku->rop_bahan > 0 && $bahanBaku->stok_bahan <= $bahanBaku->rop_bahan) {
+                // Trigger auto procurement
+                $this->pengadaanService->generateROPProcurement();
+            }
         }
     }
 }

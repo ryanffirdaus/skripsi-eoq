@@ -17,6 +17,12 @@ class PengirimanObserver
         // Check if status changed to 'dikirim' (shipped)
         if ($pengiriman->wasChanged('status') && $pengiriman->status === 'dikirim') {
             $this->reduceStock($pengiriman);
+            
+            // Update Pesanan status to 'dikirim'
+            if ($pengiriman->pesanan) {
+                $pengiriman->pesanan->update(['status' => 'dikirim']);
+                Log::info("Updated Pesanan {$pengiriman->pesanan->pesanan_id} status to 'dikirim'");
+            }
         }
     }
 
@@ -55,9 +61,18 @@ class PengirimanObserver
      */
     public function created(Pengiriman $pengiriman): void
     {
-        // Check if created with status 'dikirim'
-        if ($pengiriman->status === 'dikirim') {
-            $this->reduceStock($pengiriman);
+        // Update Pesanan status when pengiriman is created
+        if ($pengiriman->pesanan) {
+            if ($pengiriman->status === 'dikirim') {
+                // If created with status 'dikirim', reduce stock and update pesanan to 'dikirim'
+                $this->reduceStock($pengiriman);
+                $pengiriman->pesanan->update(['status' => 'dikirim']);
+                Log::info("Pengiriman created with status 'dikirim', updated Pesanan {$pengiriman->pesanan->pesanan_id} status to 'dikirim'");
+            } else {
+                // Otherwise, update pesanan status to 'siap_dikirim'
+                $pengiriman->pesanan->update(['status' => 'siap_dikirim']);
+                Log::info("Pengiriman created, updated Pesanan {$pengiriman->pesanan->pesanan_id} status to 'siap_dikirim'");
+            }
         }
     }
 
