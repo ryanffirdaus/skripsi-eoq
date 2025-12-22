@@ -43,7 +43,7 @@ const kurirOptions = [
 ];
 
 const statusOptions = [
-    { value: 'pending', label: 'Menunggu Dikirim' },
+    { value: 'menunggu', label: 'Menunggu Dikirim' },
     { value: 'dikirim', label: 'Dikirim' },
     { value: 'selesai', label: 'Selesai' },
     { value: 'dibatalkan', label: 'Dibatalkan' },
