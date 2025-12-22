@@ -224,29 +224,21 @@ export default function Edit({ pengadaan, pemasoks, statusOptions, auth }: Props
 
                                 <div>
                                     <Label className="text-sm font-medium text-gray-700">Jumlah Diminta</Label>
-                                    {isPriceEditable ? (
-                                        <>
-                                            <div className="flex items-center gap-2 mt-1">
-                                                <Input
-                                                    type="number"
-                                                    min="1"
-                                                    value={data.details[index].qty_diminta}
-                                                    onChange={(e) => handleDetailChange(index, 'qty_diminta', e.target.value)}
-                                                    className={cn('w-24', errors[`details.${index}.qty_diminta`] && 'border-red-500')}
-                                                    placeholder="Qty"
-                                                />
-                                                <span className="text-sm text-gray-600">{item.satuan}</span>
-                                            </div>
-                                            {errors[`details.${index}.qty_diminta`] && (
-                                                <p className="mt-1 text-sm text-red-600">{errors[`details.${index}.qty_diminta`]}</p>
-                                            )}
-                                            <p className="mt-1 text-xs text-gray-500">Rekomendasi sistem: {item.qty_diminta}</p>
-                                        </>
-                                    ) : (
-                                        <div className="mt-1 rounded border bg-white p-2 text-sm">
-                                            {data.details[index].qty_diminta} {item.satuan}
-                                        </div>
+                                    <div className="flex items-center gap-2 mt-1">
+                                        <Input
+                                            type="number"
+                                            min="1"
+                                            value={data.details[index].qty_diminta}
+                                            onChange={(e) => handleDetailChange(index, 'qty_diminta', e.target.value)}
+                                            className={cn('w-24', errors[`details.${index}.qty_diminta`] && 'border-red-500')}
+                                            placeholder="Qty"
+                                        />
+                                        <span className="text-sm text-gray-600">{item.satuan}</span>
+                                    </div>
+                                    {errors[`details.${index}.qty_diminta`] && (
+                                        <p className="mt-1 text-sm text-red-600">{errors[`details.${index}.qty_diminta`]}</p>
                                     )}
+                                    <p className="mt-1 text-xs text-gray-500">Rekomendasi sistem: {item.qty_diminta}</p>
                                 </div>
 
                                 <div>
