@@ -27,17 +27,22 @@ class PengirimanObserver
     {
         Log::info("Processing stock reduction for shipped pengiriman: {$pengiriman->pengiriman_id}");
 
-        // Load pesanan and its details
-        $pengiriman->load(['pesanan.produk']);
+        // Load pesanan and its details with produk relation
+        $pengiriman->load(['pesanan.detail.produk']);
 
         if (!$pengiriman->pesanan) {
             Log::warning("No pesanan found for pengiriman: {$pengiriman->pengiriman_id}");
             return;
         }
 
-        foreach ($pengiriman->pesanan->produk as $produk) {
+        foreach ($pengiriman->pesanan->detail as $detail) {
+            if (!$detail->produk) {
+                continue;
+            }
+            
+            $produk = $detail->produk;
             $oldStock = $produk->stok_produk;
-            $newStock = max(0, $oldStock - $produk->pivot->jumlah_produk);
+            $newStock = max(0, $oldStock - $detail->jumlah_produk);
 
             $produk->update(['stok_produk' => $newStock]);
 
