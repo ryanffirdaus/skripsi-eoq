@@ -33,12 +33,51 @@ class PengadaanService
 
     /**
      * Generate automatic procurement based on ROP
+     * Skip items that already have pending/processing pengadaan
      */
     public function generateROPProcurement($pemasokId = null)
     {
         $itemsBelowROP = $this->detectBelowROP();
 
         if ($itemsBelowROP['bahan_baku']->count() === 0 && $itemsBelowROP['produk']->count() === 0) {
+            return null;
+        }
+
+        // Status pengadaan yang dianggap "sedang diproses"
+        $pendingStatuses = [
+            'menunggu_persetujuan_gudang',
+            'menunggu_alokasi_pemasok', 
+            'menunggu_persetujuan_pengadaan',
+            'menunggu_persetujuan_keuangan',
+            'diproses'
+        ];
+
+        // Filter bahan baku yang belum ada pengadaan pending
+        $bahanBakuToAdd = $itemsBelowROP['bahan_baku']->filter(function ($bahanBaku) use ($pendingStatuses) {
+            $existingPengadaan = PengadaanDetail::where('jenis_barang', 'bahan_baku')
+                ->where('barang_id', $bahanBaku->bahan_baku_id)
+                ->whereHas('pengadaan', function ($query) use ($pendingStatuses) {
+                    $query->whereIn('status', $pendingStatuses);
+                })
+                ->exists();
+            
+            return !$existingPengadaan;
+        });
+
+        // Filter produk yang belum ada pengadaan pending
+        $produkToAdd = $itemsBelowROP['produk']->filter(function ($produk) use ($pendingStatuses) {
+            $existingPengadaan = PengadaanDetail::where('jenis_barang', 'produk')
+                ->where('barang_id', $produk->produk_id)
+                ->whereHas('pengadaan', function ($query) use ($pendingStatuses) {
+                    $query->whereIn('status', $pendingStatuses);
+                })
+                ->exists();
+            
+            return !$existingPengadaan;
+        });
+
+        // If no items need new pengadaan, return null
+        if ($bahanBakuToAdd->count() === 0 && $produkToAdd->count() === 0) {
             return null;
         }
 
@@ -49,8 +88,8 @@ class PengadaanService
             'catatan' => 'Pengadaan otomatis berdasarkan Reorder Point (ROP)'
         ]);
 
-        // Add bahan baku below ROP
-        foreach ($itemsBelowROP['bahan_baku'] as $bahanBaku) {
+        // Add bahan baku below ROP (only those without pending pengadaan)
+        foreach ($bahanBakuToAdd as $bahanBaku) {
             $qtyNeeded = $bahanBaku->eoq_bahan ?: max(100, $bahanBaku->rop_bahan * 2);
 
             PengadaanDetail::create([
@@ -64,8 +103,8 @@ class PengadaanService
             ]);
         }
 
-        // Add produk below ROP
-        foreach ($itemsBelowROP['produk'] as $produk) {
+        // Add produk below ROP (only those without pending pengadaan)
+        foreach ($produkToAdd as $produk) {
             $qtyNeeded = $produk->eoq_produk ?: max(50, $produk->rop_produk * 2);
 
             PengadaanDetail::create([
