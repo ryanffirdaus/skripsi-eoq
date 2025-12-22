@@ -38,18 +38,15 @@ class PengadaanService
     {
         $itemsBelowROP = $this->detectBelowROP();
 
-        if (empty($itemsBelowROP['bahan_baku']->count()) && empty($itemsBelowROP['produk']->count())) {
+        if ($itemsBelowROP['bahan_baku']->count() === 0 && $itemsBelowROP['produk']->count() === 0) {
             return null;
         }
 
+        // Create pengadaan with correct columns matching the model
         $pengadaan = Pengadaan::create([
-            'pemasok_id' => $pemasokId ?? 'PMS0000001', // Default pemasok
             'jenis_pengadaan' => 'rop',
-            'tanggal_pengadaan' => now(),
-            'tanggal_dibutuhkan' => now()->addDays(7), // 1 week lead time
-            'status' => 'draft',
-            'prioritas' => 'high',
-            'alasan_pengadaan' => 'Pengadaan otomatis berdasarkan Reorder Point (ROP)'
+            'status' => 'menunggu_persetujuan_gudang',
+            'catatan' => 'Pengadaan otomatis berdasarkan Reorder Point (ROP)'
         ]);
 
         // Add bahan baku below ROP
@@ -58,14 +55,12 @@ class PengadaanService
 
             PengadaanDetail::create([
                 'pengadaan_id' => $pengadaan->pengadaan_id,
-                'item_type' => 'bahan_baku',
-                'item_id' => $bahanBaku->bahan_baku_id,
-                'nama_item' => $bahanBaku->nama_bahan,
-                'satuan' => $bahanBaku->satuan_bahan,
+                'pemasok_id' => $pemasokId,
+                'jenis_barang' => 'bahan_baku',
+                'barang_id' => $bahanBaku->bahan_baku_id,
                 'qty_diminta' => $qtyNeeded,
                 'harga_satuan' => $bahanBaku->harga_bahan,
-                'total_harga' => $qtyNeeded * $bahanBaku->harga_bahan,
-                'alasan_kebutuhan' => "Stok saat ini ({$bahanBaku->stok_bahan}) di bawah ROP ({$bahanBaku->rop_bahan})"
+                'catatan' => "Stok saat ini ({$bahanBaku->stok_bahan}) di bawah ROP ({$bahanBaku->rop_bahan})"
             ]);
         }
 
@@ -75,18 +70,14 @@ class PengadaanService
 
             PengadaanDetail::create([
                 'pengadaan_id' => $pengadaan->pengadaan_id,
-                'item_type' => 'produk',
-                'item_id' => $produk->produk_id,
-                'nama_item' => $produk->nama_produk,
-                'satuan' => $produk->satuan_produk,
+                'pemasok_id' => $pemasokId,
+                'jenis_barang' => 'produk',
+                'barang_id' => $produk->produk_id,
                 'qty_diminta' => $qtyNeeded,
                 'harga_satuan' => $produk->hpp_produk,
-                'total_harga' => $qtyNeeded * $produk->hpp_produk,
-                'alasan_kebutuhan' => "Stok saat ini ({$produk->stok_produk}) di bawah ROP ({$produk->rop_produk})"
+                'catatan' => "Stok saat ini ({$produk->stok_produk}) di bawah ROP ({$produk->rop_produk})"
             ]);
         }
-
-        $pengadaan->updateTotalBiaya();
 
         return $pengadaan;
     }
