@@ -80,7 +80,7 @@ class ProdukFactory extends Factory
         $rop = ($permintaan_harian_rata2 * $waktu_tunggu_rata2) + $safety_stock;
 
         return [
-            'produk_id' => 'PR' . str_pad($counter++, 3, '0', STR_PAD_LEFT),
+            'produk_id' => 'PP' . str_pad($counter++, 3, '0', STR_PAD_LEFT),
             'nama_produk' => $nama_produk,
             'stok_produk' => $stok_produk,
             'satuan_produk' => $this->faker->randomElement($units),
