@@ -182,8 +182,9 @@ class PengirimanController extends Controller
 
         $pengiriman = Pengiriman::create($request->all());
 
-        // Update status pesanan terkait menjadi 'dikirim'
-        $pengiriman->pesanan()->update(['status' => 'dikirim']);
+        // Status pesanan diupdate oleh PengirimanObserver:
+        // - Jika pengiriman dibuat dengan status selain 'dikirim' → pesanan menjadi 'siap_dikirim'
+        // - Jika pengiriman status berubah ke 'dikirim' → pesanan menjadi 'dikirim'
 
         return redirect()->route('pengiriman.index')
             ->with('flash', [
