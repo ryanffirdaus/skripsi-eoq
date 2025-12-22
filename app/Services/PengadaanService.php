@@ -81,14 +81,20 @@ class PengadaanService
         // Load products with their bahan baku requirements
         $additionalBahanBaku = collect();
         
+        \Log::info("Checking bahan baku requirements for " . $produkToAdd->count() . " products");
+        
         foreach ($produkToAdd as $produk) {
             // Load bahan baku relationship
             $produk->load('bahanBaku');
             $qtyProdukNeeded = $produk->eoq_produk ?: max(50, $produk->rop_produk * 2);
             
+            \Log::info("Produk {$produk->produk_id} needs {$qtyProdukNeeded} units, has " . $produk->bahanBaku->count() . " bahan baku");
+            
             foreach ($produk->bahanBaku as $bahan) {
                 $qtyBahanPerProduk = $bahan->pivot->jumlah_bahan_baku;
                 $totalBahanNeeded = $qtyProdukNeeded * $qtyBahanPerProduk;
+                
+                \Log::info("  Bahan {$bahan->bahan_baku_id}: stok={$bahan->stok_bahan}, butuh={$totalBahanNeeded}, per_produk={$qtyBahanPerProduk}");
                 
                 // Check if current stock is sufficient for production
                 if ($bahan->stok_bahan < $totalBahanNeeded) {
@@ -106,15 +112,22 @@ class PengadaanService
                         })
                         ->exists();
                     
+                    \Log::info("    Shortage={$shortage}, alreadyInList={$alreadyInList}, alreadyInAdditional={$alreadyInAdditional}, existingPengadaan={$existingPengadaan}");
+                    
                     if (!$alreadyInList && !$alreadyInAdditional && !$existingPengadaan) {
                         // Add to additional list with calculated qty
                         $bahan->qty_needed = max($shortage, $bahan->eoq_bahan ?: $shortage);
                         $bahan->reason = "Dibutuhkan untuk produksi {$produk->nama_produk} (stok: {$bahan->stok_bahan}, butuh: {$totalBahanNeeded})";
                         $additionalBahanBaku->push($bahan);
+                        \Log::info("    -> Added to pengadaan: qty_needed={$bahan->qty_needed}");
                     }
+                } else {
+                    \Log::info("    Stock sufficient, not added");
                 }
             }
         }
+        
+        \Log::info("Total additional bahan baku to add: " . $additionalBahanBaku->count());
 
         // If no items need new pengadaan, return null
         if ($bahanBakuToAdd->count() === 0 && $produkToAdd->count() === 0 && $additionalBahanBaku->count() === 0) {

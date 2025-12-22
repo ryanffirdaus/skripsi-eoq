@@ -285,7 +285,7 @@ class PengirimanController extends Controller
             'kurir' => 'required|string|max:255',
             'biaya_pengiriman' => 'required|numeric|min:0',
             'estimasi_hari' => 'required|integer|min:1',
-            'status' => 'required|in:pending,dikirim,selesai,dibatalkan',
+            'status' => 'required|in:menunggu,dikirim,selesai,dibatalkan',
             'tanggal_kirim' => 'nullable|date',
             'tanggal_diterima' => 'nullable|date|after_or_equal:tanggal_kirim',
             'catatan' => 'nullable|string',
@@ -351,7 +351,7 @@ class PengirimanController extends Controller
     public function updateStatus(Request $request, Pengiriman $pengiriman)
     {
         $validator = Validator::make($request->all(), [
-            'status' => 'required|in:pending,dikirim,selesai,dibatalkan',
+            'status' => 'required|in:menunggu,dikirim,selesai,dibatalkan',
             'tanggal_kirim' => 'nullable|date',
             'tanggal_diterima' => 'nullable|date|after_or_equal:tanggal_kirim',
         ]);
