@@ -67,6 +67,7 @@ export default function Edit({ pengadaan, pemasoks, statusOptions, auth }: Props
         details: pengadaan.detail.map((item) => ({
             pengadaan_detail_id: item.pengadaan_detail_id,
             pemasok_id: item.pemasok_id || '',
+            qty_diminta: item.qty_diminta.toString(),
             harga_satuan: item.harga_satuan || '',
         })),
     });
@@ -112,10 +113,10 @@ export default function Edit({ pengadaan, pemasoks, statusOptions, auth }: Props
     };
 
     const calculateTotal = () => {
-        return pengadaan.detail.reduce((total, item) => {
-            const hargaAsNumber = parseFloat(item.harga_satuan) * item.qty_diminta;
-
-            return total + (isNaN(hargaAsNumber) ? 0 : hargaAsNumber);
+        return data.details.reduce((total, detail, index) => {
+            const qty = parseFloat(detail.qty_diminta) || 0;
+            const harga = parseFloat(detail.harga_satuan) || 0;
+            return total + (qty * harga);
         }, 0);
     };
 
@@ -222,10 +223,30 @@ export default function Edit({ pengadaan, pemasoks, statusOptions, auth }: Props
                                 </div>
 
                                 <div>
-                                    <Label className="text-sm font-medium text-gray-700">Jumlah</Label>
-                                    <div className="mt-1 rounded border bg-white p-2 text-sm">
-                                        {item.qty_diminta} {item.satuan}
-                                    </div>
+                                    <Label className="text-sm font-medium text-gray-700">Jumlah Diminta</Label>
+                                    {isPriceEditable ? (
+                                        <>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <Input
+                                                    type="number"
+                                                    min="1"
+                                                    value={data.details[index].qty_diminta}
+                                                    onChange={(e) => handleDetailChange(index, 'qty_diminta', e.target.value)}
+                                                    className={cn('w-24', errors[`details.${index}.qty_diminta`] && 'border-red-500')}
+                                                    placeholder="Qty"
+                                                />
+                                                <span className="text-sm text-gray-600">{item.satuan}</span>
+                                            </div>
+                                            {errors[`details.${index}.qty_diminta`] && (
+                                                <p className="mt-1 text-sm text-red-600">{errors[`details.${index}.qty_diminta`]}</p>
+                                            )}
+                                            <p className="mt-1 text-xs text-gray-500">Rekomendasi sistem: {item.qty_diminta}</p>
+                                        </>
+                                    ) : (
+                                        <div className="mt-1 rounded border bg-white p-2 text-sm">
+                                            {data.details[index].qty_diminta} {item.satuan}
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div>

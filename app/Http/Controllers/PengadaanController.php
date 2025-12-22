@@ -744,6 +744,7 @@ class PengadaanController extends Controller
             'details' => 'required|array|min:1',
             'details.*.pengadaan_detail_id' => 'required|exists:pengadaan_detail,pengadaan_detail_id',
             'details.*.pemasok_id' => 'nullable|exists:pemasok,pemasok_id',
+            'details.*.qty_diminta' => 'nullable|integer|min:1',
             'details.*.harga_satuan' => 'nullable|numeric|min:0',
         ]);
 
@@ -756,15 +757,22 @@ class PengadaanController extends Controller
         // Validasi status transition dan role permission
         
         // 1. Save Details First (PENTING: Simpan data detail sebelum validasi status)
-        // Ini memungkinkan Staf Pengadaan mengisi pemasok/harga dan mengubah status dalam satu request
+        // Ini memungkinkan Staf Pengadaan mengisi pemasok/harga/qty dan mengubah status dalam satu request
         foreach ($request->details as $detailData) {
             $detail = PengadaanDetail::find($detailData['pengadaan_detail_id']);
             // Pastikan detail milik pengadaan ini
             if ($detail && $detail->pengadaan_id === $pengadaan->pengadaan_id) {
-                $detail->update([
-                    'pemasok_id' => $detailData['pemasok_id'],
-                    'harga_satuan' => $detailData['harga_satuan'],
-                ]);
+                $updateData = [
+                    'pemasok_id' => $detailData['pemasok_id'] ?? $detail->pemasok_id,
+                    'harga_satuan' => $detailData['harga_satuan'] ?? $detail->harga_satuan,
+                ];
+                
+                // User dapat mengubah qty_diminta karena sistem hanya pendukung (DSS)
+                if (isset($detailData['qty_diminta']) && $detailData['qty_diminta'] > 0) {
+                    $updateData['qty_diminta'] = (int) $detailData['qty_diminta'];
+                }
+                
+                $detail->update($updateData);
             }
         }
 
