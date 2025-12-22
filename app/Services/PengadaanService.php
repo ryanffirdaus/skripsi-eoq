@@ -34,6 +34,7 @@ class PengadaanService
     /**
      * Generate automatic procurement based on ROP
      * Skip items that already have pending/processing pengadaan
+     * Also check bahan baku requirements for products being ordered
      */
     public function generateROPProcurement($pemasokId = null)
     {
@@ -76,8 +77,47 @@ class PengadaanService
             return !$existingPengadaan;
         });
 
+        // Calculate additional bahan baku needed for producing the products
+        // Load products with their bahan baku requirements
+        $additionalBahanBaku = collect();
+        
+        foreach ($produkToAdd as $produk) {
+            // Load bahan baku relationship
+            $produk->load('bahanBaku');
+            $qtyProdukNeeded = $produk->eoq_produk ?: max(50, $produk->rop_produk * 2);
+            
+            foreach ($produk->bahanBaku as $bahan) {
+                $qtyBahanPerProduk = $bahan->pivot->jumlah_bahan_baku;
+                $totalBahanNeeded = $qtyProdukNeeded * $qtyBahanPerProduk;
+                
+                // Check if current stock is sufficient for production
+                if ($bahan->stok_bahan < $totalBahanNeeded) {
+                    $shortage = $totalBahanNeeded - $bahan->stok_bahan;
+                    
+                    // Check if this bahan baku is not already in the list to add
+                    $alreadyInList = $bahanBakuToAdd->contains('bahan_baku_id', $bahan->bahan_baku_id);
+                    $alreadyInAdditional = $additionalBahanBaku->contains('bahan_baku_id', $bahan->bahan_baku_id);
+                    
+                    // Check if there's already a pending pengadaan for this bahan baku
+                    $existingPengadaan = PengadaanDetail::where('jenis_barang', 'bahan_baku')
+                        ->where('barang_id', $bahan->bahan_baku_id)
+                        ->whereHas('pengadaan', function ($query) use ($pendingStatuses) {
+                            $query->whereIn('status', $pendingStatuses);
+                        })
+                        ->exists();
+                    
+                    if (!$alreadyInList && !$alreadyInAdditional && !$existingPengadaan) {
+                        // Add to additional list with calculated qty
+                        $bahan->qty_needed = max($shortage, $bahan->eoq_bahan ?: $shortage);
+                        $bahan->reason = "Dibutuhkan untuk produksi {$produk->nama_produk} (stok: {$bahan->stok_bahan}, butuh: {$totalBahanNeeded})";
+                        $additionalBahanBaku->push($bahan);
+                    }
+                }
+            }
+        }
+
         // If no items need new pengadaan, return null
-        if ($bahanBakuToAdd->count() === 0 && $produkToAdd->count() === 0) {
+        if ($bahanBakuToAdd->count() === 0 && $produkToAdd->count() === 0 && $additionalBahanBaku->count() === 0) {
             return null;
         }
 
@@ -100,6 +140,19 @@ class PengadaanService
                 'qty_diminta' => $qtyNeeded,
                 'harga_satuan' => $bahanBaku->harga_bahan,
                 'catatan' => "Stok saat ini ({$bahanBaku->stok_bahan}) di bawah ROP ({$bahanBaku->rop_bahan})"
+            ]);
+        }
+
+        // Add additional bahan baku needed for product production
+        foreach ($additionalBahanBaku as $bahanBaku) {
+            PengadaanDetail::create([
+                'pengadaan_id' => $pengadaan->pengadaan_id,
+                'pemasok_id' => $pemasokId,
+                'jenis_barang' => 'bahan_baku',
+                'barang_id' => $bahanBaku->bahan_baku_id,
+                'qty_diminta' => $bahanBaku->qty_needed,
+                'harga_satuan' => $bahanBaku->harga_bahan,
+                'catatan' => $bahanBaku->reason
             ]);
         }
 
