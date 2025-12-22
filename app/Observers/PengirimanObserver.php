@@ -41,6 +41,8 @@ class PengirimanObserver
             return;
         }
 
+        $needsReorder = false;
+
         foreach ($pengiriman->pesanan->detail as $detail) {
             if (!$detail->produk) {
                 continue;
@@ -53,6 +55,28 @@ class PengirimanObserver
             $produk->update(['stok_produk' => $newStock]);
 
             Log::info("Reduced Produk stock: {$produk->nama_produk} from {$oldStock} to {$newStock}");
+
+            // Check if this produk needs reorder
+            if ($produk->rop_produk > 0 && $newStock <= $produk->rop_produk) {
+                $needsReorder = true;
+                Log::info("Produk {$produk->nama_produk} below ROP: stok={$newStock}, rop={$produk->rop_produk}");
+            }
+        }
+
+        // If any product needs reorder, trigger automatic pengadaan
+        if ($needsReorder) {
+            try {
+                $pengadaanService = app(\App\Services\PengadaanService::class);
+                $result = $pengadaanService->generateROPProcurement();
+                
+                if ($result) {
+                    Log::info("Auto-generated pengadaan: {$result->pengadaan_id}");
+                } else {
+                    Log::info("No pengadaan generated (items might already be covered)");
+                }
+            } catch (\Exception $e) {
+                Log::error("Failed to generate auto pengadaan: " . $e->getMessage());
+            }
         }
     }
 
