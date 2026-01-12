@@ -113,37 +113,7 @@ class BahanBakuController extends Controller
             'stok_bahan' => ['nullable', 'numeric', 'min:0'],
             'satuan_bahan' => ['required', 'string', 'max:50'],
             'harga_bahan' => ['required', 'numeric', 'min:0'],
-            'permintaan_harian_rata2_bahan' => ['required', 'numeric', 'min:0'],
-            'permintaan_harian_maksimum_bahan' => ['required', 'numeric', 'min:0'],
-            'waktu_tunggu_rata2_bahan' => ['required', 'numeric', 'min:0'],
-            'waktu_tunggu_maksimum_bahan' => ['required', 'numeric', 'min:0'],
-            'permintaan_tahunan' => ['required', 'numeric', 'min:0'],
-            'biaya_pemesanan_bahan' => ['required', 'numeric', 'min:0'],
-            'biaya_penyimpanan_bahan' => ['required', 'numeric', 'min:0'],
         ]);
-
-        // Calculate safety stock using Z-Score Method (95% Service Level)
-        // Z = 1.65 for 95% service level
-        $zScore = 1.65;
-        
-        // Estimate standard deviations from the range
-        $stdDevDemand = ($validated['permintaan_harian_maksimum_bahan'] - $validated['permintaan_harian_rata2_bahan']) / 1.65;
-        $stdDevLeadTime = ($validated['waktu_tunggu_maksimum_bahan'] - $validated['waktu_tunggu_rata2_bahan']) / 1.65;
-        
-        // Calculate combined variability: √[(L_avg × σ_demand)² + (D_avg × σ_leadtime)²]
-        $variance = pow($validated['waktu_tunggu_rata2_bahan'] * $stdDevDemand, 2) + 
-                   pow($validated['permintaan_harian_rata2_bahan'] * $stdDevLeadTime, 2);
-        $stdDevTotal = sqrt($variance);
-        
-        // Safety Stock = Z × σ_total
-        $safety_stock_bahan = max(0, round($zScore * $stdDevTotal));
-
-        // Calculate reorder point (ROP)
-        $rop_bahan = ($validated['permintaan_harian_rata2_bahan'] * $validated['waktu_tunggu_rata2_bahan']) + $safety_stock_bahan;
-
-        // Calculate EOQ
-        $eoq_bahan = sqrt((2 * $validated['permintaan_tahunan'] * $validated['biaya_pemesanan_bahan']) /
-            $validated['biaya_penyimpanan_bahan']);
 
         $bahanBaku = BahanBaku::create([
             'nama_bahan' => $validated['nama_bahan'],
@@ -151,16 +121,6 @@ class BahanBakuController extends Controller
             'stok_bahan' => $validated['stok_bahan'] ?? 0,
             'satuan_bahan' => $validated['satuan_bahan'],
             'harga_bahan' => $validated['harga_bahan'],
-            'permintaan_harian_rata2_bahan' => $validated['permintaan_harian_rata2_bahan'],
-            'permintaan_harian_maksimum_bahan' => $validated['permintaan_harian_maksimum_bahan'],
-            'waktu_tunggu_rata2_bahan' => $validated['waktu_tunggu_rata2_bahan'],
-            'waktu_tunggu_maksimum_bahan' => $validated['waktu_tunggu_maksimum_bahan'],
-            'permintaan_tahunan' => $validated['permintaan_tahunan'],
-            'biaya_pemesanan_bahan' => $validated['biaya_pemesanan_bahan'],
-            'biaya_penyimpanan_bahan' => $validated['biaya_penyimpanan_bahan'],
-            'safety_stock_bahan' => $safety_stock_bahan,
-            'rop_bahan' => $rop_bahan,
-            'eoq_bahan' => $eoq_bahan,
         ]);
 
         return redirect()->route('bahan-baku.index')
@@ -199,45 +159,10 @@ class BahanBakuController extends Controller
             'stok_bahan' => ['required', 'numeric', 'min:0'],
             'satuan_bahan' => ['required', 'string', 'max:50'],
             'harga_bahan' => ['required', 'numeric', 'min:0'],
-            'permintaan_harian_rata2_bahan' => ['required', 'numeric', 'min:0'],
-            'permintaan_harian_maksimum_bahan' => ['required', 'numeric', 'min:0'],
-            'waktu_tunggu_rata2_bahan' => ['required', 'numeric', 'min:0'],
-            'waktu_tunggu_maksimum_bahan' => ['required', 'numeric', 'min:0'],
-            'permintaan_tahunan' => ['required', 'numeric', 'min:0'],
-            'biaya_pemesanan_bahan' => ['required', 'numeric', 'min:0'],
-            'biaya_penyimpanan_bahan' => ['required', 'numeric', 'min:0'],
         ]);
 
-        // Recalculate safety stock using Z-Score Method (95% Service Level)
-        // Z = 1.65 for 95% service level
-        $zScore = 1.65;
-        
-        // Estimate standard deviations from the range
-        $stdDevDemand = ($validated['permintaan_harian_maksimum_bahan'] - $validated['permintaan_harian_rata2_bahan']) / 1.65;
-        $stdDevLeadTime = ($validated['waktu_tunggu_maksimum_bahan'] - $validated['waktu_tunggu_rata2_bahan']) / 1.65;
-        
-        // Calculate combined variability: √[(L_avg × σ_demand)² + (D_avg × σ_leadtime)²]
-        $variance = pow($validated['waktu_tunggu_rata2_bahan'] * $stdDevDemand, 2) + 
-                   pow($validated['permintaan_harian_rata2_bahan'] * $stdDevLeadTime, 2);
-        $stdDevTotal = sqrt($variance);
-        
-        // Safety Stock = Z × σ_total
-        $safety_stock_bahan = max(0, round($zScore * $stdDevTotal));
-
-        // Recalculate reorder point (ROP)
-        $rop_bahan = ($validated['permintaan_harian_rata2_bahan'] * $validated['waktu_tunggu_rata2_bahan']) + $safety_stock_bahan;
-
-        // Recalculate EOQ
-        $eoq_bahan = sqrt((2 * $validated['permintaan_tahunan'] * $validated['biaya_pemesanan_bahan']) /
-            $validated['biaya_penyimpanan_bahan']);
-
-        // Update with validated data and recalculated values
-        $bahanBaku->update([
-            ...$validated,
-            'safety_stock_bahan' => $safety_stock_bahan,
-            'rop_bahan' => $rop_bahan,
-            'eoq_bahan' => $eoq_bahan,
-        ]);
+        // Update with validated data
+        $bahanBaku->update($validated);
 
         return redirect()->route('bahan-baku.index')
             ->with('message', "Bahan Baku '{$validated['nama_bahan']}' telah berhasil diperbarui.")

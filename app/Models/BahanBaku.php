@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Services\InventoryCalculationService;
 
 
 class BahanBaku extends Model
@@ -27,16 +28,6 @@ class BahanBaku extends Model
         'satuan_bahan',
         'lokasi_bahan',
         'harga_bahan',
-        'permintaan_harian_rata2_bahan',
-        'permintaan_harian_maksimum_bahan',
-        'waktu_tunggu_rata2_bahan',
-        'waktu_tunggu_maksimum_bahan',
-        'permintaan_tahunan',
-        'biaya_pemesanan_bahan',
-        'biaya_penyimpanan_bahan',
-        'safety_stock_bahan',
-        'rop_bahan',
-        'eoq_bahan',
         'dibuat_oleh',
         'diubah_oleh',
         'dihapus_oleh'
@@ -98,5 +89,47 @@ class BahanBaku extends Model
     public function getRouteKeyName()
     {
         return 'bahan_baku_id';
+    }
+
+    /**
+     * Accessor untuk EOQ - kalkulasi dinamis
+     */
+    public function getEoqBahanAttribute()
+    {
+        try {
+            $service = app(InventoryCalculationService::class);
+            $metrics = $service->calculateBahanBakuMetrics($this->bahan_baku_id);
+            return $metrics['eoq'];
+        } catch (\Exception $e) {
+            return 0;
+        }
+    }
+
+    /**
+     * Accessor untuk ROP - kalkulasi dinamis
+     */
+    public function getRopBahanAttribute()
+    {
+        try {
+            $service = app(InventoryCalculationService::class);
+            $metrics = $service->calculateBahanBakuMetrics($this->bahan_baku_id);
+            return $metrics['rop'];
+        } catch (\Exception $e) {
+            return 0;
+        }
+    }
+
+    /**
+     * Accessor untuk Safety Stock - kalkulasi dinamis
+     */
+    public function getSafetyStockBahanAttribute()
+    {
+        try {
+            $service = app(InventoryCalculationService::class);
+            $metrics = $service->calculateBahanBakuMetrics($this->bahan_baku_id);
+            return $metrics['safety_stock'];
+        } catch (\Exception $e) {
+            return 0;
+        }
     }
 }

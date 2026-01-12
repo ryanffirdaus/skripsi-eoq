@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Services\InventoryCalculationService;
 
 class Produk extends Model
 {
@@ -27,16 +28,6 @@ class Produk extends Model
         'lokasi_produk',
         'hpp_produk',
         'harga_jual',
-        'permintaan_harian_rata2_produk',
-        'permintaan_harian_maksimum_produk',
-        'waktu_tunggu_rata2_produk',
-        'waktu_tunggu_maksimum_produk',
-        'permintaan_tahunan',
-        'biaya_pemesanan_produk',
-        'biaya_penyimpanan_produk',
-        'safety_stock_produk',
-        'rop_produk',
-        'eoq_produk',
         'dibuat_oleh',
         'diubah_oleh',
         'dihapus_oleh'
@@ -104,5 +95,47 @@ class Produk extends Model
     public function getRouteKeyName()
     {
         return 'produk_id';
+    }
+
+    /**
+     * Accessor untuk EOQ - kalkulasi dinamis
+     */
+    public function getEoqProdukAttribute()
+    {
+        try {
+            $service = app(InventoryCalculationService::class);
+            $metrics = $service->calculateProdukMetrics($this->produk_id);
+            return $metrics['eoq'];
+        } catch (\Exception $e) {
+            return 0;
+        }
+    }
+
+    /**
+     * Accessor untuk ROP - kalkulasi dinamis
+     */
+    public function getRopProdukAttribute()
+    {
+        try {
+            $service = app(InventoryCalculationService::class);
+            $metrics = $service->calculateProdukMetrics($this->produk_id);
+            return $metrics['rop'];
+        } catch (\Exception $e) {
+            return 0;
+        }
+    }
+
+    /**
+     * Accessor untuk Safety Stock - kalkulasi dinamis
+     */
+    public function getSafetyStockProdukAttribute()
+    {
+        try {
+            $service = app(InventoryCalculationService::class);
+            $metrics = $service->calculateProdukMetrics($this->produk_id);
+            return $metrics['safety_stock'];
+        } catch (\Exception $e) {
+            return 0;
+        }
     }
 }

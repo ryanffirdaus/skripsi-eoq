@@ -25,6 +25,7 @@ class PengadaanDetail extends Model
         'qty_disetujui',
         'qty_diterima',
         'harga_satuan',
+        'biaya_pemesanan',
         'catatan',
     ];
 

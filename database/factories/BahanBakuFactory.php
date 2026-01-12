@@ -52,35 +52,6 @@ class BahanBakuFactory extends Factory
         $nama_bahan = $this->faker->randomElement($iotComponents);
         $stok_bahan = $this->faker->numberBetween(10, 500);
         $harga_bahan = $this->faker->numberBetween(5000, 500000);
-        $permintaan_harian_rata2 = $this->faker->numberBetween(1, 10);
-        $permintaan_harian_max = $permintaan_harian_rata2 + $this->faker->numberBetween(2, 5);
-        $waktu_tunggu_rata2 = $this->faker->numberBetween(3, 7);
-        $waktu_tunggu_max = $waktu_tunggu_rata2 + $this->faker->numberBetween(1, 3);
-        $permintaan_tahunan = $permintaan_harian_rata2 * 365;
-        $biaya_pemesanan = $this->faker->numberBetween(50000, 200000);
-        $biaya_penyimpanan = $harga_bahan * 0.2; // 20% dari harga
-
-        // Hitung EOQ: √((2 * D * S) / H)
-        $eoq = sqrt((2 * $permintaan_tahunan * $biaya_pemesanan) / $biaya_penyimpanan);
-
-        // Calculate Safety Stock using Z-Score Method (95% Service Level)
-        // Z = 1.65 for 95% service level
-        $zScore = 1.65;
-        
-        // Estimate standard deviations from the range
-        $stdDevDemand = ($permintaan_harian_max - $permintaan_harian_rata2) / 1.65;
-        $stdDevLeadTime = ($waktu_tunggu_max - $waktu_tunggu_rata2) / 1.65;
-        
-        // Calculate combined variability: √[(L_avg × σ_demand)² + (D_avg × σ_leadtime)²]
-        $variance = pow($waktu_tunggu_rata2 * $stdDevDemand, 2) + 
-                   pow($permintaan_harian_rata2 * $stdDevLeadTime, 2);
-        $stdDevTotal = sqrt($variance);
-        
-        // Safety Stock = Z × σ_total
-        $safety_stock = round($zScore * $stdDevTotal);
-        
-        // Calculate ROP: (d * L) + SS
-        $rop = ($permintaan_harian_rata2 * $waktu_tunggu_rata2) + $safety_stock;
 
         return [
             'bahan_baku_id' => 'BB' . str_pad($counter++, 3, '0', STR_PAD_LEFT),
@@ -89,16 +60,6 @@ class BahanBakuFactory extends Factory
             'satuan_bahan' => $this->faker->randomElement($units),
             'lokasi_bahan' => $this->faker->randomElement($locations),
             'harga_bahan' => $harga_bahan,
-            'permintaan_harian_rata2_bahan' => $permintaan_harian_rata2,
-            'permintaan_harian_maksimum_bahan' => $permintaan_harian_max,
-            'waktu_tunggu_rata2_bahan' => $waktu_tunggu_rata2,
-            'waktu_tunggu_maksimum_bahan' => $waktu_tunggu_max,
-            'permintaan_tahunan' => $permintaan_tahunan,
-            'biaya_pemesanan_bahan' => $biaya_pemesanan,
-            'biaya_penyimpanan_bahan' => $biaya_penyimpanan,
-            'safety_stock_bahan' => max(0, $safety_stock),
-            'rop_bahan' => max(0, $rop),
-            'eoq_bahan' => max(1, round($eoq)),
         ];
     }
 }

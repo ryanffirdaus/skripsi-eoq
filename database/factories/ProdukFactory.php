@@ -46,38 +46,8 @@ class ProdukFactory extends Factory
 
         $nama_produk = $this->faker->randomElement($iotProducts);
         $stok_produk = $this->faker->numberBetween(5, 100);
-        $hpp_produk = $this->faker->numberBetween(50000, 500000); // Reduced from 200k-2M
-        $harga_jual = $hpp_produk * $this->faker->randomFloat(2, 1.2, 1.8); // Reduced markup from 2.5 to 1.8
-
-        $permintaan_harian_rata2 = $this->faker->numberBetween(1, 5);
-        $permintaan_harian_max = $permintaan_harian_rata2 + $this->faker->numberBetween(1, 3);
-        $waktu_tunggu_rata2 = $this->faker->numberBetween(5, 10);
-        $waktu_tunggu_max = $waktu_tunggu_rata2 + $this->faker->numberBetween(2, 5);
-        $permintaan_tahunan = $permintaan_harian_rata2 * 365;
-        $biaya_pemesanan = $this->faker->numberBetween(100000, 500000);
-        $biaya_penyimpanan = $hpp_produk * 0.25; // 25% dari HPP
-
-        // Hitung EOQ: √((2 * D * S) / H)
-        $eoq = sqrt((2 * $permintaan_tahunan * $biaya_pemesanan) / $biaya_penyimpanan);
-
-        // Calculate Safety Stock using Z-Score Method (95% Service Level)
-        // Z = 1.65 for 95% service level
-        $zScore = 1.65;
-        
-        // Estimate standard deviations from the range
-        $stdDevDemand = ($permintaan_harian_max - $permintaan_harian_rata2) / 1.65;
-        $stdDevLeadTime = ($waktu_tunggu_max - $waktu_tunggu_rata2) / 1.65;
-        
-        // Calculate combined variability: √[(L_avg × σ_demand)² + (D_avg × σ_leadtime)²]
-        $variance = pow($waktu_tunggu_rata2 * $stdDevDemand, 2) + 
-                   pow($permintaan_harian_rata2 * $stdDevLeadTime, 2);
-        $stdDevTotal = sqrt($variance);
-        
-        // Safety Stock = Z × σ_total
-        $safety_stock = round($zScore * $stdDevTotal);
-        
-        // Calculate ROP: (d * L) + SS
-        $rop = ($permintaan_harian_rata2 * $waktu_tunggu_rata2) + $safety_stock;
+        $hpp_produk = $this->faker->numberBetween(50000, 500000);
+        $harga_jual = $hpp_produk * $this->faker->randomFloat(2, 1.2, 1.8);
 
         return [
             'produk_id' => 'PP' . str_pad($counter++, 3, '0', STR_PAD_LEFT),
@@ -87,16 +57,6 @@ class ProdukFactory extends Factory
             'lokasi_produk' => $this->faker->randomElement($locations),
             'hpp_produk' => $hpp_produk,
             'harga_jual' => $harga_jual,
-            'permintaan_harian_rata2_produk' => $permintaan_harian_rata2,
-            'permintaan_harian_maksimum_produk' => $permintaan_harian_max,
-            'waktu_tunggu_rata2_produk' => $waktu_tunggu_rata2,
-            'waktu_tunggu_maksimum_produk' => $waktu_tunggu_max,
-            'permintaan_tahunan' => $permintaan_tahunan,
-            'biaya_pemesanan_produk' => $biaya_pemesanan,
-            'biaya_penyimpanan_produk' => $biaya_penyimpanan,
-            'safety_stock_produk' => max(0, $safety_stock),
-            'rop_produk' => max(0, $rop),
-            'eoq_produk' => max(1, round($eoq)),
         ];
     }
 }

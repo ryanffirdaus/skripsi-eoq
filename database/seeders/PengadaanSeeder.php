@@ -305,6 +305,7 @@ class PengadaanSeeder extends Seeder
                     'qty_disetujui' => $item['qty_disetujui'] ?? null,
                     'qty_diterima' => 0,
                     'harga_satuan' => $detailData['harga_satuan'],
+                    'biaya_pemesanan' => rand(50000, 200000), // Random biaya pemesanan untuk seeder
                     'catatan' => 'Catatan seeder ' . $item['type'],
                 ]);
             }

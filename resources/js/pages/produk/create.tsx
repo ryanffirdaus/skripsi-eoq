@@ -41,13 +41,6 @@ export default function Create({ bahanBakus }: Props) {
         satuan_produk: '',
         hpp_produk: '',
         harga_jual: '',
-        permintaan_harian_rata2_produk: '',
-        permintaan_harian_maksimum_produk: '',
-        waktu_tunggu_rata2_produk: '',
-        waktu_tunggu_maksimum_produk: '',
-        permintaan_tahunan: '',
-        biaya_pemesanan_produk: '',
-        biaya_penyimpanan_produk: '',
         bahan_baku: [] as BahanBakuInput[],
     });
 
@@ -153,107 +146,10 @@ export default function Create({ bahanBakus }: Props) {
                 </FormField>
             </div>
 
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                <FormField
-                    id="permintaan_harian_rata2_produk"
-                    label="Permintaan Harian Rata-rata"
-                    error={errors.permintaan_harian_rata2_produk}
-                    required
-                >
-                    <NumberInput
-                        id="permintaan_harian_rata2_produk"
-                        value={data.permintaan_harian_rata2_produk}
-                        onChange={(e) => setData('permintaan_harian_rata2_produk', e.target.value)}
-                        placeholder="Masukkan permintaan harian rata-rata"
-                        error={errors.permintaan_harian_rata2_produk}
-                        min="0"
-                        step="0.01"
-                    />
-                </FormField>
-
-                <FormField
-                    id="permintaan_harian_maksimum_produk"
-                    label="Permintaan Harian Maksimum"
-                    error={errors.permintaan_harian_maksimum_produk}
-                    required
-                >
-                    <NumberInput
-                        id="permintaan_harian_maksimum_produk"
-                        value={data.permintaan_harian_maksimum_produk}
-                        onChange={(e) => setData('permintaan_harian_maksimum_produk', e.target.value)}
-                        placeholder="Masukkan permintaan harian maksimum"
-                        error={errors.permintaan_harian_maksimum_produk}
-                        min="0"
-                        step="0.01"
-                    />
-                </FormField>
-
-                <FormField id="waktu_tunggu_rata2_produk" label="Waktu Tunggu Rata-rata (hari)" error={errors.waktu_tunggu_rata2_produk} required>
-                    <NumberInput
-                        id="waktu_tunggu_rata2_produk"
-                        value={data.waktu_tunggu_rata2_produk}
-                        onChange={(e) => setData('waktu_tunggu_rata2_produk', e.target.value)}
-                        placeholder="Masukkan waktu tunggu rata-rata"
-                        error={errors.waktu_tunggu_rata2_produk}
-                        min="0"
-                        step="0.01"
-                    />
-                </FormField>
-
-                <FormField
-                    id="waktu_tunggu_maksimum_produk"
-                    label="Waktu Tunggu Maksimum (hari)"
-                    error={errors.waktu_tunggu_maksimum_produk}
-                    required
-                >
-                    <NumberInput
-                        id="waktu_tunggu_maksimum_produk"
-                        value={data.waktu_tunggu_maksimum_produk}
-                        onChange={(e) => setData('waktu_tunggu_maksimum_produk', e.target.value)}
-                        placeholder="Masukkan waktu tunggu maksimum"
-                        error={errors.waktu_tunggu_maksimum_produk}
-                        min="0"
-                        step="0.01"
-                    />
-                </FormField>
-
-                <FormField id="permintaan_tahunan" label="Permintaan Tahunan" error={errors.permintaan_tahunan} required>
-                    <NumberInput
-                        id="permintaan_tahunan"
-                        value={data.permintaan_tahunan}
-                        onChange={(e) => setData('permintaan_tahunan', e.target.value)}
-                        placeholder="Masukkan permintaan tahunan"
-                        error={errors.permintaan_tahunan}
-                        min="0"
-                        step="0.01"
-                    />
-                </FormField>
-            </div>
-
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                <FormField id="biaya_pemesanan_produk" label="Biaya Pemesanan" error={errors.biaya_pemesanan_produk} required>
-                    <NumberInput
-                        id="biaya_pemesanan_produk"
-                        value={data.biaya_pemesanan_produk}
-                        onChange={(e) => setData('biaya_pemesanan_produk', e.target.value)}
-                        placeholder="Masukkan biaya pemesanan"
-                        error={errors.biaya_pemesanan_produk}
-                        min="0"
-                        step="0.01"
-                    />
-                </FormField>
-
-                <FormField id="biaya_penyimpanan_produk" label="Biaya Penyimpanan" error={errors.biaya_penyimpanan_produk} required>
-                    <NumberInput
-                        id="biaya_penyimpanan_produk"
-                        value={data.biaya_penyimpanan_produk}
-                        onChange={(e) => setData('biaya_penyimpanan_produk', e.target.value)}
-                        placeholder="Masukkan biaya penyimpanan"
-                        error={errors.biaya_penyimpanan_produk}
-                        min="0"
-                        step="0.01"
-                    />
-                </FormField>
+            <div className="mt-4 rounded-lg border border-blue-200 bg-blue-50 p-4">
+                <p className="text-sm text-blue-800">
+                    <strong>Catatan:</strong> EOQ, ROP, dan Safety Stock akan dihitung otomatis berdasarkan data transaksi historis.
+                </p>
             </div>
 
             <div className="space-y-4">

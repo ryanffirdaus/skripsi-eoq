@@ -122,42 +122,12 @@ class ProdukController extends Controller
             'satuan_produk' => ['required', 'string', 'max:50'],
             'hpp_produk' => ['required', 'numeric', 'min:0'],
             'harga_jual' => ['required', 'numeric', 'min:0'],
-            'permintaan_harian_rata2_produk' => ['required', 'numeric', 'min:0'],
-            'permintaan_harian_maksimum_produk' => ['required', 'numeric', 'min:0'],
-            'waktu_tunggu_rata2_produk' => ['required', 'numeric', 'min:0'],
-            'waktu_tunggu_maksimum_produk' => ['required', 'numeric', 'min:0'],
-            'permintaan_tahunan' => ['required', 'numeric', 'min:0'],
-            'biaya_pemesanan_produk' => ['required', 'numeric', 'min:0'],
-            'biaya_penyimpanan_produk' => ['required', 'numeric', 'min:0'],
             'bahan_baku' => ['required', 'array', 'min:1'],
             'bahan_baku.*.bahan_baku_id' => ['required', 'string', 'exists:bahan_baku,bahan_baku_id'],
             'bahan_baku.*.jumlah_bahan_baku' => ['required', 'numeric', 'min:0.01'],
         ]);
 
         $produk = DB::transaction(function () use ($validated) {
-            // Calculate safety stock using Z-Score Method (95% Service Level)
-            // Z = 1.65 for 95% service level
-            $zScore = 1.65;
-            
-            // Estimate standard deviations from the range
-            $stdDevDemand = ($validated['permintaan_harian_maksimum_produk'] - $validated['permintaan_harian_rata2_produk']) / 1.65;
-            $stdDevLeadTime = ($validated['waktu_tunggu_maksimum_produk'] - $validated['waktu_tunggu_rata2_produk']) / 1.65;
-            
-            // Calculate combined variability: √[(L_avg × σ_demand)² + (D_avg × σ_leadtime)²]
-            $variance = pow($validated['waktu_tunggu_rata2_produk'] * $stdDevDemand, 2) + 
-                       pow($validated['permintaan_harian_rata2_produk'] * $stdDevLeadTime, 2);
-            $stdDevTotal = sqrt($variance);
-            
-            // Safety Stock = Z × σ_total
-            $safety_stock_produk = max(0, round($zScore * $stdDevTotal));
-
-            // Calculate reorder point (ROP)
-            $rop_produk = ($validated['permintaan_harian_rata2_produk'] * $validated['waktu_tunggu_rata2_produk']) + $safety_stock_produk;
-
-            // Calculate EOQ
-            $eoq_produk = sqrt((2 * $validated['permintaan_tahunan'] * $validated['biaya_pemesanan_produk']) /
-                $validated['biaya_penyimpanan_produk']);
-
             // Create produk
             $produk = Produk::create([
                 'nama_produk' => $validated['nama_produk'],
@@ -166,16 +136,6 @@ class ProdukController extends Controller
                 'satuan_produk' => $validated['satuan_produk'],
                 'hpp_produk' => $validated['hpp_produk'],
                 'harga_jual' => $validated['harga_jual'],
-                'permintaan_harian_rata2_produk' => $validated['permintaan_harian_rata2_produk'],
-                'permintaan_harian_maksimum_produk' => $validated['permintaan_harian_maksimum_produk'],
-                'waktu_tunggu_rata2_produk' => $validated['waktu_tunggu_rata2_produk'],
-                'waktu_tunggu_maksimum_produk' => $validated['waktu_tunggu_maksimum_produk'],
-                'permintaan_tahunan' => $validated['permintaan_tahunan'],
-                'biaya_pemesanan_produk' => $validated['biaya_pemesanan_produk'],
-                'biaya_penyimpanan_produk' => $validated['biaya_penyimpanan_produk'],
-                'safety_stock_produk' => $safety_stock_produk,
-                'rop_produk' => $rop_produk,
-                'eoq_produk' => $eoq_produk,
             ]);
 
             // Insert bahan baku relationships
@@ -187,7 +147,7 @@ class ProdukController extends Controller
                 ]);
             }
 
-            return $produk; // ✅ return di sini
+            return $produk;
         });
 
         return redirect()->route('produk.index')
@@ -241,49 +201,14 @@ class ProdukController extends Controller
             'satuan_produk' => ['required', 'string', 'max:50'],
             'hpp_produk' => ['required', 'numeric', 'min:0'],
             'harga_jual' => ['required', 'numeric', 'min:0'],
-            'permintaan_harian_rata2_produk' => ['required', 'numeric', 'min:0'],
-            'permintaan_harian_maksimum_produk' => ['required', 'numeric', 'min:0'],
-            'waktu_tunggu_rata2_produk' => ['required', 'numeric', 'min:0'],
-            'waktu_tunggu_maksimum_produk' => ['required', 'numeric', 'min:0'],
-            'permintaan_tahunan' => ['required', 'numeric', 'min:0'],
-            'biaya_pemesanan_produk' => ['required', 'numeric', 'min:0'],
-            'biaya_penyimpanan_produk' => ['required', 'numeric', 'min:0'],
             'bahan_baku' => ['required', 'array', 'min:1'],
             'bahan_baku.*.bahan_baku_id' => ['required', 'string', 'exists:bahan_baku,bahan_baku_id'],
             'bahan_baku.*.jumlah_bahan_baku' => ['required', 'numeric', 'min:0.01'],
         ]);
 
         DB::transaction(function () use ($validated, $produk) {
-            // Recalculate safety stock using Z-Score Method (95% Service Level)
-            // Z = 1.65 for 95% service level
-            $zScore = 1.65;
-            
-            // Estimate standard deviations from the range
-            $stdDevDemand = ($validated['permintaan_harian_maksimum_produk'] - $validated['permintaan_harian_rata2_produk']) / 1.65;
-            $stdDevLeadTime = ($validated['waktu_tunggu_maksimum_produk'] - $validated['waktu_tunggu_rata2_produk']) / 1.65;
-            
-            // Calculate combined variability: √[(L_avg × σ_demand)² + (D_avg × σ_leadtime)²]
-            $variance = pow($validated['waktu_tunggu_rata2_produk'] * $stdDevDemand, 2) + 
-                       pow($validated['permintaan_harian_rata2_produk'] * $stdDevLeadTime, 2);
-            $stdDevTotal = sqrt($variance);
-            
-            // Safety Stock = Z × σ_total
-            $safety_stock_produk = max(0, round($zScore * $stdDevTotal));
-
-            // Recalculate reorder point (ROP)
-            $rop_produk = ($validated['permintaan_harian_rata2_produk'] * $validated['waktu_tunggu_rata2_produk']) + $safety_stock_produk;
-
-            // Recalculate EOQ
-            $eoq_produk = sqrt((2 * $validated['permintaan_tahunan'] * $validated['biaya_pemesanan_produk']) /
-                $validated['biaya_penyimpanan_produk']);
-
-            // Update produk with validated data and recalculated values
-            $produk->update([
-                ...$validated,
-                'safety_stock_produk' => $safety_stock_produk,
-                'rop_produk' => $rop_produk,
-                'eoq_produk' => $eoq_produk,
-            ]);
+            // Update produk
+            $produk->update($validated);
 
             // Delete existing bahan baku relationships
             DB::table('bahan_produksi')->where('produk_id', $produk->produk_id)->delete();

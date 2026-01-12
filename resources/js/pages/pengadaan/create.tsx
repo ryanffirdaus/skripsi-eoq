@@ -81,6 +81,7 @@ interface ItemDetail {
     qty_needed?: number;
     qty_diminta: number; // SOURCE OF TRUTH FROM MODEL
     harga_satuan?: number;
+    biaya_pemesanan?: number; // Biaya pemesanan per item/supplier
     catatan: string;
 }
 
@@ -199,6 +200,7 @@ export default function Create({ pemasoks, pesanan, bahanBaku, produk, auth }: P
                 barang_id: '',
                 pemasok_id: '',
                 qty_diminta: 1,
+                biaya_pemesanan: 0,
                 catatan: '',
             },
         ];
@@ -506,7 +508,7 @@ export default function Create({ pemasoks, pesanan, bahanBaku, produk, auth }: P
                                         )}
                                     </div>
 
-                                    {/* Qty and Remove Button */}
+                                    {/* Qty, Biaya Pemesanan, and Remove Button */}
                                     <div className="flex items-end justify-between gap-2">
                                         <div className="flex-1">
                                             <Label>Jumlah</Label>
@@ -516,6 +518,18 @@ export default function Create({ pemasoks, pesanan, bahanBaku, produk, auth }: P
                                                 onChange={(e) => updateItem(index, 'qty_diminta', parseInt(e.target.value) || 0)}
                                                 className="mt-1"
                                                 min="1"
+                                            />
+                                        </div>
+                                        <div className="flex-1">
+                                            <Label>Biaya Pemesanan (Opsional)</Label>
+                                            <Input
+                                                type="number"
+                                                value={item.biaya_pemesanan || ''}
+                                                onChange={(e) => updateItem(index, 'biaya_pemesanan', parseFloat(e.target.value) || 0)}
+                                                className="mt-1"
+                                                placeholder="Rp"
+                                                min="0"
+                                                step="1000"
                                             />
                                         </div>
                                         <Button

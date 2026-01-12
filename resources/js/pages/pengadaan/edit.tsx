@@ -23,6 +23,7 @@ interface PengadaanDetail {
     satuan: string;
     qty_diminta: number;
     harga_satuan: string;
+    biaya_pemesanan?: number;
     catatan?: string;
 }
 
@@ -69,6 +70,7 @@ export default function Edit({ pengadaan, pemasoks, statusOptions, auth }: Props
             pemasok_id: item.pemasok_id || '',
             qty_diminta: item.qty_diminta.toString(),
             harga_satuan: item.harga_satuan || '',
+            biaya_pemesanan: item.biaya_pemesanan?.toString() || '',
         })),
     });
 
@@ -259,6 +261,25 @@ export default function Edit({ pengadaan, pemasoks, statusOptions, auth }: Props
                                     ) : (
                                         <div className="mt-1 rounded border bg-white p-2 text-sm">
                                             Rp {parseFloat(item.harga_satuan).toLocaleString('id-ID')}
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div>
+                                    <Label className="text-sm font-medium text-gray-700">Biaya Pemesanan (Opsional)</Label>
+                                    {isPriceEditable ? (
+                                        <Input
+                                            type="number"
+                                            value={data.details[index].biaya_pemesanan || ''}
+                                            onChange={(e) => handleDetailChange(index, 'biaya_pemesanan', e.target.value)}
+                                            className="mt-1"
+                                            placeholder="Rp"
+                                            min="0"
+                                            step="1000"
+                                        />
+                                    ) : (
+                                        <div className="mt-1 rounded border bg-white p-2 text-sm">
+                                            {item.biaya_pemesanan ? `Rp ${parseFloat(item.biaya_pemesanan.toString()).toLocaleString('id-ID')}` : '-'}
                                         </div>
                                     )}
                                 </div>
