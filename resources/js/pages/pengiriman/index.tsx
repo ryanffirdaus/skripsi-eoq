@@ -1,4 +1,4 @@
-import { createDeleteAction, createEditAction } from '@/components/table/table-actions';
+import { createDeleteAction, createEditAction, createViewAction } from '@/components/table/table-actions';
 import TableTemplate from '@/components/table/table-template';
 import { type BreadcrumbItem } from '@/types';
 import { router } from '@inertiajs/react';
@@ -211,6 +211,7 @@ export default function Index({ pengiriman, filters, flash }: Props) {
 
     const actions = useMemo(
         () => [
+            createViewAction<Pengiriman>((item) => `/pengiriman/${item.pengiriman_id}`),
             createEditAction<Pengiriman>((item) => `/pengiriman/${item.pengiriman_id}/edit`),
             createDeleteAction<Pengiriman>((item) => {
                 router.delete(`/pengiriman/${item.pengiriman_id}`, {

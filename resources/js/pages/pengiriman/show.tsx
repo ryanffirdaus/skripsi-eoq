@@ -37,6 +37,10 @@ interface Pengiriman {
     tanggal_kirim?: string;
     tanggal_diterima?: string;
     catatan?: string;
+    qr_code?: string;
+    tracking_url?: string;
+    tracking_identifier?: string;
+    uses_resi?: boolean;
     pesanan: Pesanan;
     dibuat_oleh?: string;
     diubah_oleh?: string;
@@ -92,6 +96,72 @@ export default function Show({ pengiriman, permissions = {} }: Props) {
             variant: 'outline' as const,
         },
     ];
+
+    // Download QR Code (SVG)
+    const downloadQRCode = () => {
+        if (!pengiriman.qr_code || !pengiriman.tracking_identifier) return;
+        
+        const blob = new Blob([pengiriman.qr_code], { type: 'image/svg+xml' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `QR-${pengiriman.tracking_identifier}.svg`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+    };
+
+    // Print QR Code
+    const printQRCode = () => {
+        if (!pengiriman.qr_code) return;
+        
+        const printWindow = window.open('', '', 'width=600,height=600');
+        if (!printWindow) return;
+        
+        printWindow.document.write(`
+            <html>
+                <head>
+                    <title>QR Code - ${pengiriman.nomor_resi}</title>
+                    <style>
+                        body {
+                            display: flex;
+                            flex-direction: column;
+                            align-items: center;
+                            justify-content: center;
+                            padding: 20px;
+                            font-family: Arial, sans-serif;
+                        }
+                        img {
+                            max-width: 300px;
+                            margin: 20px auto;
+                        }
+                        .info {
+                            text-align: center;
+                            margin-top: 20px;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <h2>QR Code Tracking</h2>
+                    <div style="text-align: center;">
+                        ${pengiriman.qr_code}
+                    </div>
+                    <div class="info">
+                        <p><strong>${pengiriman.uses_resi ? 'Nomor Resi' : 'ID Pengiriman'}:</strong> ${pengiriman.tracking_identifier}</p>
+                        <p><strong>Kurir:</strong> ${pengiriman.kurir}</p>
+                        <p><strong>ID Pengiriman:</strong> ${pengiriman.pengiriman_id}</p>
+                        <p style="font-size: 12px; color: #666;">Scan QR code untuk tracking status pengiriman</p>
+                    </div>
+                </body>
+            </html>
+        `);
+        printWindow.document.close();
+        printWindow.focus();
+        setTimeout(() => {
+            printWindow.print();
+            printWindow.close();
+        }, 250);
+    };
 
     const pengirimanInfo = [
         {
@@ -221,6 +291,77 @@ export default function Show({ pengiriman, permissions = {} }: Props) {
                 <InfoSection title="Informasi Pengiriman" items={pengirimanInfo} />
 
                 <InfoSection title="Informasi Pesanan" items={pesananInfo} />
+
+                {/* QR Code Section */}
+                {pengiriman.qr_code && pengiriman.tracking_identifier && (
+                    <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+                        <h3 className="mb-4 text-lg font-semibold text-gray-900">QR Code Tracking</h3>
+                        <div className="flex flex-col items-center gap-6 md:flex-row md:items-start md:justify-between">
+                            {/* QR Code Display */}
+                            <div className="flex flex-col items-center gap-4">
+                                <div className="rounded-lg border-2 border-gray-300 bg-white p-4">
+                                    <div 
+                                        className="w-64 h-64 flex items-center justify-center"
+                                        dangerouslySetInnerHTML={{ __html: pengiriman.qr_code }}
+                                    />
+                                </div>
+                                <p className="text-center text-sm text-gray-600">
+                                    Scan QR code untuk tracking pengiriman
+                                </p>
+                            </div>
+
+                            {/* QR Info & Actions */}
+                            <div className="flex-1 space-y-4">
+                                <div className="space-y-2">
+                                    <div>
+                                        <span className="text-sm font-medium text-gray-500">
+                                            {pengiriman.uses_resi ? 'Nomor Resi:' : 'ID Pengiriman:'}
+                                        </span>
+                                        <p className="font-mono text-lg font-semibold">{pengiriman.tracking_identifier}</p>
+                                        {!pengiriman.uses_resi && (
+                                            <p className="text-xs text-amber-600 mt-1">
+                                                ⚠️ Nomor resi belum diisi, menggunakan ID pengiriman
+                                            </p>
+                                        )}
+                                    </div>
+                                    <div>
+                                        <span className="text-sm font-medium text-gray-500">Tracking URL:</span>
+                                        <p className="break-all text-sm text-blue-600">{pengiriman.tracking_url}</p>
+                                    </div>
+                                </div>
+
+                                {/* Action Buttons */}
+                                <div className="flex flex-col gap-2 sm:flex-row">
+                                    <button
+                                        onClick={downloadQRCode}
+                                        className="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                                    >
+                                        <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a 3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                        </svg>
+                                        Download QR Code
+                                    </button>
+                                    <button
+                                        onClick={printQRCode}
+                                        className="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                                    >
+                                        <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                                        </svg>
+                                        Print QR Code
+                                    </button>
+                                </div>
+
+                                <div className="rounded-md bg-blue-50 p-3">
+                                    <p className="text-xs text-blue-800">
+                                        <strong>Catatan:</strong> QR code ini dapat digunakan untuk tracking pengiriman secara publik tanpa perlu login.
+                                        Share QR code ini kepada pelanggan untuk tracking mandiri.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 <InfoSection title="Timeline Pengiriman" items={timelineInfo} />
 

@@ -65,21 +65,27 @@ class CreateAutomaticPengadaan implements ShouldQueue
      */
     private function checkBahanBakuReorder()
     {
-        $bahanBakuList = BahanBaku::whereRaw('stok_bahan <= (rop_bahan + safety_stock_bahan)')
-            ->where('stok_bahan', '>', 0) // Masih ada stok tapi sudah di bawah threshold
-            ->get();
-
+        // Get all bahan baku and check dynamically via accessor
+        $bahanBakuList = BahanBaku::where('stok_bahan', '>', 0)->get();
+        
         foreach ($bahanBakuList as $bahanBaku) {
-            // Check apakah sudah ada pengadaan pending untuk bahan baku ini
-            $existingPengadaan = Pengadaan::whereHas('detail', function ($query) use ($bahanBaku) {
-                $query->where('item_type', 'bahan_baku')
-                    ->where('item_id', $bahanBaku->bahan_baku_id);
-            })
-                ->whereIn('status', ['draft', 'pending', 'procurement_approved', 'finance_approved', 'ordered'])
-                ->exists();
+            // Use accessor properties which call InventoryCalculationService automatically
+            $rop = $bahanBaku->rop_bahan;
+            $safetyStock = $bahanBaku->safety_stock_bahan;
+            
+            // Check if stock is below ROP + Safety Stock threshold
+            if ($bahanBaku->stok_bahan <= ($rop + $safetyStock)) {
+                // Check apakah sudah ada pengadaan pending untuk bahan baku ini
+                $existingPengadaan = Pengadaan::whereHas('detail', function ($query) use ($bahanBaku) {
+                    $query->where('item_type', 'bahan_baku')
+                        ->where('item_id', $bahanBaku->bahan_baku_id);
+                })
+                    ->whereIn('status', ['draft', 'pending', 'procurement_approved', 'finance_approved', 'ordered'])
+                    ->exists();
 
-            if (!$existingPengadaan) {
-                $this->createPengadaanForBahanBaku($bahanBaku);
+                if (!$existingPengadaan) {
+                    $this->createPengadaanForBahanBaku($bahanBaku);
+                }
             }
         }
     }
@@ -89,21 +95,27 @@ class CreateAutomaticPengadaan implements ShouldQueue
      */
     private function checkProdukReorder()
     {
-        $produkList = Produk::whereRaw('stok_produk <= (rop_produk + safety_stock_produk)')
-            ->where('stok_produk', '>', 0) // Masih ada stok tapi sudah di bawah threshold
-            ->get();
-
+        // Get all produk and check dynamically via accessor
+        $produkList = Produk::where('stok_produk', '>', 0)->get();
+        
         foreach ($produkList as $produk) {
-            // Check apakah sudah ada pengadaan pending untuk produk ini
-            $existingPengadaan = Pengadaan::whereHas('detail', function ($query) use ($produk) {
-                $query->where('item_type', 'produk')
-                    ->where('item_id', $produk->produk_id);
-            })
-                ->whereIn('status', ['draft', 'pending', 'procurement_approved', 'finance_approved', 'ordered'])
-                ->exists();
+            // Use accessor properties which call InventoryCalculationService automatically
+            $rop = $produk->rop_produk;
+            $safetyStock = $produk->safety_stock_produk;
+            
+            // Check if stock is below ROP + Safety Stock threshold
+            if ($produk->stok_produk <= ($rop + $safetyStock)) {
+                // Check apakah sudah ada pengadaan pending untuk produk ini
+               $existingPengadaan = Pengadaan::whereHas('detail', function ($query) use ($produk) {
+                    $query->where('item_type', 'produk')
+                        ->where('item_id', $produk->produk_id);
+                })
+                    ->whereIn('status', ['draft', 'pending', 'procurement_approved', 'finance_approved', 'ordered'])
+                    ->exists();
 
-            if (!$existingPengadaan) {
-                $this->createPengadaanForProduk($produk);
+                if (!$existingPengadaan) {
+                    $this->createPengadaanForProduk($produk);
+                }
             }
         }
     }

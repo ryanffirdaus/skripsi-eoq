@@ -30,7 +30,7 @@ class DashboardController extends Controller
         // Get basic stats
         $stats = [
             'totalBahanBaku' => BahanBaku::count(),
-            'lowStockItems' => BahanBaku::whereColumn('stok_bahan', '<', 'safety_stock_bahan')->count(),
+            'lowStockItems' => $this->countLowStockItems(),
             'totalPesanan' => Pesanan::count(),
             'pesananPending' => Pesanan::where('status', 'menunggu')->count(),
             'totalPengiriman' => Pengiriman::count(),
@@ -139,7 +139,7 @@ class DashboardController extends Controller
         return [
             'kpis' => [
                 'totalInventory' => BahanBaku::count(),
-                'lowStockItems' => BahanBaku::whereColumn('stok_bahan', '<=', 'rop_bahan')->count(),
+                'lowStockItems' => $this->countLowStockItems(),
                 'shipmentsToday' => Pengiriman::whereDate('created_at', today())->count(),
             ],
             'stockMovementTrend' => $this->getStockMovementTrend($dateFrom, $dateTo),
@@ -330,10 +330,31 @@ class DashboardController extends Controller
 
     private function getInventoryLevelDistribution()
     {
+        // Count items manually using dynamic calculations via accessor
+        $bahanBakus = BahanBaku::all();
+        
+        $stokAman = 0;
+        $stokRendah = 0;
+        $stokKritis = 0;
+        
+        foreach ($bahanBakus as $item) {
+            // Use accessor properties which call InventoryCalculationService automatically
+            $rop = $item->rop_bahan;
+            $safetyStock = $item->safety_stock_bahan;
+            
+            if ($item->stok_bahan > $rop) {
+                $stokAman++;
+            } elseif ($item->stok_bahan > $safetyStock) {
+                $stokRendah++;
+            } else {
+                $stokKritis++;
+            }
+        }
+        
         return [
-            ['name' => 'Stok Aman', 'value' => BahanBaku::whereColumn('stok_bahan', '>', 'rop_bahan')->count()],
-            ['name' => 'Stok Rendah', 'value' => BahanBaku::whereColumn('stok_bahan', '<=', 'rop_bahan')->whereColumn('stok_bahan', '>', 'safety_stock_bahan')->count()],
-            ['name' => 'Stok Kritis', 'value' => BahanBaku::whereColumn('stok_bahan', '<=', 'safety_stock_bahan')->count()],
+            ['name' => 'Stok Aman', 'value' => $stokAman],
+            ['name' => 'Stok Rendah', 'value' => $stokRendah],
+            ['name' => 'Stok Kritis', 'value' => $stokKritis],
         ];
     }
 
@@ -543,5 +564,24 @@ class DashboardController extends Controller
         $total = \App\Models\PenugasanProduksi::count();
         $completed = \App\Models\PenugasanProduksi::where('status', 'selesai')->count();
         return $total > 0 ? round(($completed / $total) * 100, 2) : 0;
+    }
+    
+    /**
+     * Count low stock items using dynamic ROP calculation via accessor
+     */
+    private function countLowStockItems()
+    {
+        $count = 0;
+        $bahanBakus = BahanBaku::all();
+        
+        foreach ($bahanBakus as $item) {
+            // Use accessor property which calls InventoryCalculationService automatically
+            $safetyStock = $item->safety_stock_bahan;
+            if ($item->stok_bahan < $safetyStock) {
+                $count++;
+            }
+        }
+        
+        return $count;
     }
 }

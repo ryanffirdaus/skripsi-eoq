@@ -7,6 +7,7 @@ use App\Models\Pesanan;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Validator;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class PengirimanController extends Controller
 {
@@ -194,6 +195,23 @@ class PengirimanController extends Controller
     }
 
     /**
+     * Generate QR Code for tracking
+     */
+    public function generateQRCode(Pengiriman $pengiriman)
+    {
+        // Use nomor_resi if available, otherwise fallback to pengiriman_id
+        $identifier = $pengiriman->nomor_resi ?: $pengiriman->pengiriman_id;
+        $trackingUrl = url("/track/{$identifier}");
+        
+        // Generate QR code as SVG (no imagick extension required)
+        return QrCode::format('svg')
+            ->size(300)
+            ->margin(1)
+            ->errorCorrection('M')
+            ->generate($trackingUrl);
+    }
+
+    /**
      * Display the specified resource.
      */
     public function show(Pengiriman $pengiriman)
@@ -203,6 +221,12 @@ class PengirimanController extends Controller
             'createdBy:user_id,nama_lengkap',
             'updatedBy:user_id,nama_lengkap'
         ]);
+
+        // Generate QR code as SVG
+        $qrCode = (string) $this->generateQRCode($pengiriman);
+        
+        // Use nomor_resi if available, otherwise fallback to pengiriman_id
+        $identifier = $pengiriman->nomor_resi ?: $pengiriman->pengiriman_id;
 
         return Inertia::render('pengiriman/show', [
             'pengiriman' => [
@@ -217,6 +241,10 @@ class PengirimanController extends Controller
                 'tanggal_kirim' => $pengiriman->tanggal_kirim?->format('Y-m-d'),
                 'tanggal_diterima' => $pengiriman->tanggal_diterima?->format('Y-m-d'),
                 'catatan' => $pengiriman->catatan,
+                'qr_code' => $qrCode, // SVG string
+                'tracking_url' => url("/track/{$identifier}"),
+                'tracking_identifier' => $identifier,
+                'uses_resi' => !empty($pengiriman->nomor_resi),
                 'pesanan' => [
                     'pesanan_id' => $pengiriman->pesanan->pesanan_id,
                     'tanggal_pesanan' => $pengiriman->pesanan->tanggal_pemesanan,
@@ -377,5 +405,20 @@ class PengirimanController extends Controller
             'message' => 'Status pengiriman berhasil diperbarui!',
             'pengiriman' => $pengiriman->fresh()
         ]);
+    }
+
+    /**
+     * Public tracking by nomor resi or pengiriman_id (accessible without authentication)
+     */
+    public function trackByResi($identifier)
+    {
+        // Try to find by nomor_resi first, then fallback to pengiriman_id
+        $pengiriman = Pengiriman::where('nomor_resi', $identifier)
+            ->orWhere('pengiriman_id', $identifier)
+            ->with(['pesanan.pelanggan'])
+            ->firstOrFail();
+        
+        // Redirect to the show page
+        return redirect()->route('pengiriman.show', $pengiriman->pengiriman_id);
     }
 }

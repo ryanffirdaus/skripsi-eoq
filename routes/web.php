@@ -21,6 +21,10 @@ Route::get('/', function () {
     return Auth::check() ? redirect()->route('dashboard') : redirect()->route('login');
 })->name('home');
 
+// Public route for QR code tracking (no auth required)
+// Supports both nomor_resi and pengiriman_id
+Route::get('/track/{identifier}', [PengirimanController::class, 'trackByResi'])->name('pengiriman.track');
+
 // Debug route - HAPUS SETELAH SELESAI DEBUG
 require __DIR__ . '/debug.php';
 
