@@ -36,6 +36,13 @@ class ProdukController extends Controller
 
         // Paginate the results
         $produks = $query->paginate($perPage)->withQueryString();
+        
+        // Transform collection to include calculated fields
+        $produks->getCollection()->transform(function ($item) {
+            // Access the calculated properties to trigger accessors
+            $item->append(['eoq_produk', 'rop_produk', 'safety_stock_produk']);
+            return $item;
+        });
 
         // Check permissions
         $canCreate = $this->hasRoles(['R01', 'R02', 'R07']); // Admin, Manajer Gudang

@@ -35,6 +35,13 @@ class BahanBakuController extends Controller
 
         // Paginate the results
         $bahanBakus = $query->paginate($perPage)->withQueryString();
+        
+        // Transform collection to include calculated fields
+        $bahanBakus->getCollection()->transform(function ($item) {
+            // Access the calculated properties to trigger accessors
+            $item->append(['eoq_bahan', 'rop_bahan', 'safety_stock_bahan']);
+            return $item;
+        });
 
         // Check permissions
         $canCreate = $this->hasRoles(['R01', 'R07', 'R02']); // Admin, Manajer Gudang, Staf Gudang
