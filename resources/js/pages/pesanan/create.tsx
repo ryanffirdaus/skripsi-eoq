@@ -57,8 +57,8 @@ export default function Create({ pelanggan, produk }: Props) {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Filter out empty produk items
-        const validProduk = produkItems.filter((item) => item.produk_id && item.jumlah_produk > 0 && item.harga_satuan >= 0);
+        // Filter out empty produk items (harga_satuan auto-filled from produk)
+        const validProduk = produkItems.filter((item) => item.produk_id && item.jumlah_produk > 0);
 
         // Update the form data before submission
         setData('produk', validProduk);
@@ -208,20 +208,14 @@ export default function Create({ pelanggan, produk }: Props) {
 
                             <div>
                                 <label className={cn('mb-1 block text-sm font-medium', colors.label.base)}>
-                                    Harga Satuan <span className="text-red-500">*</span>
+                                    Harga Satuan
                                 </label>
-                                <input
-                                    type="number"
-                                    min="0"
-                                    step="0.01"
-                                    value={item.harga_satuan}
-                                    onChange={(e) => updateProdukItem(index, 'harga_satuan', parseFloat(e.target.value) || 0)}
-                                    className={cn(colors.input.base, errors[`produk.${index}.harga_satuan`] && colors.input.error)}
-                                    required
-                                />
-                                {errors[`produk.${index}.harga_satuan`] && (
-                                    <p className={colors.text.error}>{errors[`produk.${index}.harga_satuan`]}</p>
-                                )}
+                                <div className="relative">
+                                    <div className={cn('rounded-md border bg-gray-100 px-3 py-2 text-gray-700', colors.border.primary)}>
+                                        Rp {item.harga_satuan.toLocaleString('id-ID')}
+                                    </div>
+                                    <span className="mt-1 text-xs text-gray-500">🔒 Auto dari harga jual produk</span>
+                                </div>
                             </div>
 
                             <div className="flex items-end">

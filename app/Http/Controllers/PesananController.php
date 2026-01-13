@@ -131,7 +131,7 @@ class PesananController extends Controller
             'produk' => 'required|array|min:1',
             'produk.*.produk_id' => 'required|exists:produk,produk_id',
             'produk.*.jumlah_produk' => 'required|integer|min:1',
-            'produk.*.harga_satuan' => 'required|numeric|min:0',
+            // harga_satuan removed - will be auto-filled from produk.harga_jual
         ]);
 
         $pesanan = DB::transaction(function () use ($validated) {
@@ -144,11 +144,14 @@ class PesananController extends Controller
 
             // Create detail records using PesananDetail model
             foreach ($validated['produk'] as $item) {
+                // Get produk to fetch current harga_jual
+                $produk = Produk::find($item['produk_id']);
+                
                 \App\Models\PesananDetail::create([
                     'pesanan_id' => $pesanan->pesanan_id,
                     'produk_id' => $item['produk_id'],
                     'jumlah_produk' => $item['jumlah_produk'],
-                    'harga_satuan' => $item['harga_satuan'],
+                    'harga_satuan' => $produk->harga_jual, // AUTO-FILLED from produk
                     // subtotal will be auto-calculated by model
                 ]);
             }
@@ -228,7 +231,7 @@ class PesananController extends Controller
             'products' => 'required|array|min:1',
             'products.*.produk_id' => 'required|exists:produk,produk_id',
             'products.*.jumlah_produk' => 'required|integer|min:1',
-            'products.*.harga_satuan' => 'required|numeric|min:0',
+            // harga_satuan removed - will be auto-filled from produk.harga_jual
         ]);
 
         DB::transaction(function () use ($validated, $pesanan) {
@@ -244,11 +247,14 @@ class PesananController extends Controller
             $pesanan->detail()->delete();
 
             foreach ($validated['products'] as $item) {
+                // Get produk to fetch current harga_jual
+                $produk = Produk::find($item['produk_id']);
+                
                 \App\Models\PesananDetail::create([
                     'pesanan_id' => $pesanan->pesanan_id,
                     'produk_id' => $item['produk_id'],
                     'jumlah_produk' => $item['jumlah_produk'],
-                    'harga_satuan' => $item['harga_satuan'],
+                    'harga_satuan' => $produk->harga_jual, // AUTO-FILLED from produk
                     // subtotal will be auto-calculated by model
                 ]);
             }
