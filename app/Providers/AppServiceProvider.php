@@ -7,11 +7,13 @@ use App\Models\Produk;
 use App\Models\Pengiriman;
 use App\Models\PenugasanProduksi;
 use App\Models\PenerimaanBahanBaku;
+use App\Models\Pengadaan;
 use App\Observers\BahanBakuObserver;
 use App\Observers\ProdukObserver;
 use App\Observers\PengirimanObserver;
 use App\Observers\PenugasanProduksiObserver;
 use App\Observers\PenerimaanBahanBakuObserver;
+use App\Observers\PengadaanObserver;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -35,5 +37,6 @@ class AppServiceProvider extends ServiceProvider
         Pengiriman::observe(PengirimanObserver::class);
         PenugasanProduksi::observe(PenugasanProduksiObserver::class);
         PenerimaanBahanBaku::observe(PenerimaanBahanBakuObserver::class);
+        Pengadaan::observe(PengadaanObserver::class);
     }
 }
